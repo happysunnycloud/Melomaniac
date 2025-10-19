@@ -53,10 +53,39 @@ object MainForm: TMainForm
     Position.X = 8.000000000000000000
     Position.Y = 12.000000000000000000
     Size.Width = 805.000000000000000000
-    Size.Height = 397.000000000000000000
+    Size.Height = 283.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     Viewport.Width = 801.000000000000000000
-    Viewport.Height = 393.000000000000000000
+    Viewport.Height = 279.000000000000000000
+  end
+  object TrackerLayout: TLayout
+    Align = Bottom
+    Position.Y = 380.000000000000000000
+    Size.Width = 821.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    object DurationBar: TRectangle
+      Position.X = 30.000000000000000000
+      Position.Y = 14.000000000000000000
+      Size.Width = 463.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      object TimelineCaret: TCircle
+        Opacity = 0.200000002980232200
+        Position.X = -15.000000000000000000
+        Position.Y = -4.000000000000000000
+        Size.Width = 33.000000000000000000
+        Size.Height = 31.000000000000000000
+        Size.PlatformDefault = False
+      end
+    end
+  end
+  object CurrentTimeLabel: TLabel
+    Position.X = 12.000000000000000000
+    Position.Y = 342.000000000000000000
+    Text = '00:00:00'
+    TabOrder = 5
   end
 end

@@ -37,6 +37,13 @@ type
   strict private
     FThreadFactory: TThreadFactory;
     FOnPlayListReloaded: TPlayListReloadedProRef;
+
+    FCurrentIndex: Integer;
+
+    function GetFirst: TPlayItem;
+    function GetLast: TPlayItem;
+    function GetNext: TPlayItem;
+    function GetPrev: TPlayItem;
   public
     constructor Create(const AThreadFactory: TThreadFactory);
     destructor Destroy; override;
@@ -48,6 +55,11 @@ type
 
     property OnPlayListReloaded: TPlayListReloadedProRef
       read FOnPlayListReloaded write FOnPlayListReloaded;
+
+    property First: TPlayItem read GetFirst;
+    property Last: TPlayItem read GetLast;
+    property Next: TPlayItem read GetNext;
+    property Prev: TPlayItem read GetPrev;
   end;
 
 implementation
@@ -79,6 +91,8 @@ begin
 
   FThreadFactory := AThreadFactory;
   FOnPlayListReloaded := nil;
+
+  FCurrentIndex := 0;
 end;
 
 destructor TPlayList.Destroy;
@@ -113,6 +127,8 @@ begin
   SetLength(FileNames, 0);
   TFileTools.GetTreeOfFileNames(ADir, '', FileNames);
 
+  FCurrentIndex := 0;
+
   // создаём потоки
   FileCount := Length(FileNames);
   FilesPerThread := Ceil(FileCount / THREAD_COUNT);
@@ -131,7 +147,6 @@ begin
       FinishIndex);
   end;
 
-//  TTAGReaderThread.Create(FThreadFactory, Self, FileNames, 0, 10);
   FThreadFactory.OnAllThreadsAreDestroyedProcRef :=
     procedure
     begin
@@ -142,6 +157,50 @@ begin
           FOnPlayListReloaded;
       end);
     end;
+end;
+
+function TPlayList.GetFirst: TPlayItem;
+begin
+  Result := nil;
+
+  if Self.Count = 0 then
+    Exit;
+
+  FCurrentIndex := 0;
+  Result := Self.Items[FCurrentIndex];
+end;
+
+function TPlayList.GetLast: TPlayItem;
+begin
+  Result := nil;
+
+  if Self.Count = 0 then
+    Exit;
+
+  FCurrentIndex := Self.Count - 1;
+  Result := Self.Items[FCurrentIndex];
+end;
+
+function TPlayList.GetNext: TPlayItem;
+begin
+  Result := nil;
+
+  if Self.Count = 0 then
+    Exit;
+
+  FCurrentIndex := FCurrentIndex + 1;
+  Result := Self.Items[FCurrentIndex];
+end;
+
+function TPlayList.GetPrev: TPlayItem;
+begin
+  Result := nil;
+
+  if Self.Count = 0 then
+    Exit;
+
+  FCurrentIndex := FCurrentIndex - 1;
+  Result := Self.Items[FCurrentIndex];
 end;
 
 end.

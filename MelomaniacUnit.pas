@@ -6,9 +6,10 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.SingleSoundUnit, FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls,
-  FMX.Memo.Types, FMX.ScrollBox, FMX.Memo,
+  FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.Objects,
   FMX.FormExtUnit,
-  PlayListUnit
+  PlayListUnit,
+  TimelineTrackerThreadUnit
   ;
 
 type
@@ -18,6 +19,10 @@ type
     PauseButton: TButton;
     StopButton: TButton;
     Memo1: TMemo;
+    TrackerLayout: TLayout;
+    DurationBar: TRectangle;
+    TimelineCaret: TCircle;
+    CurrentTimeLabel: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure PlayButtonClick(Sender: TObject);
@@ -25,9 +30,7 @@ type
     procedure PauseButtonClick(Sender: TObject);
   private
     FPlayList: TPlayList;
-    FSingleSound: TSingleSound;
   public
-    { Public declarations }
   end;
 
 var
@@ -39,34 +42,28 @@ implementation
 
 uses
     System.Generics.Collections
+  , PlayControllerUnit
   , MP3TAGsReaderUnit
   , ThreadFactoryUnit
+  , MouseHandlersUnit
   ;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  MP3Info: TMP3Info;
   PlayItemsList: TPlayItemsList;
   PlayListThreadFactory: TThreadFactory;
 begin
   ReportMemoryLeaksOnShutdown := true;
 
+  TPlayController.Init(
+    ThreadFactory,
+    TimelineCaret,
+    DurationBar,
+    CurrentTimeLabel);
+
   PlayListThreadFactory := ThreadFactoryRegistry.CreateThreadFactory;
 
   FPlayList := TPlayList.Create(PlayListThreadFactory);
-
-  FSingleSound := TSingleSound.Create;
-  FSingleSound.FileName := 'c:\000\phoebe_cates_paradise.mp3';
-
-  if not TMP3Reader.IsMP3Strict(FSingleSound.FileName) then
-  begin
-    ShowMessage('File incorrect');
-    Exit;
-  end;
-  MP3Info := TMP3Reader.ReadMP3(FSingleSound.FileName);
-  Memo1.Lines.Add(MP3Info.Title);
-  Memo1.Lines.Add(MP3Info.Artist);
-  Memo1.Lines.Add(FloatToStr(MP3Info.Duration));
 
   FPlayList.ReloadPlayList('E:\Desktop\Music\Alternative\Collection\');
   FPlayList.OnPlayListReloaded :=
@@ -83,28 +80,39 @@ begin
       finally
         FPlayList.UnlockList;
       end;
+
+      TPlayController.SingleSound.FileName := FPlayList.First.Path;
+      TPlayController.Play;
     end;
+
+  TMouseHandlers.Init;
+  TimelineCaret.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
+  TimelineCaret.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
+  TimelineCaret.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+
+  DurationBar.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(FSingleSound);
   FreeAndNil(FPlayList);
+
+  TPlayController.UnInit;
 end;
 
 procedure TMainForm.PauseButtonClick(Sender: TObject);
 begin
-  FSingleSound.Pause;
+  TPlayController.Pause;
 end;
 
 procedure TMainForm.PlayButtonClick(Sender: TObject);
 begin
-  FSingleSound.Play;
+  TPlayController.Play;
 end;
 
 procedure TMainForm.StopButtonClick(Sender: TObject);
 begin
-  FSingleSound.Stop;
+  TPlayController.Stop;
 end;
 
 end.
