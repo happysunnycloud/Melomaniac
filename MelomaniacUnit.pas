@@ -8,8 +8,7 @@ uses
   FMX.SingleSoundUnit, FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls,
   FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.Objects,
   FMX.FormExtUnit,
-  PlayListUnit,
-  TimelineTrackerThreadUnit
+  PlayListUnit
   ;
 
 type
@@ -29,7 +28,6 @@ type
     procedure StopButtonClick(Sender: TObject);
     procedure PauseButtonClick(Sender: TObject);
   private
-    FPlayList: TPlayList;
   public
   end;
 
@@ -43,45 +41,39 @@ implementation
 uses
     System.Generics.Collections
   , PlayControllerUnit
-  , MP3TAGsReaderUnit
-  , ThreadFactoryUnit
   , MouseHandlersUnit
   ;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   PlayItemsList: TPlayItemsList;
-  PlayListThreadFactory: TThreadFactory;
 begin
   ReportMemoryLeaksOnShutdown := true;
 
   TPlayController.Init(
     ThreadFactory,
+    ThreadFactoryRegistry,
     TimelineCaret,
     DurationBar,
     CurrentTimeLabel);
 
-  PlayListThreadFactory := ThreadFactoryRegistry.CreateThreadFactory;
-
-  FPlayList := TPlayList.Create(PlayListThreadFactory);
-
-  FPlayList.ReloadPlayList('E:\Desktop\Music\Alternative\Collection\');
-  FPlayList.OnPlayListReloaded :=
+  TPlayController.PlayList.ReloadPlayList('E:\Desktop\Music\Alternative\Collection\');
+  TPlayController.PlayList.OnPlayListReloaded :=
     procedure
     var
       PlayItem: TPlayItem;
     begin
-      PlayItemsList := FPlayList.LockList;
+      PlayItemsList := TPlayController.PlayList.LockList;
       try
         for PlayItem in PlayItemsList do
         begin
           Memo1.Lines.Add(PlayItem.Path);
         end;
       finally
-        FPlayList.UnlockList;
+        TPlayController.PlayList.UnlockList;
       end;
 
-      TPlayController.SingleSound.FileName := FPlayList.First.Path;
+      TPlayController.SingleSound.FileName := TPlayController.PlayList.First.Path;
       TPlayController.Play;
     end;
 
@@ -95,8 +87,6 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(FPlayList);
-
   TPlayController.UnInit;
 end;
 

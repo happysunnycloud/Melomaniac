@@ -38,6 +38,7 @@ uses
   , FMX.Media
   , MP3TAGsReaderUnit
   , StringToolsUnit
+  , PlayControllerUnit
   ;
 
 { TTimelineTrackerThread }
@@ -95,7 +96,11 @@ begin
     begin
       if FSingleSound.CurrentTime >= FSingleSound.Duration then
       begin
-
+        Queue(nil,
+          procedure
+          begin
+            TPlayController.PlayNext;
+          end);
       end
       else
         RenderCaret;
