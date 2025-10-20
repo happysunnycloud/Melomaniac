@@ -7,6 +7,7 @@ uses
   , System.Classes
   , System.Types
   , FMX.Types
+  , ClickListenerThreadUnit
   ;
 
 type
@@ -14,6 +15,11 @@ type
   strict private
     class var FIsPressed: Boolean;
     class var FStartPos: TPointF;
+    class var FClickListenerThread: TClickListenerThread;
+
+    class procedure Pressed(Sender: TObject);
+    class procedure UnPressed(Sender: TObject);
+    class procedure Clicked(Sender: TObject);
   public
     class procedure SetTimelineCaretPosition(const X: Single);
 
@@ -31,7 +37,8 @@ type
       Shift: TShiftState;
       X, Y: Single);
 
-   class procedure Init;
+   class procedure Init(
+      const AClickListenerThread: TClickListenerThread);
   end;
 
 //procedure OnMouseUpHandler(
@@ -51,10 +58,28 @@ uses
   , StringToolsUnit
   ;
 
-class procedure TMouseHandlers.Init;
+class procedure TMouseHandlers.Init(
+  const AClickListenerThread: TClickListenerThread);
 begin
+  FClickListenerThread := AClickListenerThread;
+
   FIsPressed := false;
   FStartPos := TPointF.Create(0, 0);
+end;
+
+class procedure TMouseHandlers.Pressed(Sender: TObject);
+begin
+  FIsPressed := true;
+end;
+
+class procedure TMouseHandlers.UnPressed(Sender: TObject);
+begin
+  FIsPressed := false;
+end;
+
+class procedure TMouseHandlers.Clicked(Sender: TObject);
+begin
+  UnPressed(Sender);
 end;
 
 class procedure TMouseHandlers.SetTimelineCaretPosition(const X: Single);
@@ -88,13 +113,22 @@ begin
   if not Assigned(Sender) then
     Exit;
 
+  Pressed(Sender);
+  FStartPos := TPointF.Create(X, Y);
+  TControl(Sender).AutoCapture := true;
+
   if Button = TMouseButton.mbLeft then
   begin
     if Sender = MainForm.TimelineCaret then
     begin
-      MainForm.TimelineCaret.AutoCapture := true;
-      FIsPressed := true;
-      FStartPos := TPointF.Create(X, Y);
+    end
+    else
+    if Sender = MainForm.PlayButton then
+    begin
+      FClickListenerThread.SetClickParams(
+        Pressed,
+        Clicked,
+        Sender);
     end;
   end;
 end;
@@ -106,22 +140,37 @@ var
   MoveVector: TVector;
   NewPointF: TPointF;
   TimelineCaret: TControl;
+  Control: TControl;
 begin
   if not Assigned(Sender) then
     Exit;
 
+  if not FIsPressed then
+    Exit;
+
   if Sender = MainForm.TimelineCaret then
   begin
-    if FIsPressed then
-    begin
-      TimelineCaret := MainForm.TimelineCaret;
+    TimelineCaret := MainForm.TimelineCaret;
 
-      // Вычисляем локальное смещение относительно первоначальной позиции
-      MoveVector := TVector.Create(X - FStartPos.X, 0, 0);
-      NewPointF := TimelineCaret.Position.Point + TPointF(MoveVector);
+    // Вычисляем локальное смещение относительно первоначальной позиции
+    MoveVector := TVector.Create(X - FStartPos.X, 0, 0);
+    NewPointF := TimelineCaret.Position.Point + TPointF(MoveVector);
 
-      SetTimelineCaretPosition(NewPointF.X + (TimelineCaret.Width / 2));
-    end;
+    SetTimelineCaretPosition(NewPointF.X + (TimelineCaret.Width / 2));
+  end
+  else
+  if Sender = MainForm.PlayButton then
+  begin
+    Control := TControl(Sender);
+
+    MoveVector  := TVector.Create(X - FStartPos.X, Y - FStartPos.Y, 0);
+    MoveVector  := Control.LocalToAbsoluteVector(MoveVector);
+
+    if Assigned(Control.ParentControl) then
+      MoveVector := Control.ParentControl.AbsoluteToLocalVector(MoveVector);
+
+    MainForm.Left := MainForm.Left + Round(MoveVector.X);
+    MainForm.Top := MainForm.Top + Round(MoveVector.Y);
   end;
 end;
 
@@ -134,14 +183,21 @@ begin
   if not Assigned(Sender) then
     Exit;
 
+  UnPressed(Sender);
+  TControl(Sender).AutoCapture := false;
+
   if Sender = MainForm.TimelineCaret then
   begin
-    MainForm.TimelineCaret.AutoCapture := false;
-    FIsPressed := false;
-  end;
+  end
+  else
   if Sender = MainForm.DurationBar then
   begin
     SetTimelineCaretPosition(X);
+  end
+  else
+  if Sender = MainForm.PlayButton then
+  begin
+    FClickListenerThread.IsButtonUp := true;
   end;
 end;
 

@@ -19,7 +19,8 @@ uses
   MouseHandlersUnit in 'MouseHandlersUnit.pas',
   StringToolsUnit in '..\DevelopmentsCollection\StringToolsUnit.pas',
   TimelineTrackerThreadUnit in 'TimelineTrackerThreadUnit.pas',
-  PlayControllerUnit in 'PlayControllerUnit.pas';
+  PlayControllerUnit in 'PlayControllerUnit.pas',
+  ClickListenerThreadUnit in 'ClickListenerThreadUnit.pas';
 
 {$R *.res}
 

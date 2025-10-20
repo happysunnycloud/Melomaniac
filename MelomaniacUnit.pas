@@ -42,11 +42,13 @@ uses
     System.Generics.Collections
   , PlayControllerUnit
   , MouseHandlersUnit
+  , ClickListenerThreadUnit
   ;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   PlayItemsList: TPlayItemsList;
+  ClickListenerThread: TClickListenerThread;
 begin
   ReportMemoryLeaksOnShutdown := true;
 
@@ -57,7 +59,8 @@ begin
     DurationBar,
     CurrentTimeLabel);
 
-  TPlayController.PlayList.ReloadPlayList('E:\Desktop\Music\Alternative\Collection\');
+//  TPlayController.PlayList.ReloadPlayList('E:\Desktop\Music\Alternative\Collection\');
+  TPlayController.PlayList.ReloadPlayList('C:\000');
   TPlayController.PlayList.OnPlayListReloaded :=
     procedure
     var
@@ -77,12 +80,17 @@ begin
       TPlayController.Play;
     end;
 
-  TMouseHandlers.Init;
+  ClickListenerThread := TClickListenerThread.Create(ThreadFactory);
+  TMouseHandlers.Init(ClickListenerThread);
   TimelineCaret.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
   TimelineCaret.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
   TimelineCaret.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
 
   DurationBar.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+
+  PlayButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
+  PlayButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
+  PlayButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);

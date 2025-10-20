@@ -1,4 +1,4 @@
-unit TimelineTrackerThreadUnit;
+﻿unit TimelineTrackerThreadUnit;
 
 interface
 
