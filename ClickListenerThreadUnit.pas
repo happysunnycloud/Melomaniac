@@ -16,12 +16,21 @@ type
 
     FIsButtonUp: Boolean;
 
-    FPressedProcRef: TProcRef;
     FClickedProcRef: TProcRef;
+    FPressedProcRef: TProcRef;
     FSender: TObject;
 
     function GetIsButtonUp: Boolean;
     procedure SetIsButtonUp(const AIsButtonUp: Boolean);
+
+    function GetClickedProcRef: TProcRef;
+    procedure SetClickedProcRef(const AProcRef: TProcRef);
+
+    function GetPressedProcRef: TProcRef;
+    procedure SetPressedProcRef(const AProcRef: TProcRef);
+
+    function GetSender: TObject;
+    procedure SetSender(const ASender: TObject);
   protected
     procedure Execute(const AThread: TThreadExt); reintroduce; // override;
   public
@@ -29,11 +38,22 @@ type
     destructor Destroy; override;
 
     procedure SetClickParams(
-      const APressedProc: TProcRef;
       const AClickedProc: TProcRef;
-      const ASender: TObject);
+      const ASender: TObject); overload;
+
+    procedure SetClickParams(
+      const AClickedProc: TProcRef;
+      const APressedProc: TProcRef;
+      const ASender: TObject); overload;
 
     property IsButtonUp: Boolean read GetIsButtonUp write SetIsButtonUp;
+
+    property ClickedProcRef: TProcRef
+      read GetClickedProcRef write SetClickedProcRef;
+    property PressedProcRef: TProcRef
+      read GetPressedProcRef write SetPressedProcRef;
+    property Sender: TObject
+      read GetSender write SetSender;
   end;
 
 implementation
@@ -51,9 +71,8 @@ begin
 
   FIsButtonUp := false;
 
-  FPressedProcRef := nil;
   FClickedProcRef := nil;
-
+  FPressedProcRef := nil;
   FSender := nil;
 
   inherited Create(
@@ -84,22 +103,91 @@ begin
   FCriticalSection.Enter;
   try
     FIsButtonUp := AIsButtonUp;
-    if FIsButtonUp then
-      HoldThread
-    else
+    if not FIsButtonUp then
       UnHoldThread;
   finally
     FCriticalSection.Leave;
   end;
 end;
 
+function TClickListenerThread.GetClickedProcRef: TProcRef;
+begin
+  FCriticalSection.Enter;
+  try
+    Result := FClickedProcRef;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+procedure TClickListenerThread.SetClickedProcRef(const AProcRef: TProcRef);
+begin
+  FCriticalSection.Enter;
+  try
+    FClickedProcRef := AProcRef
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TClickListenerThread.GetPressedProcRef: TProcRef;
+begin
+  FCriticalSection.Enter;
+  try
+    Result := FPressedProcRef;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+procedure TClickListenerThread.SetPressedProcRef(const AProcRef: TProcRef);
+begin
+  FCriticalSection.Enter;
+  try
+    FPressedProcRef := AProcRef
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TClickListenerThread.GetSender: TObject;
+begin
+  FCriticalSection.Enter;
+  try
+    Result := FSender;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+procedure TClickListenerThread.SetSender(const ASender: TObject);
+begin
+  FCriticalSection.Enter;
+  try
+    FSender := ASender;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
 procedure TClickListenerThread.SetClickParams(
-  const APressedProc: TProcRef;
   const AClickedProc: TProcRef;
   const ASender: TObject);
 begin
-  FPressedProcRef := APressedProc;
   FClickedProcRef := AClickedProc;
+  FPressedProcRef := nil;
+  FSender := ASender;
+
+  IsButtonUp := false;
+end;
+
+procedure TClickListenerThread.SetClickParams(
+  const AClickedProc: TProcRef;
+  const APressedProc: TProcRef;
+  const ASender: TObject);
+begin
+  FClickedProcRef := AClickedProc;
+  FPressedProcRef := APressedProc;
   FSender := ASender;
 
   IsButtonUp := false;
@@ -111,6 +199,9 @@ const
   SLEEP_TIME = 10;
 var
   Countdown: Integer;
+  ClickedProcRef: TProcRef;
+  PressedProcRef: TProcRef;
+  Sender: TObject;
 begin
   HoldThread;
   ExecHold;
@@ -124,37 +215,40 @@ begin
       Dec(Countdown);
     end;
 
+    HoldThread;
+
     if Terminated then
       Exit;
 
     if Countdown <= 0 then
     begin
-      IsButtonUp := true;
-
-      if Assigned(FPressedProcRef) then
+      Sender := Self.Sender;
+      PressedProcRef := Self.PressedProcRef;
+      if Assigned(PressedProcRef) then
+      begin
         Queue(nil,
           procedure
           begin
-            FPressedProcRef(FSender);
-
-            FPressedProcRef := nil;
-            FClickedProcRef := nil;
-            FSender := nil;
+            PressedProcRef(Sender);
           end);
+      end;
     end
     else
     begin
-      if Assigned(FClickedProcRef) then
+      Sender := Self.Sender;
+      ClickedProcRef := Self.ClickedProcRef;
+      if Assigned(ClickedProcRef) then
+      begin
         Queue(nil,
           procedure
           begin
-            FClickedProcRef(FSender);
-
-            FPressedProcRef := nil;
-            FClickedProcRef := nil;
-            FSender := nil;
+            ClickedProcRef(Sender);
           end);
+      end;
     end;
+
+    if Terminated then
+      Exit;
 
     ExecHold;
   end;

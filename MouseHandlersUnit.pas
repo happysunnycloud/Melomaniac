@@ -1,4 +1,4 @@
-unit MouseHandlersUnit;
+п»їunit MouseHandlersUnit;
 
 interface
 
@@ -6,6 +6,7 @@ uses
     System.UITypes
   , System.Classes
   , System.Types
+  , FMX.Controls
   , FMX.Types
   , ClickListenerThreadUnit
   ;
@@ -17,9 +18,23 @@ type
     class var FStartPos: TPointF;
     class var FClickListenerThread: TClickListenerThread;
 
+    class function IsControlIn(
+      const AControl: TControl;
+      const AControls: array of TControl): Boolean;
+
     class procedure Pressed(Sender: TObject);
     class procedure UnPressed(Sender: TObject);
-    class procedure Clicked(Sender: TObject);
+
+    class procedure PlayClicked(Sender: TObject);
+    class procedure PrevClicked(Sender: TObject);
+    class procedure NextClicked(Sender: TObject);
+
+    class procedure BackwardRewindClicked(Sender: TObject);
+    class procedure ForwardRewindClicked(Sender: TObject);
+
+    class procedure BackwardRewindPressed(Sender: TObject);
+    class procedure ForwardRewindPressed(Sender: TObject);
+    class procedure StopRewind(Sender: TObject);
   public
     class procedure SetTimelineCaretPosition(const X: Single);
 
@@ -50,13 +65,16 @@ implementation
 uses
     System.SysUtils
   , System.Math.Vectors
-  , FMX.Controls
   , FMX.Media
   , MelomaniacUnit
   , PlayControllerUnit
   , FMX.SingleSoundUnit
   , StringToolsUnit
+  , StateUnit
+  , ConstantsUnit
   ;
+
+{ TMouseHandlers }
 
 class procedure TMouseHandlers.Init(
   const AClickListenerThread: TClickListenerThread);
@@ -65,6 +83,22 @@ begin
 
   FIsPressed := false;
   FStartPos := TPointF.Create(0, 0);
+end;
+
+class function TMouseHandlers.IsControlIn(
+  const AControl: TControl;
+  const AControls: array of TControl): Boolean;
+var
+  i: Integer;
+begin
+  Result := false;
+  for i := 0 to Pred(Length(AControls)) do
+  begin
+    if AControl = AControls[i] then
+    begin
+      Exit(true);
+    end;
+  end;
 end;
 
 class procedure TMouseHandlers.Pressed(Sender: TObject);
@@ -77,9 +111,66 @@ begin
   FIsPressed := false;
 end;
 
-class procedure TMouseHandlers.Clicked(Sender: TObject);
+class procedure TMouseHandlers.PlayClicked(Sender: TObject);
 begin
-  UnPressed(Sender);
+  if (TState.PlayState = psPause) or
+     (TState.PlayState = psStop)
+  then
+  begin
+    TPlayController.Play;
+    TState.PlayState := psPlay;
+    MainForm.PlayButton.Text := 'Pause';
+  end
+  else
+  if TState.PlayState = psPlay then
+  begin
+    TPlayController.Pause;
+    TState.PlayState := psPause;
+    MainForm.PlayButton.Text := 'Play';
+  end
+end;
+
+class procedure TMouseHandlers.PrevClicked(Sender: TObject);
+begin
+  TState.LastPlayState := TState.PlayState;
+  TPlayController.Stop;
+  TPlayController.SetPrev;
+  if TState.LastPlayState = psPlay then
+    TPlayController.Play;
+end;
+
+class procedure TMouseHandlers.NextClicked(Sender: TObject);
+begin
+  TState.LastPlayState := TState.PlayState;
+  TPlayController.Stop;
+  TPlayController.SetNext;
+  if TState.LastPlayState = psPlay then
+    TPlayController.Play;
+end;
+
+class procedure TMouseHandlers.BackwardRewindClicked(Sender: TObject);
+begin
+  TPlayController.BackwardRewindStep;
+end;
+
+class procedure TMouseHandlers.ForwardRewindClicked(Sender: TObject);
+begin
+  TPlayController.ForwardRewindStep;
+end;
+
+class procedure TMouseHandlers.BackwardRewindPressed(Sender: TObject);
+begin
+  TPlayController.BackwardRewind;
+end;
+
+class procedure TMouseHandlers.ForwardRewindPressed(Sender: TObject);
+begin
+  TPlayController.ForwardRewind;
+end;
+
+class procedure TMouseHandlers.StopRewind(Sender: TObject);
+begin
+  TPlayController.StopRewind;
 end;
 
 class procedure TMouseHandlers.SetTimelineCaretPosition(const X: Single);
@@ -109,25 +200,58 @@ end;
 class procedure TMouseHandlers.OnMouseDownHandler(
   Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
+var
+  Control: TControl;
 begin
   if not Assigned(Sender) then
     Exit;
 
-  Pressed(Sender);
+  Control := Sender as TControl;
+
+  Pressed(Control);
   FStartPos := TPointF.Create(X, Y);
-  TControl(Sender).AutoCapture := true;
+  TControl(Control).AutoCapture := true;
 
   if Button = TMouseButton.mbLeft then
   begin
-    if Sender = MainForm.TimelineCaret then
+    if Control = MainForm.TimelineCaret then
     begin
     end
     else
-    if Sender = MainForm.PlayButton then
+    if Control = MainForm.PlayButton then
     begin
       FClickListenerThread.SetClickParams(
-        Pressed,
-        Clicked,
+        PlayClicked,
+        Sender);
+    end
+    else
+    if Control = MainForm.PrevButton then
+    begin
+      FClickListenerThread.SetClickParams(
+        PrevClicked,
+        Sender);
+    end
+    else
+    if Control = MainForm.NextButton then
+    begin
+      FClickListenerThread.SetClickParams(
+        NextClicked,
+        Sender);
+    end
+    else
+    if Control = MainForm.BackwardRewindButton then
+    begin
+      FClickListenerThread.SetClickParams(
+        BackwardRewindClicked,
+        BackwardRewindPressed,
+        Sender);
+    end
+    else
+    if Control = MainForm.ForwardRewindButton then
+    begin
+      FClickListenerThread.SetClickParams(
+        ForwardRewindClicked,
+        ForwardRewindPressed,
         Sender);
     end;
   end;
@@ -148,21 +272,27 @@ begin
   if not FIsPressed then
     Exit;
 
-  if Sender = MainForm.TimelineCaret then
+  Control := Sender as TControl;
+
+  if Control = MainForm.TimelineCaret then
   begin
     TimelineCaret := MainForm.TimelineCaret;
 
-    // Вычисляем локальное смещение относительно первоначальной позиции
+    // Р’С‹С‡РёСЃР»СЏРµРј Р»РѕРєР°Р»СЊРЅРѕРµ СЃРјРµС‰РµРЅРёРµ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РїРµСЂРІРѕРЅР°С‡Р°Р»СЊРЅРѕР№ РїРѕР·РёС†РёРё
     MoveVector := TVector.Create(X - FStartPos.X, 0, 0);
     NewPointF := TimelineCaret.Position.Point + TPointF(MoveVector);
 
     SetTimelineCaretPosition(NewPointF.X + (TimelineCaret.Width / 2));
   end
   else
-  if Sender = MainForm.PlayButton then
+  if IsControlIn(Control,
+    [
+      MainForm.PlayButton,
+      MainForm.PrevButton,
+      MainForm.NextButton
+    ])
+  then
   begin
-    Control := TControl(Sender);
-
     MoveVector  := TVector.Create(X - FStartPos.X, Y - FStartPos.Y, 0);
     MoveVector  := Control.LocalToAbsoluteVector(MoveVector);
 
@@ -179,26 +309,48 @@ class procedure TMouseHandlers.OnMouseUpHandler(
   TMouseButton;
   Shift: TShiftState;
   X, Y: Single);
+var
+  Control: TControl;
 begin
   if not Assigned(Sender) then
     Exit;
 
-  UnPressed(Sender);
-  TControl(Sender).AutoCapture := false;
+  Control := Sender as TControl;
 
-  if Sender = MainForm.TimelineCaret then
+  UnPressed(Control);
+  TControl(Control).AutoCapture := false;
+
+  if Control = MainForm.TimelineCaret then
   begin
   end
   else
-  if Sender = MainForm.DurationBar then
+  if Control = MainForm.DurationBar then
   begin
     SetTimelineCaretPosition(X);
   end
   else
-  if Sender = MainForm.PlayButton then
+  if IsControlIn(Control,
+    [
+      MainForm.PlayButton,
+      MainForm.PrevButton,
+      MainForm.NextButton
+    ])
+  then
   begin
     FClickListenerThread.IsButtonUp := true;
-  end;
+  end
+  else
+  if IsControlIn(Control,
+    [
+      MainForm.BackwardRewindButton,
+      MainForm.ForwardRewindButton
+    ])
+  then
+  begin
+    FClickListenerThread.IsButtonUp := true;
+    StopRewind(Sender);
+  end
+
 end;
 
 end.

@@ -69,6 +69,7 @@ uses
   , System.Math
   , FileToolsUnit
   , TAGReaderThreadUnit
+  , ConstantsUnit
   ;
 
 { TPlayItem }
@@ -114,8 +115,6 @@ begin
 end;
 
 procedure TPlayList.ReloadPlayList(const ADir: String);
-const
-  THREAD_COUNT = 10;
 var
   FileNames: TFileNames;
   i: Integer;
@@ -131,8 +130,8 @@ begin
 
   // создаём потоки
   FileCount := Length(FileNames);
-  FilesPerThread := Ceil(FileCount / THREAD_COUNT);
-  for i := 0 to THREAD_COUNT - 1 do
+  FilesPerThread := Ceil(FileCount / PLAY_LIST_RELOAD_THREAD_COUNT);
+  for i := 0 to PLAY_LIST_RELOAD_THREAD_COUNT - 1 do
   begin
     StartIndex := i * FilesPerThread;
     FinishIndex := Min(StartIndex + FilesPerThread - 1, FileCount);
@@ -189,6 +188,8 @@ begin
     Exit;
 
   FCurrentIndex := FCurrentIndex + 1;
+  if FCurrentIndex > Pred(Self.Count) then
+    FCurrentIndex := 0;
   Result := Self.Items[FCurrentIndex];
 end;
 
@@ -200,6 +201,8 @@ begin
     Exit;
 
   FCurrentIndex := FCurrentIndex - 1;
+  if FCurrentIndex < 0 then
+    FCurrentIndex := Pred(Self.Count);
   Result := Self.Items[FCurrentIndex];
 end;
 

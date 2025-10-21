@@ -23,28 +23,53 @@ object MainForm: TMainForm
       Size.Height = 50.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Text = 'Play'
-      OnClick = PlayButtonClick
+      Text = 'Pause'
     end
-    object PauseButton: TButton
+    object StopButton: TButton
       Align = Left
       Position.X = 80.000000000000000000
       Size.Width = 80.000000000000000000
       Size.Height = 50.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
-      Text = 'Pause'
-      OnClick = PauseButtonClick
+      Text = 'Stop'
+      OnClick = StopButtonClick
     end
-    object StopButton: TButton
+    object PrevButton: TButton
       Align = Left
       Position.X = 160.000000000000000000
       Size.Width = 80.000000000000000000
       Size.Height = 50.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 2
-      Text = 'Stop'
-      OnClick = StopButtonClick
+      Text = 'Prev'
+    end
+    object NextButton: TButton
+      Align = Left
+      Position.X = 240.000000000000000000
+      Size.Width = 80.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = 'Next'
+    end
+    object BackwardRewindButton: TButton
+      Align = Left
+      Position.X = 320.000000000000000000
+      Size.Width = 80.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      Text = 'Backward'
+    end
+    object ForwardRewindButton: TButton
+      Align = Left
+      Position.X = 400.000000000000000000
+      Size.Width = 80.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      Text = 'Forward'
     end
   end
   object Memo1: TMemo

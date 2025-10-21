@@ -20,7 +20,9 @@ uses
   StringToolsUnit in '..\DevelopmentsCollection\StringToolsUnit.pas',
   TimelineTrackerThreadUnit in 'TimelineTrackerThreadUnit.pas',
   PlayControllerUnit in 'PlayControllerUnit.pas',
-  ClickListenerThreadUnit in 'ClickListenerThreadUnit.pas';
+  ClickListenerThreadUnit in 'ClickListenerThreadUnit.pas',
+  StateUnit in 'StateUnit.pas',
+  ConstantsUnit in 'ConstantsUnit.pas';
 
 {$R *.res}
 

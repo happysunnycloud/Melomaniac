@@ -3,20 +3,28 @@
 interface
 
 uses
-    FMX.Controls
+    System.SyncObjs
+  , FMX.Controls
   , ThreadFactoryUnit
   , FMX.SingleSoundUnit
   ;
 
 type
+  TRewindDirection = (rdNone = 0, rdForward = 1, rdBackward = 2);
+
   TTimelineTrackerThread = class(TThreadExt)
   strict private
+    FCriticalSection: TCriticalSection;
     FSingleSound: TSingleSound;
     FTimelineCaret: TControl;
     FDurationBar: TControl;
     FCurrentTimeLabel: TControl;
+    FRewindDirection: TRewindDirection;
 
     procedure RenderCaret;
+
+    function GetRewindDirection: TRewindDirection;
+    procedure SetRewindDirection(const ARewindDirection: TRewindDirection);
   protected
     procedure Execute(const AThread: TThreadExt); reintroduce; // override;
   public
@@ -26,6 +34,13 @@ type
       const ATimelineCaret: TControl;
       const ADurationBar: TControl;
       const ACurrentTimeLabel: TControl); reintroduce;
+    destructor Destroy; override;
+
+    function BackwardRewind: Boolean;
+    function ForwardRewind: Boolean;
+
+    property RewindDirection: TRewindDirection
+      read GetRewindDirection write SetRewindDirection;
   end;
 
 implementation
@@ -39,6 +54,7 @@ uses
   , MP3TAGsReaderUnit
   , StringToolsUnit
   , PlayControllerUnit
+  , ConstantsUnit
   ;
 
 { TTimelineTrackerThread }
@@ -50,16 +66,81 @@ constructor TTimelineTrackerThread.Create(
   const ADurationBar: TControl;
   const ACurrentTimeLabel: TControl);
 begin
+  FCriticalSection := TCriticalSection.Create;
+
   FSingleSound := ASingleSound;
   FTimelineCaret := ATimelineCaret;
   FDurationBar := ADurationBar;
   FCurrentTimeLabel := ACurrentTimeLabel;
+  FRewindDirection := rdNone;
 
   inherited Create(
     AThreadFactory,
     'TTimelineTrackerThread',
     Execute,
     false);
+end;
+
+destructor TTimelineTrackerThread.Destroy;
+begin
+  FreeAndNil(FCriticalSection);
+
+  inherited;
+end;
+
+function TTimelineTrackerThread.BackwardRewind: Boolean;
+var
+  NewTime: TMediaTime;
+begin
+  Result := true;
+
+  NewTime := FSingleSound.CurrentTime - (REWIND_TIME * MediaTimeScale);
+  if NewTime >= 0 then
+    FSingleSound.CurrentTime := NewTime
+  else
+  begin
+    FSingleSound.CurrentTime := 0;
+
+    Exit(false);
+  end;
+
+  RenderCaret;
+end;
+
+function TTimelineTrackerThread.ForwardRewind: Boolean;
+var
+  NewTime: TMediaTime;
+begin
+  Result := true;
+
+  NewTime := FSingleSound.CurrentTime + (REWIND_TIME * MediaTimeScale);
+  if NewTime <= FSingleSound.Duration then
+    FSingleSound.CurrentTime := NewTime
+  else
+    Exit(false);
+
+  RenderCaret;
+end;
+
+function TTimelineTrackerThread.GetRewindDirection: TRewindDirection;
+begin
+  FCriticalSection.Enter;
+  try
+    Result := FRewindDirection;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+procedure TTimelineTrackerThread.SetRewindDirection(
+  const ARewindDirection: TRewindDirection);
+begin
+  FCriticalSection.Enter;
+  try
+    FRewindDirection := ARewindDirection;
+  finally
+    FCriticalSection.Leave;
+  end;
 end;
 
 procedure TTimelineTrackerThread.RenderCaret;
@@ -99,11 +180,37 @@ begin
         Queue(nil,
           procedure
           begin
-            TPlayController.PlayNext;
+            TPlayController.Stop;
+            TPlayController.SetNext;
+            TPlayController.Play;
           end);
       end
       else
-        RenderCaret;
+      begin
+        if RewindDirection <> rdNone then
+        begin
+          while not Terminated and (RewindDirection <> rdNone) do
+          begin
+            if RewindDirection = rdBackward then
+            begin
+              if not BackwardRewind then
+                Break;
+            end
+            else
+            if RewindDirection = rdForward then
+            begin
+              if not ForwardRewind then
+                Break;
+            end;
+
+            RenderCaret;
+
+            Sleep(100);
+          end;
+        end;
+      end;
+
+      RenderCaret;
 
       Sleep(400);
     end;

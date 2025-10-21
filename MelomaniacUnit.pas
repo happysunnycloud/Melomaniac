@@ -15,18 +15,19 @@ type
   TMainForm = class(TFormExt)
     PlayButton: TButton;
     NavigatorLayout: TLayout;
-    PauseButton: TButton;
     StopButton: TButton;
     Memo1: TMemo;
     TrackerLayout: TLayout;
     DurationBar: TRectangle;
     TimelineCaret: TCircle;
     CurrentTimeLabel: TLabel;
+    PrevButton: TButton;
+    NextButton: TButton;
+    BackwardRewindButton: TButton;
+    ForwardRewindButton: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure PlayButtonClick(Sender: TObject);
     procedure StopButtonClick(Sender: TObject);
-    procedure PauseButtonClick(Sender: TObject);
   private
   public
   end;
@@ -43,6 +44,7 @@ uses
   , PlayControllerUnit
   , MouseHandlersUnit
   , ClickListenerThreadUnit
+  , StateUnit
   ;
 
 procedure TMainForm.FormCreate(Sender: TObject);
@@ -51,6 +53,8 @@ var
   ClickListenerThread: TClickListenerThread;
 begin
   ReportMemoryLeaksOnShutdown := true;
+
+  TState.Init;
 
   TPlayController.Init(
     ThreadFactory,
@@ -91,21 +95,27 @@ begin
   PlayButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
   PlayButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
   PlayButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+
+  PrevButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
+  PrevButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
+  PrevButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+
+  NextButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
+  NextButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
+  NextButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+
+  BackwardRewindButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
+  BackwardRewindButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
+  BackwardRewindButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+
+  ForwardRewindButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
+  ForwardRewindButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
+  ForwardRewindButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   TPlayController.UnInit;
-end;
-
-procedure TMainForm.PauseButtonClick(Sender: TObject);
-begin
-  TPlayController.Pause;
-end;
-
-procedure TMainForm.PlayButtonClick(Sender: TObject);
-begin
-  TPlayController.Play;
 end;
 
 procedure TMainForm.StopButtonClick(Sender: TObject);
