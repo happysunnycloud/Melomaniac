@@ -180,9 +180,7 @@ begin
         Queue(nil,
           procedure
           begin
-            TPlayController.Stop;
-            TPlayController.SetNext;
-            TPlayController.Play;
+            TPlayController.Next;
           end);
       end
       else

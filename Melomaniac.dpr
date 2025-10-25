@@ -22,7 +22,18 @@ uses
   PlayControllerUnit in 'PlayControllerUnit.pas',
   ClickListenerThreadUnit in 'ClickListenerThreadUnit.pas',
   StateUnit in 'StateUnit.pas',
-  ConstantsUnit in 'ConstantsUnit.pas';
+  ConstantsUnit in 'ConstantsUnit.pas',
+  FMX.MultiResBitmapExtractorUnit in '..\DevelopmentsCollection\FilePacker\FMX.MultiResBitmapExtractorUnit.pas',
+  FMX.MultiResBitmapsUnit in '..\DevelopmentsCollection\FMX.MultiResBitmapsUnit.pas',
+  VisualSchemeUnit in 'VisualSchemeUnit.pas',
+  FilePackerUnit in '..\DevelopmentsCollection\FilePacker\FilePackerUnit.pas',
+  FMX.ControlToolsUnit in '..\DevelopmentsCollection\FMX.ControlToolsUnit.pas',
+  BitmapStorageUnit in 'BitmapStorageUnit.pas',
+  ToolsUnit in 'ToolsUnit.pas',
+  FMX.PopupMenuExtUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtUnit.pas',
+  FMX.PopupMenuExtFormUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtFormUnit.pas',
+  FMX.PopupMenuExtThreadUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtThreadUnit.pas',
+  FMX.ThemeUnit in '..\DevelopmentsCollection\FMX.ThemeUnit.pas';
 
 {$R *.res}
 

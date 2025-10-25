@@ -124,7 +124,7 @@ var
   FileCount: Integer;
 begin
   SetLength(FileNames, 0);
-  TFileTools.GetTreeOfFileNames(ADir, '', FileNames);
+  TFileTools.GetTreeOfFileNames(ADir, 'mp3', FileNames);
 
   FCurrentIndex := 0;
 

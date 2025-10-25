@@ -29,15 +29,17 @@ type
     class procedure PrevClicked(Sender: TObject);
     class procedure NextClicked(Sender: TObject);
 
+    class procedure SoundClicked(Sender: TObject);
+
     class procedure BackwardRewindClicked(Sender: TObject);
     class procedure ForwardRewindClicked(Sender: TObject);
 
     class procedure BackwardRewindPressed(Sender: TObject);
     class procedure ForwardRewindPressed(Sender: TObject);
     class procedure StopRewind(Sender: TObject);
-  public
-    class procedure SetTimelineCaretPosition(const X: Single);
 
+//    class function IsMouseOverControl(fControl: TControl): Boolean;
+  public
     class procedure OnMouseDownHandler(
       Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
@@ -52,26 +54,21 @@ type
       Shift: TShiftState;
       X, Y: Single);
 
+    class procedure ConnectHandlers(const AControls: array of TControl);
+
    class procedure Init(
       const AClickListenerThread: TClickListenerThread);
   end;
-
-//procedure OnMouseUpHandler(
-//  Sender: TObject; Button: TMouseButton;
-//  Shift: TShiftState; X, Y: Single);
 
 implementation
 
 uses
     System.SysUtils
   , System.Math.Vectors
-  , FMX.Media
   , MelomaniacUnit
   , PlayControllerUnit
-  , FMX.SingleSoundUnit
-  , StringToolsUnit
   , StateUnit
-  , ConstantsUnit
+//  , Winapi.Windows
   ;
 
 { TMouseHandlers }
@@ -118,34 +115,30 @@ begin
   then
   begin
     TPlayController.Play;
-    TState.PlayState := psPlay;
-    MainForm.PlayButton.Text := 'Pause';
   end
   else
   if TState.PlayState = psPlay then
   begin
     TPlayController.Pause;
-    TState.PlayState := psPause;
-    MainForm.PlayButton.Text := 'Play';
-  end
+  end;
 end;
 
 class procedure TMouseHandlers.PrevClicked(Sender: TObject);
 begin
-  TState.LastPlayState := TState.PlayState;
-  TPlayController.Stop;
-  TPlayController.SetPrev;
-  if TState.LastPlayState = psPlay then
-    TPlayController.Play;
+  TPlayController.Prev;
 end;
 
 class procedure TMouseHandlers.NextClicked(Sender: TObject);
 begin
-  TState.LastPlayState := TState.PlayState;
-  TPlayController.Stop;
-  TPlayController.SetNext;
-  if TState.LastPlayState = psPlay then
-    TPlayController.Play;
+  TPlayController.Next;
+end;
+
+class procedure TMouseHandlers.SoundClicked(Sender: TObject);
+begin
+  if TPlayController.SingleSound.Volume > 0 then
+    TPlayController.Mute
+  else
+    TPlayController.Sound;
 end;
 
 class procedure TMouseHandlers.BackwardRewindClicked(Sender: TObject);
@@ -173,30 +166,6 @@ begin
   TPlayController.StopRewind;
 end;
 
-class procedure TMouseHandlers.SetTimelineCaretPosition(const X: Single);
-var
-  TimelineCaret: TControl;
-  DurationBar: TControl;
-  Duration: TMediaTime;
-  CurrentTime: TMediaTime;
-begin
-  TimelineCaret := MainForm.TimelineCaret;
-  DurationBar := MainForm.DurationBar;
-
-  Duration := TPlayController.SingleSound.Duration;
-  if Duration = 0 then
-    Duration := 1;
-
-  if (X >= 0) and (X <= DurationBar.Width) then
-    TimelineCaret.Position.X := X - (TimelineCaret.Width / 2)
-  else
-    Exit;
-
-  CurrentTime := Round((Duration / DurationBar.Width) * X);
-  MainForm.CurrentTimeLabel.Text := TStringTools.GetHumanTime(CurrentTime, MediaTimeScale);
-  TPlayController.SingleSound.CurrentTime := CurrentTime;
-end;
-
 class procedure TMouseHandlers.OnMouseDownHandler(
   Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
@@ -214,32 +183,62 @@ begin
 
   if Button = TMouseButton.mbLeft then
   begin
-    if Control = MainForm.TimelineCaret then
-    begin
-    end
-    else
-    if Control = MainForm.PlayButton then
+    if IsControlIn(Control,
+      [
+        MainForm.PlayControl
+      ])
+    then
     begin
       FClickListenerThread.SetClickParams(
         PlayClicked,
         Sender);
     end
+    ///
     else
-    if Control = MainForm.PrevButton then
+    if Control = MainForm.TopLeftControl then
+    begin
+      FClickListenerThread.SetClickParams(
+        nil,
+        Sender);
+    end
+    else
+    if Control = MainForm.TopRightControl then
+    begin
+      FClickListenerThread.SetClickParams(
+        nil,
+        Sender);
+    end
+    else
+    if Control = MainForm.BottomLeftControl then
+    begin
+      FClickListenerThread.SetClickParams(
+        nil,
+        Sender);
+    end
+    else
+    if Control = MainForm.BottomRightControl then
+    begin
+      FClickListenerThread.SetClickParams(
+        nil,
+        Sender);
+    end
+    ///
+    else
+    if Control = MainForm.PrevTrackControl then
     begin
       FClickListenerThread.SetClickParams(
         PrevClicked,
         Sender);
     end
     else
-    if Control = MainForm.NextButton then
+    if Control = MainForm.NextTrackControl then
     begin
       FClickListenerThread.SetClickParams(
         NextClicked,
         Sender);
     end
     else
-    if Control = MainForm.BackwardRewindButton then
+    if Control = MainForm.PrevNSecondsControl then
     begin
       FClickListenerThread.SetClickParams(
         BackwardRewindClicked,
@@ -247,12 +246,32 @@ begin
         Sender);
     end
     else
-    if Control = MainForm.ForwardRewindButton then
+    if Control = MainForm.NextNSecondsControl then
     begin
       FClickListenerThread.SetClickParams(
         ForwardRewindClicked,
         ForwardRewindPressed,
         Sender);
+    end
+    else
+    if Control = MainForm.SoundControl then
+    begin
+      SoundClicked(Sender);
+    end;
+  end
+  else
+  if Button = TMouseButton.mbRight then
+  begin
+    if IsControlIn(Control,
+      [
+        MainForm.TopLeftControl,
+        MainForm.TopRightControl,
+        MainForm.BottomLeftControl,
+        MainForm.BottomRightControl
+      ])
+    then
+    begin
+      MainForm.LeafePopupMenu.Open(Control);
     end;
   end;
 end;
@@ -264,6 +283,7 @@ var
   MoveVector: TVector;
   NewPointF: TPointF;
   TimelineCaret: TControl;
+  VolumeCaret: TControl;
   Control: TControl;
 begin
   if not Assigned(Sender) then
@@ -274,22 +294,37 @@ begin
 
   Control := Sender as TControl;
 
-  if Control = MainForm.TimelineCaret then
+  if Control = MainForm.TimelineCaretControl then
   begin
-    TimelineCaret := MainForm.TimelineCaret;
+    TimelineCaret := MainForm.TimelineCaretControl;
 
     // Вычисляем локальное смещение относительно первоначальной позиции
     MoveVector := TVector.Create(X - FStartPos.X, 0, 0);
     NewPointF := TimelineCaret.Position.Point + TPointF(MoveVector);
 
-    SetTimelineCaretPosition(NewPointF.X + (TimelineCaret.Width / 2));
+    TPlayController.CurrentTimeByX(NewPointF.X + (TimelineCaret.Width / 2));
+  end
+  else
+  if Control = MainForm.VolumeCaretControl then
+  begin
+    VolumeCaret := MainForm.VolumeCaretControl;
+
+    // Вычисляем локальное смещение относительно первоначальной позиции
+    MoveVector := TVector.Create(X - FStartPos.X, 0, 0);
+    NewPointF := VolumeCaret.Position.Point + TPointF(MoveVector);
+
+    TPlayController.VolumeByX(NewPointF.X + (VolumeCaret.Width / 2));
   end
   else
   if IsControlIn(Control,
     [
-      MainForm.PlayButton,
-      MainForm.PrevButton,
-      MainForm.NextButton
+      MainForm.PlayControl,
+      MainForm.TopLeftControl,
+      MainForm.TopRightControl,
+      MainForm.BottomLeftControl,
+      MainForm.BottomRightControl,
+      MainForm.PrevTrackControl,
+      MainForm.NextTrackControl
     ])
   then
   begin
@@ -320,20 +355,25 @@ begin
   UnPressed(Control);
   TControl(Control).AutoCapture := false;
 
-  if Control = MainForm.TimelineCaret then
+  if Control = MainForm.TimelineControl then
   begin
+    TPlayController.CurrentTimeByX(X);
   end
   else
-  if Control = MainForm.DurationBar then
+  if Control = MainForm.VolumeControl then
   begin
-    SetTimelineCaretPosition(X);
+    TPlayController.VolumeByX(X);
   end
   else
   if IsControlIn(Control,
     [
-      MainForm.PlayButton,
-      MainForm.PrevButton,
-      MainForm.NextButton
+      MainForm.PlayControl,
+      MainForm.TopLeftControl,
+      MainForm.TopRightControl,
+      MainForm.BottomLeftControl,
+      MainForm.BottomRightControl,
+      MainForm.PrevTrackControl,
+      MainForm.NextTrackControl
     ])
   then
   begin
@@ -342,15 +382,65 @@ begin
   else
   if IsControlIn(Control,
     [
-      MainForm.BackwardRewindButton,
-      MainForm.ForwardRewindButton
+      MainForm.PrevNSecondsControl,
+      MainForm.NextNSecondsControl
     ])
   then
   begin
     FClickListenerThread.IsButtonUp := true;
     StopRewind(Sender);
   end
-
 end;
+
+class procedure TMouseHandlers.ConnectHandlers(const AControls: array of TControl);
+var
+  Control: TControl;
+begin
+  for Control in AControls do
+  begin
+    Control.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
+    Control.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
+    Control.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+  end;
+end;
+
+//class function TMouseHandlers.IsMouseOverControl(fControl: TControl): Boolean;
+//var
+//  mousePoint: TPoint;
+//  localizedMousePoint: TPointF;
+//  RectF: TRectF;
+//  BitMapData: TBitMapData;
+//  bGetBitMapResult: Boolean;
+//begin
+//  MainForm.Memo1.Lines.Insert(0, fControl.Name);
+//  MainForm.Memo1.ScrollToTop;
+//
+//  Result := false;
+//
+//  if fControl = nil then
+//    Exit;
+//
+//  GetCursorPos(mousePoint);
+//
+//  localizedMousePoint := TPointF.Create(mousePoint);
+//  localizedMousePoint := MainForm.ScreenToClient(localizedMousePoint);
+//  localizedMousePoint := fControl.AbsoluteToLocal(localizedMousePoint);
+//
+//  RectF  := TRectF.Create(MainForm.ClientToScreen(fControl.LocalToAbsolute(fControl.ClipRect.TopLeft)),
+//                          MainForm.ClientToScreen(fControl.LocalToAbsolute(fControl.ClipRect.BottomRight)));
+//
+//  if not RectF.IsEmpty then
+//    if RectF.Contains(mousePoint) then
+//    begin
+//      bGetBitMapResult := false;
+//
+//      if fControl is TShape then
+//        bGetBitMapResult := TShape(fControl).Fill.Bitmap.Bitmap.Map(TMapAccess.Read, BitMapData);
+//
+//      if bGetBitMapResult then
+//        if BitMapData.GetPixel(Trunc(localizedMousePoint.X), Trunc(localizedMousePoint.Y)) <> 0 then
+//          Result := true;
+//    end;
+//end;
 
 end.

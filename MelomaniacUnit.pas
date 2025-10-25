@@ -8,28 +8,57 @@ uses
   FMX.SingleSoundUnit, FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls,
   FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.Objects,
   FMX.FormExtUnit,
-  PlayListUnit
+  FMX.PopupMenuExtUnit,
+  PlayListUnit, FMX.Ani, FMX.Effects
   ;
 
 type
   TMainForm = class(TFormExt)
-    PlayButton: TButton;
-    NavigatorLayout: TLayout;
-    StopButton: TButton;
     Memo1: TMemo;
-    TrackerLayout: TLayout;
-    DurationBar: TRectangle;
-    TimelineCaret: TCircle;
     CurrentTimeLabel: TLabel;
-    PrevButton: TButton;
-    NextButton: TButton;
-    BackwardRewindButton: TButton;
-    ForwardRewindButton: TButton;
+    TopLeftControl: TRectangle;
+    TopRightControl: TRectangle;
+    RectAnimation1: TRectAnimation;
+    BottomLeftControl: TRectangle;
+    BottomRightControl: TRectangle;
+    PrevNSecondsControl: TRectangle;
+    PrevTrackControl: TRectangle;
+    NextNSecondsControl: TRectangle;
+    NextTrackControl: TRectangle;
+    TopControlsLayout: TLayout;
+    ChangeViewControl: TRectangle;
+    MoveModeControl: TRectangle;
+    CopyModeControl: TRectangle;
+    MarkModeControl: TRectangle;
+    DuplicateModeControl: TRectangle;
+    SetOfPathsNumber1Control: TRectangle;
+    SetOfPathsNumber2Control: TRectangle;
+    SetOfPathsNumber3Control: TRectangle;
+    SetOfPathsNumber4Control: TRectangle;
+    CloseControl: TRectangle;
+    RolldownControl: TRectangle;
+    BackToLastMainPathControl: TRectangle;
+    BottomControlsLayout: TLayout;
+    InfoPanelControl: TRectangle;
+    TimeLineControl: TRectangle;
+    TimelineCaretControl: TRectangle;
+    VolumeControl: TRectangle;
+    VolumeCaretControl: TRectangle;
+    SoundControl: TRectangle;
+    PlayControl: TCircle;
+    TopRightControlLabel: TLabel;
+    TopLeftLabel: TLabel;
+    BottomLeftLabel: TLabel;
+    BottomRightLabel: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure StopButtonClick(Sender: TObject);
+    procedure CloseControlClick(Sender: TObject);
   private
+    FLeafePopupMenu: TPopupMenuExt;
+    procedure BuilPopupMenus;
+    procedure ChooseDestinationMenuItemOnClick(Sender: TObject);
   public
+    property LeafePopupMenu: TPopupMenuExt read FLeafePopupMenu;
   end;
 
 var
@@ -45,7 +74,14 @@ uses
   , MouseHandlersUnit
   , ClickListenerThreadUnit
   , StateUnit
+  , VisualSchemeUnit
+  , ToolsUnit
   ;
+
+procedure TMainForm.CloseControlClick(Sender: TObject);
+begin
+  Close;
+end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 var
@@ -56,11 +92,14 @@ begin
 
   TState.Init;
 
+  TVisualScheme.Init;
+  TVisualScheme.Load(Self, 'Steampunk');
+
   TPlayController.Init(
     ThreadFactory,
     ThreadFactoryRegistry,
-    TimelineCaret,
-    DurationBar,
+    TimelineCaretControl,
+    TimelineControl,
     CurrentTimeLabel);
 
 //  TPlayController.PlayList.ReloadPlayList('E:\Desktop\Music\Alternative\Collection\');
@@ -82,45 +121,60 @@ begin
 
       TPlayController.SingleSound.FileName := TPlayController.PlayList.First.Path;
       TPlayController.Play;
+      TPlayController.Volume := 0.8;
     end;
 
   ClickListenerThread := TClickListenerThread.Create(ThreadFactory);
   TMouseHandlers.Init(ClickListenerThread);
-  TimelineCaret.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
-  TimelineCaret.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
-  TimelineCaret.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
 
-  DurationBar.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+  TMouseHandlers.ConnectHandlers([
+    PlayControl,
+    TimelineCaretControl,
+    TopLeftControl,
+    TopRightControl,
+    BottomLeftControl,
+    BottomRightControl,
+    SoundControl,
+    PrevTrackControl,
+    NextTrackControl,
+    PrevNSecondsControl,
+    NextNSecondsControl,
+    VolumeCaretControl
+  ]);
 
-  PlayButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
-  PlayButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
-  PlayButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+  TimelineControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+  VolumeControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
 
-  PrevButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
-  PrevButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
-  PrevButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+  TTools.ConnectGlowEffect([TimelineControl, VolumeControl]);
 
-  NextButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
-  NextButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
-  NextButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+  PlayControl.BringToFront;
 
-  BackwardRewindButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
-  BackwardRewindButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
-  BackwardRewindButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
-
-  ForwardRewindButton.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
-  ForwardRewindButton.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
-  ForwardRewindButton.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+  BuilPopupMenus;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   TPlayController.UnInit;
+  TVisualScheme.UnInit;
+  TState.UnInit;
 end;
 
-procedure TMainForm.StopButtonClick(Sender: TObject);
+procedure TMainForm.BuilPopupMenus;
+var
+  MenuItem: TItem;
 begin
-  TPlayController.Stop;
+  FLeafePopupMenu := TPopupMenuExt.Create(Self);
+//  TState.MenuTheme.CopyTo(FSettingsPopupMenuExt.Theme);
+
+  MenuItem := TItem.Create;
+  MenuItem.Text := 'Choose destination';
+  MenuItem.OnClick := ChooseDestinationMenuItemOnClick;
+  FLeafePopupMenu.Add(MenuItem);
+end;
+
+procedure TMainForm.ChooseDestinationMenuItemOnClick(Sender: TObject);
+begin
+  Memo1.Text := TControl(FLeafePopupMenu.CallingObject).Name;
 end;
 
 end.
