@@ -44,6 +44,7 @@ type
     function GetLast: TPlayItem;
     function GetNext: TPlayItem;
     function GetPrev: TPlayItem;
+    function GetCurrent: TPlayItem;
   public
     constructor Create(const AThreadFactory: TThreadFactory);
     destructor Destroy; override;
@@ -60,6 +61,7 @@ type
     property Last: TPlayItem read GetLast;
     property Next: TPlayItem read GetNext;
     property Prev: TPlayItem read GetPrev;
+    property Current: TPlayItem read GetCurrent;
   end;
 
 implementation
@@ -203,6 +205,16 @@ begin
   FCurrentIndex := FCurrentIndex - 1;
   if FCurrentIndex < 0 then
     FCurrentIndex := Pred(Self.Count);
+  Result := Self.Items[FCurrentIndex];
+end;
+
+function TPlayList.GetCurrent: TPlayItem;
+begin
+  Result := nil;
+
+  if Self.Count = 0 then
+    Exit;
+
   Result := Self.Items[FCurrentIndex];
 end;
 

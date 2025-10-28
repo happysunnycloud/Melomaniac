@@ -1,4 +1,4 @@
-unit ConstantsUnit;
+﻿unit ConstantsUnit;
 
 interface
 
@@ -11,6 +11,10 @@ const
   BITMAP_SOUND_IDENT = 'Sound';
   BITMAP_MUTE_IDENT = 'Mute';
   MOVE_CONTROLS_STEP = 20;
+//  TOP_LEFT_CONTROL_NAME = 'TopLeftControl';
+//  TOP_RIGHT_CONTROL_NAME = 'TopRightControl';
+//  BOTTOM_LEFT_CONTROL_NAME = 'BottomLeftControl';
+//  BOTTOM_RIGHT_CONTROL_NAME = 'BottomRightControl';
 
 implementation
 

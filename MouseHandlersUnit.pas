@@ -65,6 +65,7 @@ implementation
 uses
     System.SysUtils
   , System.Math.Vectors
+  , FMX.Forms
   , MelomaniacUnit
   , PlayControllerUnit
   , StateUnit
@@ -283,8 +284,12 @@ var
   MoveVector: TVector;
   NewPointF: TPointF;
   TimelineCaret: TControl;
-  VolumeCaret: TControl;
+//  VolumeCaret: TControl;
   Control: TControl;
+  //ScreenPoint: TPoint;
+  //FormPoint: TPointF;
+  //ClientPoint: TPointF;
+  //PointF: TPointF;
 begin
   if not Assigned(Sender) then
     Exit;
@@ -307,13 +312,16 @@ begin
   else
   if Control = MainForm.VolumeCaretControl then
   begin
-    VolumeCaret := MainForm.VolumeCaretControl;
-
-    // Вычисляем локальное смещение относительно первоначальной позиции
-    MoveVector := TVector.Create(X - FStartPos.X, 0, 0);
-    NewPointF := VolumeCaret.Position.Point + TPointF(MoveVector);
-
-    TPlayController.VolumeByX(NewPointF.X + (VolumeCaret.Width / 2));
+//    VolumeCaret := MainForm.VolumeCaretControl;
+//
+//    GetCursorPos(ScreenPoint);
+//    PointF := TPointF.Create(ScreenPoint);
+//    FormPoint := MainForm.ScreenToClient(PointF);
+//    ClientPoint := MainForm.VolumeControl.AbsoluteToLocal(FormPoint);
+//
+//    MainForm.Caption := 'X = ' + FloatToStr(ClientPoint.X);
+//    TPlayController.VolumeByX(ClientPoint.X);
+    TPlayController.MountVolume;
   end
   else
   if IsControlIn(Control,
@@ -328,8 +336,8 @@ begin
     ])
   then
   begin
-    MoveVector  := TVector.Create(X - FStartPos.X, Y - FStartPos.Y, 0);
-    MoveVector  := Control.LocalToAbsoluteVector(MoveVector);
+    MoveVector := TVector.Create(X - FStartPos.X, Y - FStartPos.Y, 0);
+    MoveVector := Control.LocalToAbsoluteVector(MoveVector);
 
     if Assigned(Control.ParentControl) then
       MoveVector := Control.ParentControl.AbsoluteToLocalVector(MoveVector);
@@ -362,7 +370,8 @@ begin
   else
   if Control = MainForm.VolumeControl then
   begin
-    TPlayController.VolumeByX(X);
+    TPlayController.MountVolume;
+    //TPlayController.VolumeByX(X);
   end
   else
   if IsControlIn(Control,

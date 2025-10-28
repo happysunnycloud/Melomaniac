@@ -47,9 +47,11 @@ type
     SoundControl: TRectangle;
     PlayControl: TCircle;
     TopRightControlLabel: TLabel;
-    TopLeftLabel: TLabel;
-    BottomLeftLabel: TLabel;
-    BottomRightLabel: TLabel;
+    TopLeftControlLabel: TLabel;
+    BottomLeftControlLabel: TLabel;
+    BottomRightControlLabel: TLabel;
+    InfoPanelPathLabel: TLabel;
+    InfoPanelTitleLabel: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
@@ -91,6 +93,7 @@ begin
   ReportMemoryLeaksOnShutdown := true;
 
   TState.Init;
+  TTools.FillPaths(TState.SetOfPathsIndex);
 
   TVisualScheme.Init;
   TVisualScheme.Load(Self, 'Steampunk');
@@ -119,9 +122,17 @@ begin
         TPlayController.PlayList.UnlockList;
       end;
 
-      TPlayController.SingleSound.FileName := TPlayController.PlayList.First.Path;
-      TPlayController.Play;
-      TPlayController.Volume := 0.8;
+      TPlayController.First;
+      if TState.Volume = 0 then
+      begin
+        TPlayController.Volume := TState.LastVolume;
+        TPlayController.Volume := 0;
+      end
+      else
+      begin
+        TPlayController.Volume := TState.Volume;
+      end;
+//      TPlayController.Play;
     end;
 
   ClickListenerThread := TClickListenerThread.Create(ThreadFactory);
@@ -174,7 +185,7 @@ end;
 
 procedure TMainForm.ChooseDestinationMenuItemOnClick(Sender: TObject);
 begin
-  Memo1.Text := TControl(FLeafePopupMenu.CallingObject).Name;
+  TTools.ChooseDestinationPath(TControl(FLeafePopupMenu.CallingObject));
 end;
 
 end.

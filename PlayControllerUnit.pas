@@ -18,11 +18,17 @@ type
     class var FTimelineTrackerThread: TTimelineTrackerThread;
     class var FPlayList: TPlayList;
 
-    class function GetVolume: Single; static;
-    class procedure SetVolume(const AValume: Single); static;
+//    class function GetVolume: Single; static;
+    class procedure SetVolume(const AVolume: Single); static;
 
+    class procedure SetFirst;
     class procedure SetPrev;
     class procedure SetNext;
+
+//    class procedure SetFileName(const AFileName: String); static;
+//    class function GetFileName: String; static;
+
+//    class function GetCurrentCompositon: TPlayItem; static;
   public
     class procedure Init(
       const AThreadFactory: TThreadFactory;
@@ -33,8 +39,10 @@ type
     class procedure UnInit;
 
     class property SingleSound: TSingleSound read FSingleSound write FSingleSound;
+//    class property FileName: String read GetFileName write SetFileName;
     class property PlayList: TPlayList read FPlayList;
-    class property Volume: Single read GetVolume write SetVolume;
+    class property Volume: Single {read GetVolume} write SetVolume;
+//    class property CurrentCompositon: TPlayItem read GetCurrentCompositon;
 
     class procedure Play;
     class procedure Stop;
@@ -46,17 +54,27 @@ type
     class procedure BackwardRewindStep;
     class procedure ForwardRewindStep;
     class procedure StopRewind;
+    class procedure First;
     class procedure Prev;
     class procedure Next;
 
+    class procedure GetCurrentCompositonInfo(
+      out ATitle: String;
+      out APath: String);
+
     class procedure CurrentTimeByX(const AX: Single);
-    class procedure VolumeByX(const AX: Single);
+//    class procedure VolumeByX(const AX: Single);
+//    class procedure XByVolume(const AVolume: Single);
+    class procedure MountVolume;
   end;
 
 implementation
 
 uses
     System.SysUtils
+//asd
+  , System.Math
+//asd
   , FMX.Media
   , StateUnit
   , ToolsUnit
@@ -100,23 +118,30 @@ begin
   FreeAndNil(FSingleSound);
 end;
 
-class function TPlayController.GetVolume: Single;
-begin
-  Result := FSingleSound.Volume;
-  if FSingleSound.Volume > 0 then
-    TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_SOUND_IDENT);
-end;
+//class function TPlayControlle.GetVolume: Single;
+//begin
+//  Result := FSingleSound.Volume;
+//
+//  if FSingleSound.Volume > 0 then
+//    TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_SOUND_IDENT);
+//end;
 
-class procedure TPlayController.SetVolume(const AValume: Single);
+class procedure TPlayController.SetVolume(const AVolume: Single);
 var
   X: Single;
 begin
-  FSingleSound.Volume := AValume;
+  TState.LastVolume := TState.Volume;
+  TState.Volume := AVolume;
+  FSingleSound.Volume := TState.Volume;
 
-  X := FSingleSound.Volume * MainForm.VolumeControl.Width;
+  X := TTools.VolumeToVolumeCaretPosition(TState.Volume);
   TTools.RenderVolumeCaretPosition(X);
-  if FSingleSound.Volume = 0 then
-    TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_MUTE_IDENT);
+  //XByVolume(TState.Volume);
+
+  if TState.Volume = 0 then
+    TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_MUTE_IDENT)
+  else
+    TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_SOUND_IDENT);
 end;
 
 class procedure TPlayController.Play;
@@ -129,6 +154,7 @@ begin
 
   TState.PlayState := psPlay;
   TVisualScheme.AssignBitmap(MainForm.PlayControl, BITMAP_PLAY_IDENT);
+  TTools.DisplayCurrentComposition;
   TTools.RenderPlayState(TState.PlayState);
 end;
 
@@ -160,20 +186,20 @@ end;
 
 class procedure TPlayController.Mute;
 begin
-  FSingleSound.Mute;
-  TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_MUTE_IDENT);
-  TTools.RenderVolumeCaretPosition(0);
+  TState.LastVolume := TState.Volume;
+  Volume := 0;
+//  FSingleSound.Mute;
+//  TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_MUTE_IDENT);
+//  TTools.RenderVolumeCaretPosition(0);
 end;
 
 class procedure TPlayController.Sound;
-var
-  X: Single;
 begin
-  FSingleSound.Sound;
-
-  TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_SOUND_IDENT);
-  X := FSingleSound.Volume * MainForm.VolumeControl.Width;
-  TTools.RenderVolumeCaretPosition(X);
+  Volume := TState.LastVolume;
+//  FSingleSound.Sound;
+//
+//  TVisualScheme.AssignBitmap(MainForm.SoundControl, BITMAP_SOUND_IDENT);
+//  XByVolume(FSingleSound.Volume);
 end;
 
 class procedure TPlayController.BackwardRewind;
@@ -209,11 +235,26 @@ begin
   end;
 end;
 
+class procedure TPlayController.First;
+var
+  _Volume: Single;
+begin
+  _Volume := TState.Volume;
+  TState.LastPlayState := TState.PlayState;
+  Stop;
+  SetFirst;
+  if TState.LastPlayState = psPlay then
+  begin
+    Volume := _Volume;
+    Play;
+  end;
+end;
+
 class procedure TPlayController.Prev;
 var
   _Volume: Single;
 begin
-  _Volume := Volume;
+  _Volume := TState.Volume;
   TState.LastPlayState := TState.PlayState;
   Stop;
   SetPrev;
@@ -228,7 +269,7 @@ class procedure TPlayController.Next;
 var
   _Volume: Single;
 begin
-  _Volume := Volume;
+  _Volume := TState.Volume;
   TState.LastPlayState := TState.PlayState;
   Stop;
   SetNext;
@@ -237,6 +278,25 @@ begin
     Volume := _Volume;
     Play;
   end;
+end;
+
+class procedure TPlayController.GetCurrentCompositonInfo(
+  out ATitle: String;
+  out APath: String);
+var
+  PlayItem: TPlayItem;
+begin
+  ATitle := '';
+  APath := '';
+
+  PlayItem := FPlayList.Current;
+  ATitle := PlayItem.Title;
+  APath := PlayItem.Path;
+end;
+
+class procedure TPlayController.SetFirst;
+begin
+  FSingleSound.FileName := FPlayList.First.Path;
 end;
 
 class procedure TPlayController.SetPrev;
@@ -248,6 +308,22 @@ class procedure TPlayController.SetNext;
 begin
   FSingleSound.FileName := FPlayList.Next.Path;
 end;
+
+//class procedure TPlayController.SetFileName(const AFileName: String);
+//begin
+//  Stop;
+//  FSingleSound.FileName := AFileName;
+//end;
+//
+//class function TPlayController.GetFileName: String;
+//begin
+//  Result := FSingleSound.FileName;
+//end;
+
+//class function TPlayController.GetCurrentCompositon: TPlayItem;
+//begin
+//  Result := FPlayList.Current;
+//end;
 
 class procedure TPlayController.CurrentTimeByX(const AX: Single);
 var
@@ -276,24 +352,44 @@ begin
   FSingleSound.CurrentTime := CurrentTime;
 end;
 
-class procedure TPlayController.VolumeByX(const AX: Single);
+//class procedure TPlayController.VolumeByX(const AX: Single);
+//var
+//  VolumeControl: TControl;
+//  X: Single;
+//begin
+////  MainForm.Memo1.Lines.Insert(0, FloatToStr(AX));
+////  MainForm.Memo1.ScrollToTop;
+//
+//  X := AX;
+//
+//  VolumeControl := MainForm.VolumeControl;
+//
+//  if (X < 0) or (X > VolumeControl.Width) then
+//    Exit;
+//
+////  TTools.RenderVolumeCaretPosition(X - (MainForm.VolumeCaretControl.Width / 2));
+////  MainForm.Memo1.Lines.Insert(0, FloatToStr((1 / VolumeControl.Width) * X));
+////  MainForm.Memo1.ScrollToTop;
+//  Volume := (1 / VolumeControl.Width) * X;
+//end;
+
+//class procedure TPlayController.XByVolume(const AVolume: Single);
+//var
+//  X: Single;
+//begin
+//  X := (aVolume * MainForm.VolumeControl.Width) -
+//    (MainForm.VolumeCaretControl.Width / 2);
+//  TTools.RenderVolumeCaretPosition(X);
+//end;
+
+class procedure TPlayController.MountVolume;
 var
-  VolumeCaret: TControl;
-  VolumeControl: TControl;
+//  Volume: Single;
   X: Single;
 begin
-  X := AX;
-
-  VolumeCaret := MainForm.VolumeCaretControl;
-  VolumeControl := MainForm.VolumeControl;
-
-  if (X >= 0) and (X <= VolumeControl.Width) then
-    VolumeCaret.Position.X := X - (VolumeCaret.Width / 2)
-  else
-    Exit;
-
-  Volume := (1 / VolumeControl.Width) * X;
+  X := TTools.ReadVolumeCaretPosition;
+  Volume := TTools.VolumeCaretPositionToVolume(X);
+//  TTools.RenderVolumeCaretPosition(Volume);
 end;
-
 
 end.

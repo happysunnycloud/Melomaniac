@@ -40,6 +40,9 @@ type
     class var FSetOfPathsIndex: Integer;
 
     class var FSetOfPaths: TSetOfPaths;
+
+//    class procedure SetSetOfPaths(const A)
+    class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
   strict private
     class var FPlayState: TPlayState;
     class var FLastPlayState: TPlayState;
@@ -79,6 +82,14 @@ type
       read FVisualScheme write FVisualScheme;
     class property SetOfPathsIndex: Integer
       read FSetOfPathsIndex write FSetOfPathsIndex;
+    class property SetOfPaths[const AIndex: Integer]: TPaths
+      read GetSetOfPaths;
+  end;
+
+  TPlayStateHelper = record helper for TPlayState
+  public
+    function ToInt: Integer;
+    procedure FromInt(const AVal: Integer);
   end;
 
 implementation
@@ -88,6 +99,25 @@ uses
   , Xml.XMLIntf
   , Xml.XMLDoc
   ;
+
+{ TPlayStateHelper }
+
+function TPlayStateHelper.ToInt: Integer;
+begin
+  Result := Integer(Self);
+end;
+
+procedure TPlayStateHelper.FromInt(const AVal: Integer);
+begin
+  case AVal of
+    -1: Self := psStop;
+     0: Self := psPause;
+     1: Self := psPlay;
+  else
+    raise Exception.
+      CreateFmt('TPlayStateHelper.FromInt -> Unable to match value "%d"', [AVal]);
+  end;
+end;
 
 { TSetOfPaths }
 
@@ -129,28 +159,28 @@ begin
   if FSetOfPaths.Count = 0 then
   begin
     Paths := TPaths.Create;
-    Paths.Add('0');
-    Paths.Add('1');
-    Paths.Add('2');
-    Paths.Add('3');
+    Paths.Add('');
+    Paths.Add('');
+    Paths.Add('');
+    Paths.Add('');
     FSetOfPaths.Add(Paths);
     Paths := TPaths.Create;
-    Paths.Add('0');
-    Paths.Add('1');
-    Paths.Add('2');
-    Paths.Add('3');
+    Paths.Add('');
+    Paths.Add('');
+    Paths.Add('');
+    Paths.Add('');
     FSetOfPaths.Add(Paths);
     Paths := TPaths.Create;
-    Paths.Add('0');
-    Paths.Add('1');
-    Paths.Add('2');
-    Paths.Add('3');
+    Paths.Add('');
+    Paths.Add('');
+    Paths.Add('');
+    Paths.Add('');
     FSetOfPaths.Add(Paths);
     Paths := TPaths.Create;
-    Paths.Add('0');
-    Paths.Add('1');
-    Paths.Add('2');
-    Paths.Add('3');
+    Paths.Add('');
+    Paths.Add('');
+    Paths.Add('');
+    Paths.Add('');
     FSetOfPaths.Add(Paths);
   end;
 end;
@@ -160,6 +190,15 @@ begin
   SaveConfig;
 
   FreeAndNil(FSetOfPaths);
+end;
+
+class function TState.GetSetOfPaths(const AIndex: Integer): TPaths;
+begin
+  if (AIndex < 0) or (AIndex > Pred(FSetOfPaths.Count)) then
+    raise Exception.
+      CreateFmt('TState.GetSetOfPaths -> Index "%d" out of range', [AIndex]);
+
+  Result := FSetOfPaths.Items[AIndex];
 end;
 
 class procedure TState.SetPlayState(const APlayState: TPlayState);
@@ -178,8 +217,6 @@ var
   i, j: Integer;
   CongifFileName: String;
 begin
-  Result := false;
-
   XMLDoc    := TXMLDocument.Create(nil);
   XMLDoc.Active := true;
   XmlDoc.Encoding := 'utf-8';
@@ -189,6 +226,7 @@ begin
   CommonNode := RootNode.AddChild('Common');
 
   CommonNode.AddChild('MainPath').Text := FMainPath;
+  CommonNode.AddChild('PlayState').Text := IntToStr(FPlayState.ToInt);
   CommonNode.AddChild('LastMainPath').Text := FLastMainPath;
   CommonNode.AddChild('Volume').Text := FloatToStr(FVolume);
   CommonNode.AddChild('LastVolume').Text := FloatToStr(FLastVolume);
@@ -214,7 +252,6 @@ begin
   CongifFileName := ExtractFilePath(ParamStr(0)) + 'Melomaniac.conf';
   try
     XMLDoc.SaveToFile(CongifFileName);
-    Result := true;
   except
     raise Exception.
       CreateFmt('TState.SaveConfig -> Can not save "%s"', [CongifFileName]);
@@ -231,9 +268,9 @@ var
   SetsOfPathsNode: IXMLNode;
   SetOfPathsNode: IXMLNode;
   Paths: TPaths;
-  ChildNode: IXMLNode;
   i, j: Integer;
   CongifFileName: String;
+  PlayStateStrVal: String;
 begin
   Result := false;
 
@@ -269,6 +306,9 @@ begin
   end;
 
   FMainPath := CommonNode.ChildNodes['MainPath'].Text;
+  PlayStateStrVal := CommonNode.ChildNodes['PlayState'].Text;
+  FPlayState.FromInt(StrToIntDef(PlayStateStrVal, psStop.ToInt));
+  FLastPlayState := FPlayState;
   FLastMainPath := CommonNode.ChildNodes['MainPath'].Text;
   FVolume := StrToFloat(CommonNode.ChildNodes['Volume'].Text);
   FLastVolume := StrToFloat(CommonNode.ChildNodes['LastVolume'].Text);
