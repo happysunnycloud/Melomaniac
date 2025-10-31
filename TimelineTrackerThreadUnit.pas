@@ -167,21 +167,31 @@ begin
 end;
 
 procedure TTimelineTrackerThread.Execute;
+var
+  CurrentCompoisition: String;
 begin
+  CurrentCompoisition := '';
   HoldThread;
   ExecHold;
 
   while not Terminated do
   begin
+    CurrentCompoisition := FSingleSound.FileName;
+
     while not Terminated and not IntentionHoldState do
     begin
       if FSingleSound.CurrentTime >= FSingleSound.Duration then
       begin
-        Queue(nil,
-          procedure
-          begin
-            TPlayController.Next;
-          end);
+        if not CurrentCompoisition.IsEmpty then
+        begin
+          CurrentCompoisition := '';
+
+          Queue(nil,
+            procedure
+            begin
+              TPlayController.Next;
+            end);
+        end;
       end
       else
       begin

@@ -4,6 +4,7 @@ interface
 
 uses
     FMX.Controls
+  , FMX.Media
   , StateUnit
   , MelomaniacUnit
   ;
@@ -14,11 +15,13 @@ type
     class var FCurrentRenderPlayState: TPlayState;
   public
     class procedure RenderPlayState(const APlayState: TPlayState);
+    class procedure RenderTimelineCaretPosition(const AX: Single);
     class procedure RenderVolumeCaretPosition(const AX: Single);
-    class function ReadVolumeCaretPosition: Single;
+    class function ReadCaretPosition(const AControl: TControl): Single;
+    class function TimelineCaretPositionToTime(const AX: Single): TMediaTime;
+    class function TimeToCaretPosition(const ATime: TMediaTime): Single;
     class function VolumeCaretPositionToVolume(const AX: Single): Single;
     class function VolumeToVolumeCaretPosition(const AVolume: Single): Single;
-//    class function PositionToVolume: Single;
     class procedure DisplayCurrentComposition;
     class procedure ConnectGlowEffect(
       const AExceptControls: array of TControl);
@@ -104,13 +107,13 @@ begin
     MainForm.BottomControlsLayout.Position.Y + MoveStep;
 end;
 
-//class procedure TTools.RenderVolumeCaretPosition(const AX: Single);
-//var
-//  VolumeCaret: TControl;
-//begin
-//  VolumeCaret := MainForm.VolumeCaretControl;
-//  VolumeCaret.Position.X := AX;
-//end;
+class procedure TTools.RenderTimelineCaretPosition(const AX: Single);
+var
+  X: Single;
+begin
+  X := AX;
+  MainForm.TimelineCaretControl.Position.X := X;
+end;
 
 class procedure TTools.RenderVolumeCaretPosition(const AX: Single);
 var
@@ -120,36 +123,56 @@ begin
   MainForm.VolumeCaretControl.Position.X := X;
 end;
 
-class function TTools.ReadVolumeCaretPosition: Single;
+class function TTools.ReadCaretPosition(const AControl: TControl): Single;
 var
   ScreenPoint: TPoint;
   FormPoint: TPointF;
   ClientPoint: TPointF;
   PointF: TPointF;
   X: Single;
-  VolumeControl: TControl;
 begin
-  Result := 0;
-
   GetCursorPos(ScreenPoint);
   PointF := TPointF.Create(ScreenPoint);
   FormPoint := MainForm.ScreenToClient(PointF);
-  ClientPoint := MainForm.VolumeControl.AbsoluteToLocal(FormPoint);
+  ClientPoint := AControl.AbsoluteToLocal(FormPoint);
 
-  VolumeControl := MainForm.VolumeControl;
   X := ClientPoint.X;
-  if (X < 0) or (X > VolumeControl.Width) then
+  if X < 0 then
+    Result := 0
+  else
+  if X > AControl.Width then
+    Result := AControl.Width
+  else
+    Result := X;
+end;
+
+class function TTools.TimelineCaretPositionToTime(const AX: Single): TMediaTime;
+var
+  X: Single;
+  TimelineControl: TControl;
+begin
+  Result := 0;
+
+  X := AX;
+  TimelineControl := MainForm.TimelineControl;
+  if (X < 0) or (X > TimelineControl.Width) then
     Exit;
 
+  Result :=
+    Round((TPlayController.SingleSound.Duration / TimelineControl.Width) * X);
+end;
+
+class function TTools.TimeToCaretPosition(const ATime: TMediaTime): Single;
+var
+  X: Single;
+begin
+  X := (ATime * (MainForm.TimelineControl.Width / TPlayController.SingleSound.Duration)) -
+    (MainForm.TimelineCaretControl.Width / 2);
   Result := X;
 end;
 
 class function TTools.VolumeCaretPositionToVolume(const AX: Single): Single;
 var
-  //ScreenPoint: TPoint;
-  //FormPoint: TPointF;
-  //ClientPoint: TPointF;
-//  PointF: TPointF;
   X: Single;
   VolumeControl: TControl;
 begin
@@ -190,9 +213,7 @@ var
 begin
   SetLength(ExceptControls, Length(AExceptControls));
   for i := 0 to Pred(Length(AExceptControls)) do
-  begin
     ExceptControls[i] := AExceptControls[i];
-  end;
 
   TControlTools.ControlEnumerator(MainForm,
     procedure (const AControl: TControl)

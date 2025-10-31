@@ -92,18 +92,18 @@ var
 begin
   ReportMemoryLeaksOnShutdown := true;
 
-  TState.Init;
-  TTools.FillPaths(TState.SetOfPathsIndex);
-
-  TVisualScheme.Init;
-  TVisualScheme.Load(Self, 'Steampunk');
-
   TPlayController.Init(
     ThreadFactory,
     ThreadFactoryRegistry,
     TimelineCaretControl,
     TimelineControl,
     CurrentTimeLabel);
+
+  TState.Init;
+  TTools.FillPaths(TState.SetOfPathsIndex);
+
+  TVisualScheme.Init;
+  TVisualScheme.Load(Self, 'Steampunk');
 
 //  TPlayController.PlayList.ReloadPlayList('E:\Desktop\Music\Alternative\Collection\');
   TPlayController.PlayList.ReloadPlayList('C:\000');

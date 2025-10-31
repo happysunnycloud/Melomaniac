@@ -194,7 +194,11 @@ begin
         PlayClicked,
         Sender);
     end
-    ///
+    else
+    if Control = MainForm.TimelineCaretControl then
+    begin
+      TPlayController.TimelineTrackerThread.HoldThread;
+    end
     else
     if Control = MainForm.TopLeftControl then
     begin
@@ -223,7 +227,6 @@ begin
         nil,
         Sender);
     end
-    ///
     else
     if Control = MainForm.PrevTrackControl then
     begin
@@ -282,14 +285,7 @@ class procedure TMouseHandlers.OnMouseMoveHandler(
   X, Y: Single);
 var
   MoveVector: TVector;
-  NewPointF: TPointF;
-  TimelineCaret: TControl;
-//  VolumeCaret: TControl;
   Control: TControl;
-  //ScreenPoint: TPoint;
-  //FormPoint: TPointF;
-  //ClientPoint: TPointF;
-  //PointF: TPointF;
 begin
   if not Assigned(Sender) then
     Exit;
@@ -301,26 +297,11 @@ begin
 
   if Control = MainForm.TimelineCaretControl then
   begin
-    TimelineCaret := MainForm.TimelineCaretControl;
-
-    // Вычисляем локальное смещение относительно первоначальной позиции
-    MoveVector := TVector.Create(X - FStartPos.X, 0, 0);
-    NewPointF := TimelineCaret.Position.Point + TPointF(MoveVector);
-
-    TPlayController.CurrentTimeByX(NewPointF.X + (TimelineCaret.Width / 2));
+    TPlayController.MountCurrentTime;
   end
   else
   if Control = MainForm.VolumeCaretControl then
   begin
-//    VolumeCaret := MainForm.VolumeCaretControl;
-//
-//    GetCursorPos(ScreenPoint);
-//    PointF := TPointF.Create(ScreenPoint);
-//    FormPoint := MainForm.ScreenToClient(PointF);
-//    ClientPoint := MainForm.VolumeControl.AbsoluteToLocal(FormPoint);
-//
-//    MainForm.Caption := 'X = ' + FloatToStr(ClientPoint.X);
-//    TPlayController.VolumeByX(ClientPoint.X);
     TPlayController.MountVolume;
   end
   else
@@ -363,15 +344,20 @@ begin
   UnPressed(Control);
   TControl(Control).AutoCapture := false;
 
+  if Control = MainForm.TimelineCaretControl then
+  begin
+    if TState.PlayState = psPlay then
+      TPlayController.TimelineTrackerThread.UnHoldThread;
+  end
+  else
   if Control = MainForm.TimelineControl then
   begin
-    TPlayController.CurrentTimeByX(X);
+    TPlayController.MountCurrentTime;
   end
   else
   if Control = MainForm.VolumeControl then
   begin
     TPlayController.MountVolume;
-    //TPlayController.VolumeByX(X);
   end
   else
   if IsControlIn(Control,
