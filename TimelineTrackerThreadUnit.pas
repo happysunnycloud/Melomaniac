@@ -15,7 +15,7 @@ type
   TTimelineTrackerThread = class(TThreadExt)
   strict private
     FCriticalSection: TCriticalSection;
-    FSingleSound: TSingleSound;
+    //FSingleSound: TSingleSound;
     FTimelineCaret: TControl;
     FDurationBar: TControl;
     FCurrentTimeLabel: TControl;
@@ -30,7 +30,7 @@ type
   public
     constructor Create(
       const AThreadFactory: TThreadFactory;
-      const ASingleSound: TSingleSound;
+//      const ASingleSound: TSingleSound;
       const ATimelineCaret: TControl;
       const ADurationBar: TControl;
       const ACurrentTimeLabel: TControl); reintroduce;
@@ -61,14 +61,14 @@ uses
 
 constructor TTimelineTrackerThread.Create(
   const AThreadFactory: TThreadFactory;
-  const ASingleSound: TSingleSound;
+//  const ASingleSound: TSingleSound;
   const ATimelineCaret: TControl;
   const ADurationBar: TControl;
   const ACurrentTimeLabel: TControl);
 begin
   FCriticalSection := TCriticalSection.Create;
 
-  FSingleSound := ASingleSound;
+  //FSingleSound := ASingleSound;
   FTimelineCaret := ATimelineCaret;
   FDurationBar := ADurationBar;
   FCurrentTimeLabel := ACurrentTimeLabel;
@@ -94,12 +94,12 @@ var
 begin
   Result := true;
 
-  NewTime := FSingleSound.CurrentTime - (REWIND_TIME * MediaTimeScale);
+  NewTime := TPlayController.SingleSound.CurrentTime - (REWIND_TIME * MediaTimeScale);
   if NewTime >= 0 then
-    FSingleSound.CurrentTime := NewTime
+    TPlayController.SingleSound.CurrentTime := NewTime
   else
   begin
-    FSingleSound.CurrentTime := 0;
+    TPlayController.SingleSound.CurrentTime := 0;
 
     Exit(false);
   end;
@@ -113,9 +113,9 @@ var
 begin
   Result := true;
 
-  NewTime := FSingleSound.CurrentTime + (REWIND_TIME * MediaTimeScale);
-  if NewTime <= FSingleSound.Duration then
-    FSingleSound.CurrentTime := NewTime
+  NewTime := TPlayController.SingleSound.CurrentTime + (REWIND_TIME * MediaTimeScale);
+  if NewTime <= TPlayController.SingleSound.Duration then
+    TPlayController.SingleSound.CurrentTime := NewTime
   else
     Exit(false);
 
@@ -148,8 +148,8 @@ var
   Duration: Single;
   CurrentTime: TMediaTime;
 begin
-  CurrentTime := FSingleSound.CurrentTime;
-  Duration := FSingleSound.Duration;
+  CurrentTime := TPlayController.SingleSound.CurrentTime;
+  Duration := TPlayController.SingleSound.Duration;
 
   if Duration = 0 then
     Duration := 1;
@@ -167,31 +167,49 @@ begin
 end;
 
 procedure TTimelineTrackerThread.Execute;
-var
-  CurrentCompoisition: String;
 begin
-  CurrentCompoisition := '';
   HoldThread;
   ExecHold;
 
   while not Terminated do
   begin
-    CurrentCompoisition := FSingleSound.FileName;
-
     while not Terminated and not IntentionHoldState do
     begin
-      if FSingleSound.CurrentTime >= FSingleSound.Duration then
+      if TPlayController.SingleSound.CurrentTime >= TPlayController.SingleSound.Duration then
       begin
-        if not CurrentCompoisition.IsEmpty then
-        begin
-          CurrentCompoisition := '';
+        // Без обнуления зависает на выполнени Stop внутри Next
+        TPlayController.SingleSound.CurrentTime := 0;
+        TPlayController.SingleSound.Stop;
+        ForceQueue(nil,
+          procedure
+          begin
+            TPlayController.Next;
+          end);
+//        HoldThread;
+//        Break;
 
-          Queue(nil,
-            procedure
-            begin
-              TPlayController.Next;
-            end);
-        end;
+//        TThread.CreateAnonymousThread(
+//          procedure
+//          begin
+//            Synchronize(
+//              procedure
+//              begin
+//                TPlayController.Next;
+//              end);
+//          end).Start;
+
+//        TThread.CreateAnonymousThread(
+//          procedure
+//          begin
+//            ForceQueue(nil,
+//              procedure
+//              begin
+//                TPlayController.Next;
+//              end);
+//          end).Start;
+//
+//        HoldThread;
+//        Break;
       end
       else
       begin

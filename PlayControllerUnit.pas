@@ -10,6 +10,7 @@ uses
   , TimelineTrackerThreadUnit
   , PlayListUnit
   , FMX.SingleSoundUnit
+  , StateUnit
   ;
 
 type
@@ -18,6 +19,7 @@ type
     class var FSingleSound: TSingleSound;
     class var FTimelineTrackerThread: TTimelineTrackerThread;
     class var FPlayList: TPlayList;
+    class var FPlayState: TPlayState;
 
     class procedure SetTime(const ATime: TMediaTime); static;
     class procedure SetVolume(const AVolume: Single); static;
@@ -31,7 +33,8 @@ type
       const AThreadFactoryRegistry: TThreadFactoryRegistry;
       const ATimelineCaret: TControl;
       const ADurationBar: TControl;
-      const ACurrentTimeLabel: TControl);
+      const ACurrentTimeLabel: TControl;
+      const AInitializingPlayState: TPlayState);
     class procedure UnInit;
 
     class property SingleSound: TSingleSound read FSingleSound write FSingleSound;
@@ -39,12 +42,13 @@ type
     class property Time: TMediaTime write SetTime;
     class property Volume: Single write SetVolume;
     class property TimelineTrackerThread: TTimelineTrackerThread read FTimelineTrackerThread;
+    class property PlayState: TPlayState read FPlayState;
 
     class procedure Play;
     class procedure Stop;
     class procedure Pause;
     class procedure Mute;
-    class procedure Sound;
+    class procedure UnMute;
     class procedure BackwardRewind;
     class procedure ForwardRewind;
     class procedure BackwardRewindStep;
@@ -66,7 +70,6 @@ implementation
 
 uses
     System.SysUtils
-  , StateUnit
   , ToolsUnit
   , StringToolsUnit
   , MelomaniacUnit
@@ -81,7 +84,8 @@ class procedure TPlayController.Init(
   const AThreadFactoryRegistry: TThreadFactoryRegistry;
   const ATimelineCaret: TControl;
   const ADurationBar: TControl;
-  const ACurrentTimeLabel: TControl);
+  const ACurrentTimeLabel: TControl;
+  const AInitializingPlayState: TPlayState);
 var
   PlayListThreadFactory: TThreadFactory;
 begin
@@ -92,7 +96,7 @@ begin
   // Фабрика уничтожается при загрытии главного окна
   FTimelineTrackerThread := TTimelineTrackerThread.Create(
     AThreadFactory,
-    TPlayController.SingleSound,
+//    TPlayController.SingleSound,
     ATimelineCaret,
     ADurationBar,
     ACurrentTimeLabel);
@@ -100,6 +104,8 @@ begin
   PlayListThreadFactory := AThreadFactoryRegistry.CreateThreadFactory;
 
   FPlayList := TPlayList.Create(PlayListThreadFactory);
+
+  FPlayState := AInitializingPlayState;
 end;
 
 class procedure TPlayController.UnInit;
@@ -123,7 +129,7 @@ begin
   // то CurrentTime становится равным Duration
   // и плеер автоматически останавливает воспроизведение
   // По этому проверяем текущий статус воспроизведения и запускаем если он psPlay
-  if TState.PlayState = psPlay then
+  if FPlayState = psPlay then
     FSingleSound.Play;
 end;
 
@@ -148,31 +154,31 @@ class procedure TPlayController.Play;
 var
   LastPlayState: TPlayState;
 begin
-  LastPlayState := TState.PlayState;
+  LastPlayState := FPlayState;
 
   FSingleSound.Play;
   FTimelineTrackerThread.UnHoldThread;
 
-  TState.PlayState := psPlay;
+  FPlayState := psPlay;
 
   if LastPlayState = psPlay then
     Exit;
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, BITMAP_PLAY_IDENT);
   TTools.DisplayCurrentComposition;
-  TTools.RenderPlayState(TState.PlayState);
+  TTools.RenderPlayState(FPlayState);
 end;
 
 class procedure TPlayController.Stop;
 var
   LastPlayState: TPlayState;
 begin
-  LastPlayState := TState.PlayState;
+  LastPlayState := FPlayState;
 
   FSingleSound.Stop;
   FTimelineTrackerThread.HoldThread;
 
-  TState.PlayState := psStop;
+  FPlayState := psStop;
 
   if LastPlayState = psStop then
     Exit;
@@ -181,25 +187,25 @@ begin
     Exit;
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, BITMAP_PAUSE_IDENT);
-  TTools.RenderPlayState(TState.PlayState);
+  TTools.RenderPlayState(FPlayState);
 end;
 
 class procedure TPlayController.Pause;
 var
   LastPlayState: TPlayState;
 begin
-  LastPlayState := TState.PlayState;
+  LastPlayState := FPlayState;
 
   FSingleSound.Pause;
   FTimelineTrackerThread.HoldThread;
 
-  TState.PlayState := psPause;
+  FPlayState := psPause;
 
   if LastPlayState = psPause then
     Exit;
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, BITMAP_PAUSE_IDENT);
-  TTools.RenderPlayState(TState.PlayState);
+  TTools.RenderPlayState(FPlayState);
 end;
 
 class procedure TPlayController.Mute;
@@ -208,7 +214,7 @@ begin
   Volume := 0;
 end;
 
-class procedure TPlayController.Sound;
+class procedure TPlayController.UnMute;
 begin
   Volume := TState.LastVolume;
 end;
@@ -239,7 +245,7 @@ class procedure TPlayController.StopRewind;
 begin
   FTimelineTrackerThread.RewindDirection := rdNone;
 
-  case TState.PlayState of
+  case FPlayState of
     psPlay: Play;
     psPause: Pause;
     psStop: Stop;
@@ -247,29 +253,40 @@ begin
 end;
 
 class procedure TPlayController.First;
+var
+  LastPlayState: TPlayState;
 begin
-  TState.LastPlayState := TState.PlayState;
+  LastPlayState := FPlayState;
   Stop;
   SetFirst;
-  if TState.LastPlayState = psPlay then
+  if LastPlayState = psPlay then
     Play;
 end;
 
 class procedure TPlayController.Prev;
+var
+  LastPlayState: TPlayState;
 begin
-  TState.LastPlayState := TState.PlayState;
+  LastPlayState := FPlayState;
   Stop;
   SetPrev;
-  if TState.LastPlayState = psPlay then
+  Time := 0;
+  if LastPlayState = psPlay then
     Play;
 end;
 
 class procedure TPlayController.Next;
+var
+  LastPlayState: TPlayState;
 begin
-  TState.LastPlayState := TState.PlayState;
+  //asd
+  //FSingleSound.CurrentTime := 0;
+  //asd
+  LastPlayState := FPlayState;
   Stop;
   SetNext;
-  if TState.LastPlayState = psPlay then
+  Time := 0;
+  if LastPlayState = psPlay then
     Play;
 end;
 

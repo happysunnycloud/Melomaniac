@@ -92,14 +92,16 @@ var
 begin
   ReportMemoryLeaksOnShutdown := true;
 
+  TState.Init;
+
   TPlayController.Init(
     ThreadFactory,
     ThreadFactoryRegistry,
     TimelineCaretControl,
     TimelineControl,
-    CurrentTimeLabel);
+    CurrentTimeLabel,
+    TState.PlayState);
 
-  TState.Init;
   TTools.FillPaths(TState.SetOfPathsIndex);
 
   TVisualScheme.Init;
@@ -150,7 +152,8 @@ begin
     NextTrackControl,
     PrevNSecondsControl,
     NextNSecondsControl,
-    VolumeCaretControl
+    VolumeCaretControl,
+    InfoPanelControl
   ]);
 
   TimelineControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
@@ -167,6 +170,7 @@ procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   TPlayController.UnInit;
   TVisualScheme.UnInit;
+  TState.PlayState := TPlayController.PlayState;
   TState.UnInit;
 end;
 

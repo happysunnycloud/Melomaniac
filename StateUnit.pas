@@ -45,7 +45,6 @@ type
     class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
   strict private
     class var FPlayState: TPlayState;
-    class var FLastPlayState: TPlayState;
 
     class procedure SetPlayState(const APlayState: TPlayState); static;
   public
@@ -57,9 +56,6 @@ type
 
     class property PlayState: TPlayState
       read FPlayState write SetPlayState;
-    class property LastPlayState: TPlayState
-      read FLastPlayState write FLastPlayState;
-
     class property MainPath: String
       read FMainPath write FMainPath;
     class property LastMainPath: String
@@ -139,8 +135,6 @@ var
   Paths: TPaths;
 begin
   FPlayState := psStop;
-  FLastPlayState := FPlayState;
-
   FMainPath := '';
   FLastMainPath := '';
   FVolume := 0.5;
@@ -203,7 +197,6 @@ end;
 
 class procedure TState.SetPlayState(const APlayState: TPlayState);
 begin
-  FLastPlayState := FPlayState;
   FPlayState := APlayState;
 end;
 
@@ -308,7 +301,6 @@ begin
   FMainPath := CommonNode.ChildNodes['MainPath'].Text;
   PlayStateStrVal := CommonNode.ChildNodes['PlayState'].Text;
   FPlayState.FromInt(StrToIntDef(PlayStateStrVal, psStop.ToInt));
-  FLastPlayState := FPlayState;
   FLastMainPath := CommonNode.ChildNodes['MainPath'].Text;
   FVolume := StrToFloat(CommonNode.ChildNodes['Volume'].Text);
   FLastVolume := StrToFloat(CommonNode.ChildNodes['LastVolume'].Text);

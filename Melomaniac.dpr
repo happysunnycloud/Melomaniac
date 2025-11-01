@@ -33,7 +33,8 @@ uses
   FMX.PopupMenuExtUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtUnit.pas',
   FMX.PopupMenuExtFormUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtFormUnit.pas',
   FMX.PopupMenuExtThreadUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtThreadUnit.pas',
-  FMX.ThemeUnit in '..\DevelopmentsCollection\FMX.ThemeUnit.pas';
+  FMX.ThemeUnit in '..\DevelopmentsCollection\FMX.ThemeUnit.pas',
+  DebugUnit in '..\DevelopmentsCollection\DebugUnit.pas';
 
 {$R *.res}
 

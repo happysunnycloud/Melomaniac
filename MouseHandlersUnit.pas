@@ -111,14 +111,14 @@ end;
 
 class procedure TMouseHandlers.PlayClicked(Sender: TObject);
 begin
-  if (TState.PlayState = psPause) or
-     (TState.PlayState = psStop)
+  if (TPlayController.PlayState = psPause) or
+     (TPlayController.PlayState = psStop)
   then
   begin
     TPlayController.Play;
   end
   else
-  if TState.PlayState = psPlay then
+  if TPlayController.PlayState = psPlay then
   begin
     TPlayController.Pause;
   end;
@@ -139,7 +139,7 @@ begin
   if TPlayController.SingleSound.Volume > 0 then
     TPlayController.Mute
   else
-    TPlayController.Sound;
+    TPlayController.UnMute;
 end;
 
 class procedure TMouseHandlers.BackwardRewindClicked(Sender: TObject);
@@ -261,6 +261,13 @@ begin
     if Control = MainForm.SoundControl then
     begin
       SoundClicked(Sender);
+    end
+    else
+    if Control = MainForm.InfoPanelControl then
+    begin
+      FClickListenerThread.SetClickParams(
+        nil,
+        Sender);
     end;
   end
   else
@@ -313,7 +320,8 @@ begin
       MainForm.BottomLeftControl,
       MainForm.BottomRightControl,
       MainForm.PrevTrackControl,
-      MainForm.NextTrackControl
+      MainForm.NextTrackControl,
+      MainForm.InfoPanelControl
     ])
   then
   begin
@@ -346,7 +354,7 @@ begin
 
   if Control = MainForm.TimelineCaretControl then
   begin
-    if TState.PlayState = psPlay then
+    if TPlayController.PlayState = psPlay then
       TPlayController.TimelineTrackerThread.UnHoldThread;
   end
   else
@@ -368,7 +376,8 @@ begin
       MainForm.BottomLeftControl,
       MainForm.BottomRightControl,
       MainForm.PrevTrackControl,
-      MainForm.NextTrackControl
+      MainForm.NextTrackControl,
+      MainForm.InfoPanelControl
     ])
   then
   begin

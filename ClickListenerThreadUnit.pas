@@ -226,7 +226,7 @@ begin
       PressedProcRef := Self.PressedProcRef;
       if Assigned(PressedProcRef) then
       begin
-        Queue(nil,
+        ForceQueue(nil,
           procedure
           begin
             PressedProcRef(Sender);
@@ -239,7 +239,7 @@ begin
       ClickedProcRef := Self.ClickedProcRef;
       if Assigned(ClickedProcRef) then
       begin
-        Queue(nil,
+        ForceQueue(nil,
           procedure
           begin
             ClickedProcRef(Sender);
