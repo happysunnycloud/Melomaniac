@@ -26,6 +26,7 @@ type
     class procedure ConnectGlowEffect(
       const AExceptControls: array of TControl);
     class procedure ChooseDestinationPath(const AControl: TControl);
+    class procedure ChooseMainFolder;
 
     class function GetLeafPath(const AControl: TControl): String;
     class procedure DisplayLeafPath(const AControl: TControl; const APath: String);
@@ -340,6 +341,20 @@ begin
   PathIndex := PathIndexByLeafControl(LeafeControl);
   TState.SetOfPaths[TState.SetOfPathsIndex][PathIndex] := DestPath;
   DisplayLeafPath(LeafeControl, DestPath);
+end;
+
+class procedure TTools.ChooseMainFolder;
+var
+  Path: String;
+  LeafeControl: TControl;
+  PathIndex: Integer;
+begin
+  SelectDirectory('Choose folder:', '', Path);
+
+  if Path.IsEmpty then
+    Exit;
+
+  TState.MainPath := Path;
 end;
 
 class procedure TTools.FillPaths(const ASetOfPathIndex: Integer);

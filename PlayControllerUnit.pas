@@ -21,7 +21,8 @@ type
     class var FPlayList: TPlayList;
     class var FPlayState: TPlayState;
 
-    class procedure SetTime(const ATime: TMediaTime); static;
+    class procedure SetCurrentTime(const ACurrentTime: TMediaTime); static;
+    class function GetCurrentTime: TMediaTime; static;
     class procedure SetVolume(const AVolume: Single); static;
 
     class procedure SetFirst;
@@ -39,7 +40,7 @@ type
 
     class property SingleSound: TSingleSound read FSingleSound write FSingleSound;
     class property PlayList: TPlayList read FPlayList;
-    class property Time: TMediaTime write SetTime;
+    class property CurrentTime: TMediaTime read GetCurrentTime write SetCurrentTime;
     class property Volume: Single write SetVolume;
     class property TimelineTrackerThread: TTimelineTrackerThread read FTimelineTrackerThread;
     class property PlayState: TPlayState read FPlayState;
@@ -114,15 +115,15 @@ begin
   FreeAndNil(FSingleSound);
 end;
 
-class procedure TPlayController.SetTime(const ATime: TMediaTime);
+class procedure TPlayController.SetCurrentTime(const ACurrentTime: TMediaTime);
 var
   X: Single;
   CurrentTime: TMediaTime;
 begin
-  X := TTools.TimeToCaretPosition(ATime);
+  X := TTools.TimeToCaretPosition(ACurrentTime);
   TTools.RenderTimelineCaretPosition(X);
 
-  CurrentTime := ATime;
+  CurrentTime := ACurrentTime;
   MainForm.CurrentTimeLabel.Text := TStringTools.GetHumanTime(CurrentTime, MediaTimeScale);
   FSingleSound.CurrentTime := CurrentTime;
   // Если каретку увели максимально вправо,
@@ -131,6 +132,11 @@ begin
   // По этому проверяем текущий статус воспроизведения и запускаем если он psPlay
   if FPlayState = psPlay then
     FSingleSound.Play;
+end;
+
+class function TPlayController.GetCurrentTime: TMediaTime;
+begin
+  Result := FSingleSound.CurrentTime;
 end;
 
 class procedure TPlayController.SetVolume(const AVolume: Single);
@@ -161,6 +167,8 @@ begin
 
   FPlayState := psPlay;
 
+  TState.PlayState := FPlayState;
+
   if LastPlayState = psPlay then
     Exit;
 
@@ -179,6 +187,8 @@ begin
   FTimelineTrackerThread.HoldThread;
 
   FPlayState := psStop;
+
+  TState.PlayState := FPlayState;
 
   if LastPlayState = psStop then
     Exit;
@@ -200,6 +210,8 @@ begin
   FTimelineTrackerThread.HoldThread;
 
   FPlayState := psPause;
+
+  TState.PlayState := FPlayState;
 
   if LastPlayState = psPause then
     Exit;
@@ -270,7 +282,7 @@ begin
   LastPlayState := FPlayState;
   Stop;
   SetPrev;
-  Time := 0;
+  CurrentTime := 0;
   if LastPlayState = psPlay then
     Play;
 end;
@@ -279,13 +291,10 @@ class procedure TPlayController.Next;
 var
   LastPlayState: TPlayState;
 begin
-  //asd
-  //FSingleSound.CurrentTime := 0;
-  //asd
   LastPlayState := FPlayState;
   Stop;
   SetNext;
-  Time := 0;
+  CurrentTime := 0;
   if LastPlayState = psPlay then
     Play;
 end;
@@ -324,7 +333,7 @@ var
   X: Single;
 begin
   X := TTools.ReadCaretPosition(MainForm.TimeLineControl);
-  Time := TTools.TimelineCaretPositionToTime(X);
+  CurrentTime := TTools.TimelineCaretPositionToTime(X);
 end;
 
 class procedure TPlayController.MountVolume;

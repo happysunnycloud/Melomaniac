@@ -283,6 +283,13 @@ begin
     then
     begin
       MainForm.LeafePopupMenu.Open(Control);
+    end
+    else
+    begin
+      if Control = MainForm.PlayControl then
+      begin
+        MainForm.MainPopupMenu.Open(nil);
+      end;
     end;
   end;
 end;

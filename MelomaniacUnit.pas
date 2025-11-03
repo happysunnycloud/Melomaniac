@@ -18,7 +18,6 @@ type
     CurrentTimeLabel: TLabel;
     TopLeftControl: TRectangle;
     TopRightControl: TRectangle;
-    RectAnimation1: TRectAnimation;
     BottomLeftControl: TRectangle;
     BottomRightControl: TRectangle;
     PrevNSecondsControl: TRectangle;
@@ -57,10 +56,13 @@ type
     procedure CloseControlClick(Sender: TObject);
   private
     FLeafePopupMenu: TPopupMenuExt;
+    FMainPopupMenu: TPopupMenuExt;
     procedure BuilPopupMenus;
     procedure ChooseDestinationMenuItemOnClick(Sender: TObject);
+    procedure OpenFolderMenuItemOnClick(Sender: TObject);
   public
     property LeafePopupMenu: TPopupMenuExt read FLeafePopupMenu;
+    property MainPopupMenu: TPopupMenuExt read FMainPopupMenu;
   end;
 
 var
@@ -125,6 +127,7 @@ begin
       end;
 
       TPlayController.First;
+      TPlayController.CurrentTime := TState.CurrentTime;
       if TState.Volume = 0 then
       begin
         TPlayController.Volume := TState.LastVolume;
@@ -134,7 +137,6 @@ begin
       begin
         TPlayController.Volume := TState.Volume;
       end;
-//      TPlayController.Play;
     end;
 
   ClickListenerThread := TClickListenerThread.Create(ThreadFactory);
@@ -168,9 +170,10 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
+  TState.CurrentTime := TPlayController.CurrentTime;
+
   TPlayController.UnInit;
   TVisualScheme.UnInit;
-  TState.PlayState := TPlayController.PlayState;
   TState.UnInit;
 end;
 
@@ -185,11 +188,28 @@ begin
   MenuItem.Text := 'Choose destination';
   MenuItem.OnClick := ChooseDestinationMenuItemOnClick;
   FLeafePopupMenu.Add(MenuItem);
+
+  FMainPopupMenu := TPopupMenuExt.Create(Self);
+//  TState.MenuTheme.CopyTo(FSettingsPopupMenuExt.Theme);
+
+  MenuItem := TItem.Create;
+  MenuItem.Text := 'Open folder';
+  MenuItem.OnClick := OpenFolderMenuItemOnClick;
+  FMainPopupMenu.Add(MenuItem);
 end;
 
 procedure TMainForm.ChooseDestinationMenuItemOnClick(Sender: TObject);
 begin
   TTools.ChooseDestinationPath(TControl(FLeafePopupMenu.CallingObject));
 end;
+
+procedure TMainForm.OpenFolderMenuItemOnClick(Sender: TObject);
+begin
+//  TPlayController.Stop;
+  TState.CurrentTime := 0;
+  TTools.ChooseMainFolder;
+  TPlayController.PlayList.ReloadPlayList(TState.MainPath);
+end;
+
 
 end.

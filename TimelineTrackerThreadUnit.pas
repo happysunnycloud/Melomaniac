@@ -175,42 +175,43 @@ begin
   begin
     while not Terminated and not IntentionHoldState do
     begin
-      if TPlayController.SingleSound.CurrentTime >= TPlayController.SingleSound.Duration then
-      begin
-        // Без обнуления зависает на выполнени Stop внутри Next
-        TPlayController.SingleSound.CurrentTime := 0;
-        TPlayController.SingleSound.Stop;
-        ForceQueue(nil,
-          procedure
-          begin
-            TPlayController.Next;
-          end);
-//        HoldThread;
-//        Break;
+      if TPlayController.SingleSound.Duration > 0 then
+        if TPlayController.SingleSound.CurrentTime >= TPlayController.SingleSound.Duration then
+        begin
+          // Без обнуления зависает на выполнени Stop внутри Next
+          TPlayController.SingleSound.CurrentTime := 0;
+          TPlayController.SingleSound.Stop;
+          ForceQueue(nil,
+            procedure
+            begin
+              TPlayController.Next;
+            end);
+  //        HoldThread;
+  //        Break;
 
-//        TThread.CreateAnonymousThread(
-//          procedure
-//          begin
-//            Synchronize(
-//              procedure
-//              begin
-//                TPlayController.Next;
-//              end);
-//          end).Start;
+  //        TThread.CreateAnonymousThread(
+  //          procedure
+  //          begin
+  //            Synchronize(
+  //              procedure
+  //              begin
+  //                TPlayController.Next;
+  //              end);
+  //          end).Start;
 
-//        TThread.CreateAnonymousThread(
-//          procedure
-//          begin
-//            ForceQueue(nil,
-//              procedure
-//              begin
-//                TPlayController.Next;
-//              end);
-//          end).Start;
-//
-//        HoldThread;
-//        Break;
-      end
+  //        TThread.CreateAnonymousThread(
+  //          procedure
+  //          begin
+  //            ForceQueue(nil,
+  //              procedure
+  //              begin
+  //                TPlayController.Next;
+  //              end);
+  //          end).Start;
+  //
+  //        HoldThread;
+  //        Break;
+        end
       else
       begin
         if RewindDirection <> rdNone then

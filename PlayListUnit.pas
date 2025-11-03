@@ -125,6 +125,8 @@ var
   FilesPerThread: Integer;
   FileCount: Integer;
 begin
+  Clear;
+
   SetLength(FileNames, 0);
   TFileTools.GetTreeOfFileNames(ADir, 'mp3', FileNames);
 
@@ -136,7 +138,7 @@ begin
   for i := 0 to PLAY_LIST_RELOAD_THREAD_COUNT - 1 do
   begin
     StartIndex := i * FilesPerThread;
-    FinishIndex := Min(StartIndex + FilesPerThread - 1, FileCount);
+    FinishIndex := Min(StartIndex + FilesPerThread - 1, FileCount - 1);
     if StartIndex > FileCount then
       Break;
 
