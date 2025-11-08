@@ -167,6 +167,10 @@ class function TTools.TimeToCaretPosition(const ATime: TMediaTime): Single;
 var
   X: Single;
 begin
+  Result := 0 - (MainForm.TimelineCaretControl.Width / 2);
+  if TPlayController.SingleSound.Duration = 0 then
+    Exit;
+
   X := (ATime * (MainForm.TimelineControl.Width / TPlayController.SingleSound.Duration)) -
     (MainForm.TimelineCaretControl.Width / 2);
   Result := X;
@@ -346,8 +350,8 @@ end;
 class procedure TTools.ChooseMainFolder;
 var
   Path: String;
-  LeafeControl: TControl;
-  PathIndex: Integer;
+//  LeafeControl: TControl;
+  //PathIndex: Integer;
 begin
   SelectDirectory('Choose folder:', '', Path);
 

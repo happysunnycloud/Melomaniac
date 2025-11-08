@@ -219,8 +219,8 @@ begin
   CommonNode := RootNode.AddChild('Common');
 
   CommonNode.AddChild('MainPath').Text := FMainPath;
-  CommonNode.AddChild('PlayState').Text := IntToStr(FPlayState.ToInt);
   CommonNode.AddChild('LastMainPath').Text := FLastMainPath;
+  CommonNode.AddChild('PlayState').Text := IntToStr(FPlayState.ToInt);
   CommonNode.AddChild('Volume').Text := FloatToStr(FVolume);
   CommonNode.AddChild('LastVolume').Text := FloatToStr(FLastVolume);
   CommonNode.AddChild('CurrentTime').Text := IntToStr(FCurrentTime);
@@ -300,8 +300,8 @@ begin
 
   FMainPath := CommonNode.ChildNodes['MainPath'].Text;
   PlayStateStrVal := CommonNode.ChildNodes['PlayState'].Text;
-  FPlayState.FromInt(StrToIntDef(PlayStateStrVal, psStop.ToInt));
   FLastMainPath := CommonNode.ChildNodes['MainPath'].Text;
+  FPlayState.FromInt(StrToIntDef(PlayStateStrVal, psStop.ToInt));
   FVolume := StrToFloat(CommonNode.ChildNodes['Volume'].Text);
   FLastVolume := StrToFloat(CommonNode.ChildNodes['LastVolume'].Text);
   FCurrentTime := StrToInt(CommonNode.ChildNodes['CurrentTime'].Text);

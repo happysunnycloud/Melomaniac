@@ -45,11 +45,17 @@ type
     function GetNext: TPlayItem;
     function GetPrev: TPlayItem;
     function GetCurrent: TPlayItem;
+
+    function GetFirstComposition: String;
+    function GetPrevComposition: String;
+    function GetNextComposition: String;
+    function GetCurrentComposition: String;
   public
     constructor Create(const AThreadFactory: TThreadFactory);
     destructor Destroy; override;
 
     procedure Clear;
+    function IndexOf(const AFileName: String): Integer;
 
     procedure ReloadPlayList(
       const ADir: String);
@@ -62,6 +68,11 @@ type
     property Next: TPlayItem read GetNext;
     property Prev: TPlayItem read GetPrev;
     property Current: TPlayItem read GetCurrent;
+    property FirstComposition: String read GetFirstComposition;
+    property PrevComposition: String read GetPrevComposition;
+    property NextComposition: String read GetNextComposition;
+    property CurrentComposition: String read GetCurrentComposition;
+    property CurrentIndex: Integer read FCurrentIndex write FCurrentIndex;
   end;
 
 implementation
@@ -114,6 +125,23 @@ begin
   end;
 
   inherited Clear;
+end;
+
+function TPlayList.IndexOf(const AFileName: String): Integer;
+var
+  i: Integer;
+begin
+  Result := -1;
+
+  i := Count;
+  while i > 0 do
+  begin
+    Dec(i);
+
+    if AFileName = Items[i].Path then
+      Exit(i);
+  end;
+
 end;
 
 procedure TPlayList.ReloadPlayList(const ADir: String);
@@ -218,6 +246,50 @@ begin
     Exit;
 
   Result := Self.Items[FCurrentIndex];
+end;
+
+function TPlayList.GetFirstComposition: String;
+var
+  PlayItem: TPlayItem;
+begin
+  Result := '';
+
+  PlayItem := First;
+  if Assigned(PlayItem) then
+    Result := PlayItem.Path;
+end;
+
+function TPlayList.GetPrevComposition: String;
+var
+  PlayItem: TPlayItem;
+begin
+  Result := '';
+
+  PlayItem := Prev;
+  if Assigned(PlayItem) then
+    Result := PlayItem.Path;
+end;
+
+function TPlayList.GetNextComposition: String;
+var
+  PlayItem: TPlayItem;
+begin
+  Result := '';
+
+  PlayItem := Next;
+  if Assigned(PlayItem) then
+    Result := PlayItem.Path;
+end;
+
+function TPlayList.GetCurrentComposition: String;
+var
+  PlayItem: TPlayItem;
+begin
+  Result := '';
+
+  PlayItem := Current;
+  if Assigned(PlayItem) then
+    Result := PlayItem.Path;
 end;
 
 end.

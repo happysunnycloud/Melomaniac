@@ -25,9 +25,10 @@ type
     class function GetCurrentTime: TMediaTime; static;
     class procedure SetVolume(const AVolume: Single); static;
 
-    class procedure SetFirst;
-    class procedure SetPrev;
-    class procedure SetNext;
+    class function SetFirst: Boolean;
+    class function SetPrev: Boolean;
+    class function SetNext: Boolean;
+    class function SetCurrent: Boolean;
   public
     class procedure Init(
       const AThreadFactory: TThreadFactory;
@@ -58,6 +59,9 @@ type
     class procedure First;
     class procedure Prev;
     class procedure Next;
+    class procedure Current(
+      const APlayState: TPlayState;
+      const ACurrentTime: TMediaTime);
 
     class procedure GetCurrentCompositonInfo(
       out ATitle: String;
@@ -159,11 +163,17 @@ end;
 class procedure TPlayController.Play;
 var
   LastPlayState: TPlayState;
+  FileName: String;
 begin
+  FileName := FSingleSound.FileName;
+  if FileName.IsEmpty then
+    Exit;
+
   LastPlayState := FPlayState;
 
   FSingleSound.Play;
   FTimelineTrackerThread.UnHoldThread;
+//  FTimelineTrackerThread.OnAfterHold := OnTimelineTrackerThreadAfterHoldHandler;
 
   FPlayState := psPlay;
 
@@ -299,6 +309,17 @@ begin
     Play;
 end;
 
+class procedure TPlayController.Current(
+  const APlayState: TPlayState;
+  const ACurrentTime: TMediaTime);
+begin
+  Stop;
+  SetCurrent;
+  CurrentTime := ACurrentTime;
+  if APlayState = psPlay then
+    Play;
+end;
+
 class procedure TPlayController.GetCurrentCompositonInfo(
   out ATitle: String;
   out APath: String);
@@ -313,19 +334,60 @@ begin
   APath := PlayItem.Path;
 end;
 
-class procedure TPlayController.SetFirst;
+class function TPlayController.SetFirst: Boolean;
+var
+  Composition: String;
 begin
-  FSingleSound.FileName := FPlayList.First.Path;
+  Result := false;
+
+  Composition := FPlayList.FirstComposition;
+  if Composition.IsEmpty then
+    Exit;
+
+  FSingleSound.FileName := Composition;
+  Result := true;
 end;
 
-class procedure TPlayController.SetPrev;
+class function TPlayController.SetPrev: Boolean;
+var
+  Composition: String;
 begin
-  FSingleSound.FileName := FPlayList.Prev.Path;
+  Result := false;
+
+  Composition := FPlayList.PrevComposition;
+  if Composition.IsEmpty then
+    Exit;
+
+  FSingleSound.FileName := Composition;
+  Result := true;
 end;
 
-class procedure TPlayController.SetNext;
+class function TPlayController.SetNext: Boolean;
+var
+  Composition: String;
 begin
-  FSingleSound.FileName := FPlayList.Next.Path;
+  Result := false;
+
+  Composition := FPlayList.NextComposition;
+  if Composition.IsEmpty then
+    Exit;
+
+  FSingleSound.FileName := Composition;
+  Result := true;
+end;
+
+class function TPlayController.SetCurrent: Boolean;
+var
+  Composition: String;
+begin
+  Result := false;
+
+  Composition := FPlayList.CurrentComposition;
+  if Composition.IsEmpty then
+    Exit;
+
+  FSingleSound.FileName := Composition;
+  Result := true;
 end;
 
 class procedure TPlayController.MountCurrentTime;
