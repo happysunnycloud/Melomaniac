@@ -83,11 +83,17 @@ uses
   , StateUnit
   , VisualSchemeUnit
   , ToolsUnit
+  , ConstantsUnit
   ;
 
 procedure TMainForm.CloseControlClick(Sender: TObject);
 begin
-  Close;
+  TThread.ForceQueue(nil,
+    procedure
+    begin
+      Close;
+    end
+  );
 end;
 
 procedure TMainForm.FirstAfterPlayListReload;
@@ -172,6 +178,11 @@ begin
     TimelineControl,
     CurrentTimeLabel,
     TState.PlayState);
+  TThread.ForceQueue(nil,
+    procedure
+    begin
+      TPlayController.HeighlightCopyMode;
+    end);
 
   TTools.FillPaths(TState.SetOfPathsIndex);
 
@@ -204,13 +215,18 @@ begin
     PrevNSecondsControl,
     NextNSecondsControl,
     VolumeCaretControl,
-    InfoPanelControl
+    InfoPanelControl,
+    TimelineControl,
+    VolumeControl,
+    CopyModeControl,
+    MoveModeControl
   ]);
 
-  TimelineControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
-  VolumeControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+//  TimelineControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+//  VolumeControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
 
   TTools.ConnectGlowEffect([TimelineControl, VolumeControl]);
+  TTools.ConnectHeighlightGlowEffect([TimelineControl, VolumeControl]);
 
   PlayControl.BringToFront;
 

@@ -50,6 +50,8 @@ type
     function GetPrevComposition: String;
     function GetNextComposition: String;
     function GetCurrentComposition: String;
+
+    procedure OnAllThreadsAreDestroyed(Sender: TObject);
   public
     constructor Create(const AThreadFactory: TThreadFactory);
     destructor Destroy; override;
@@ -144,6 +146,16 @@ begin
 
 end;
 
+procedure TPlayList.OnAllThreadsAreDestroyed(Sender: TObject);
+begin
+  TThread.ForceQueue(nil,
+    procedure
+    begin
+      if Assigned(FOnPlayListReloaded) then
+        FOnPlayListReloaded;
+    end);
+end;
+
 procedure TPlayList.ReloadPlayList(const ADir: String);
 var
   FileNames: TFileNames;
@@ -178,16 +190,7 @@ begin
       FinishIndex);
   end;
 
-  FThreadFactory.OnAllThreadsAreDestroyedProcRef :=
-    procedure
-    begin
-      TThread.Queue(nil,
-      procedure
-      begin
-        if Assigned(FOnPlayListReloaded) then
-          FOnPlayListReloaded;
-      end);
-    end;
+  FThreadFactory.OnAllThreadsAreDestroyed := OnAllThreadsAreDestroyed;
 end;
 
 function TPlayList.GetFirst: TPlayItem;

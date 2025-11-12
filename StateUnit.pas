@@ -8,7 +8,8 @@ uses
   ;
 
 type
-  TPlayState = (psPlay = 1, psPause = 0, psStop = -1);
+  TPlayState = (psStop = -1, psPlay = 1, psPause = 0);
+  TCopyMode = (cmNone = -1, cmCopy = 0, cmMove = 1);
 
   TPaths = class (TList<String>)
   strict private
@@ -33,12 +34,11 @@ type
     class var FLastVolume: Single;
     class var FCurrentTime: TMediaTime;
     class var FComposition: String;
-    class var FCopyMode: Boolean;
+    class var FCopyMode: TCopyMode;
     class var FMarkMode: Boolean;
     class var FDuplicateMode: Boolean;
     class var FVisualScheme: String;
     class var FSetOfPathsIndex: Integer;
-
     class var FSetOfPaths: TSetOfPaths;
 
 //    class procedure SetSetOfPaths(const A)
@@ -68,7 +68,7 @@ type
       read FCurrentTime write FCurrentTime;
     class property Composition: String
       read FComposition write FComposition;
-    class property CopyMode: Boolean
+    class property CopyMode: TCopyMode
       read FCopyMode write FCopyMode;
     class property MarkMode: Boolean
       read FMarkMode write FMarkMode;
@@ -83,6 +83,12 @@ type
   end;
 
   TPlayStateHelper = record helper for TPlayState
+  public
+    function ToInt: Integer;
+    procedure FromInt(const AVal: Integer);
+  end;
+
+  TCopyModeHelper = record helper for TCopyMode
   public
     function ToInt: Integer;
     procedure FromInt(const AVal: Integer);
@@ -115,6 +121,26 @@ begin
   end;
 end;
 
+{ TCopyModeHelper }
+
+
+function TCopyModeHelper.ToInt: Integer;
+begin
+  Result := Integer(Self);
+end;
+
+procedure TCopyModeHelper.FromInt(const AVal: Integer);
+begin
+  case AVal of
+    -1: Self := cmNone;
+     0: Self := cmCopy;
+     1: Self := cmMove;
+  else
+    raise Exception.
+      CreateFmt('TCopyModeHelper.FromInt -> Unable to match value "%d"', [AVal]);
+  end;
+end;
+
 { TSetOfPaths }
 
 destructor TSetOfPaths.Destroy;
@@ -141,7 +167,7 @@ begin
   FLastVolume := 0.5;
   FCurrentTime := 0;
   FComposition := '';
-  FCopyMode := false;
+  FCopyMode := cmNone;
   FMarkMode := false;
   FDuplicateMode := false;
   FVisualScheme := '';
@@ -225,7 +251,7 @@ begin
   CommonNode.AddChild('LastVolume').Text := FloatToStr(FLastVolume);
   CommonNode.AddChild('CurrentTime').Text := IntToStr(FCurrentTime);
   CommonNode.AddChild('Composition').Text := FComposition;
-  CommonNode.AddChild('CopyMode').Text := BoolToStr(FCopyMode, true);
+  CommonNode.AddChild('CopyMode').Text := IntToStr(FCopyMode.ToInt);
   CommonNode.AddChild('MarkMode').Text := BoolToStr(FMarkMode, true);;
   CommonNode.AddChild('DuplicateMode').Text := BoolToStr(FDuplicateMode, true);
   CommonNode.AddChild('VisualScheme').Text := FVisualScheme;
@@ -264,6 +290,7 @@ var
   i, j: Integer;
   CongifFileName: String;
   PlayStateStrVal: String;
+  CopyModeStrVal: String;
 begin
   Result := false;
 
@@ -300,13 +327,14 @@ begin
 
   FMainPath := CommonNode.ChildNodes['MainPath'].Text;
   PlayStateStrVal := CommonNode.ChildNodes['PlayState'].Text;
-  FLastMainPath := CommonNode.ChildNodes['MainPath'].Text;
   FPlayState.FromInt(StrToIntDef(PlayStateStrVal, psStop.ToInt));
+  FLastMainPath := CommonNode.ChildNodes['MainPath'].Text;
   FVolume := StrToFloat(CommonNode.ChildNodes['Volume'].Text);
   FLastVolume := StrToFloat(CommonNode.ChildNodes['LastVolume'].Text);
   FCurrentTime := StrToInt(CommonNode.ChildNodes['CurrentTime'].Text);
   FComposition := CommonNode.ChildNodes['Composition'].Text;
-  FCopyMode := StrToBool(CommonNode.ChildNodes['CopyMode'].Text);
+  CopyModeStrVal := CommonNode.ChildNodes['CopyMode'].Text;
+  FCopyMode.FromInt(StrToIntDef(CopyModeStrVal, cmNone.ToInt));
   FMarkMode := StrToBool(CommonNode.ChildNodes['MarkMode'].Text);
   FDuplicateMode := StrToBool(CommonNode.ChildNodes['DuplicateMode'].Text);
   FVisualScheme := CommonNode.ChildNodes['VisualScheme'].Text;

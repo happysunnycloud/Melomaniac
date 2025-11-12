@@ -54,6 +54,10 @@ type
       Shift: TShiftState;
       X, Y: Single);
 
+    class procedure OnMouseEnter(Sender: TObject);
+
+    class procedure OnMouseLeave(Sender: TObject);
+
     class procedure ConnectHandlers(const AControls: array of TControl);
 
    class procedure Init(
@@ -359,6 +363,8 @@ begin
   UnPressed(Control);
   TControl(Control).AutoCapture := false;
 
+  FClickListenerThread.IsButtonUp := true;
+
   if Control = MainForm.TimelineCaretControl then
   begin
     if TPlayController.PlayState = psPlay then
@@ -388,7 +394,7 @@ begin
     ])
   then
   begin
-    FClickListenerThread.IsButtonUp := true;
+//    FClickListenerThread.IsButtonUp := true;
   end
   else
   if IsControlIn(Control,
@@ -398,9 +404,75 @@ begin
     ])
   then
   begin
-    FClickListenerThread.IsButtonUp := true;
+//    FClickListenerThread.IsButtonUp := true;
     StopRewind(Sender);
   end
+  else
+  if Control = MainForm.CopyModeControl then
+  begin
+    if TState.CopyMode <> cmCopy then
+    begin
+      TState.CopyMode := cmCopy;
+    end
+    else
+    begin
+      TState.CopyMode := cmNone
+    end;
+    TPlayController.HeighlightCopyMode;
+  end
+  else
+  if Control = MainForm.MoveModeControl then
+  begin
+    if TState.CopyMode <> cmMove then
+    begin
+      TState.CopyMode := cmMove;
+    end
+    else
+    begin
+      TState.CopyMode := cmNone
+    end;
+    TPlayController.HeighlightCopyMode;
+  end;
+end;
+
+class procedure TMouseHandlers.OnMouseEnter(Sender: TObject);
+var
+  Control: TControl;
+begin
+  if not Assigned(Sender) then
+    Exit;
+
+  Control := Sender as TControl;
+
+  if Control = MainForm.CopyModeControl then
+  begin
+
+  end
+  else
+  if Control = MainForm.MoveModeControl then
+  begin
+
+  end;
+end;
+
+class procedure TMouseHandlers.OnMouseLeave(Sender: TObject);
+var
+  Control: TControl;
+begin
+  if not Assigned(Sender) then
+    Exit;
+
+  Control := Sender as TControl;
+
+  if Control = MainForm.CopyModeControl then
+  begin
+
+  end
+  else
+  if Control = MainForm.MoveModeControl then
+  begin
+
+  end;
 end;
 
 class procedure TMouseHandlers.ConnectHandlers(const AControls: array of TControl);
@@ -412,6 +484,9 @@ begin
     Control.OnMouseDown := TMouseHandlers.OnMouseDownHandler;
     Control.OnMouseMove := TMouseHandlers.OnMouseMoveHandler;
     Control.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+
+    Control.OnMouseEnter := TMouseHandlers.OnMouseEnter;
+    Control.OnMouseLeave := TMouseHandlers.OnMouseLeave;
   end;
 end;
 

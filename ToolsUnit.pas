@@ -25,6 +25,8 @@ type
     class procedure DisplayCurrentComposition;
     class procedure ConnectGlowEffect(
       const AExceptControls: array of TControl);
+    class procedure ConnectHeighlightGlowEffect(
+      const AExceptControls: array of TControl);
     class procedure ChooseDestinationPath(const AControl: TControl);
     class procedure ChooseMainFolder;
 
@@ -35,6 +37,11 @@ type
 
     class procedure FillPaths(const ASetOfPathIndex: Integer);
 
+    class procedure GlowEffectActivated(
+      const AGlowEffectName: String;
+      const AControl: TControl;
+      const AActivated: Boolean);
+
     class procedure Init;
   end;
 
@@ -44,6 +51,7 @@ uses
     System.SysUtils
   , System.Classes
   , System.Types
+  , System.UITypes
   , Winapi.Windows
   , FMX.StdCtrls
   , FMX.Effects
@@ -247,6 +255,49 @@ begin
       GlowEffect.Softness := 1;
       GlowEffect.Enabled := false;
       GlowEffect.Trigger := 'IsMouseOver=true';
+      GlowEffect.Name := GLOW_EFFECT_IDENT;
+    end
+  );
+end;
+
+class procedure TTools.ConnectHeighlightGlowEffect(
+  const AExceptControls: array of TControl);
+var
+  ExceptControls: array of TControl;
+  i: Integer;
+begin
+  SetLength(ExceptControls, Length(AExceptControls));
+  for i := 0 to Pred(Length(AExceptControls)) do
+    ExceptControls[i] := AExceptControls[i];
+
+  TControlTools.ControlEnumerator(MainForm,
+    procedure (const AControl: TControl)
+
+      function _IsExceptedControl(const AControl: TControl): Boolean;
+      var
+        i: Integer;
+      begin
+        Result := false;
+        for i := 0 to Pred(Length(ExceptControls)) do
+        begin
+          if ExceptControls[i] = AControl then
+            Exit(true);
+        end;
+      end;
+
+    var
+      GlowEffect: TInnerGlowEffect;
+    begin
+      if _IsExceptedControl(AControl) then
+        Exit;
+
+      GlowEffect := TInnerGlowEffect.Create(AControl);
+      GlowEffect.Parent := AControl;
+      GlowEffect.Opacity := 1;
+      GlowEffect.Softness := 1;
+      GlowEffect.Enabled := false;
+      GlowEffect.GlowColor := TAlphaColorRec.Limegreen;
+      GlowEffect.Name := HEIGHLIGTH_GLOW_EFFECT_IDENT;
     end
   );
 end;
@@ -373,6 +424,28 @@ begin
     Path := Paths[PathIndex];
     DisplayLeafPath(LeafeControlByPathIndex(PathIndex), Path);
   end;
+end;
+
+class procedure TTools.GlowEffectActivated(
+  const AGlowEffectName: String;
+  const AControl: TControl;
+  const AActivated: Boolean);
+begin
+  TControlTools.ComponentEnumerator(AControl,
+    procedure (const AInnerComponent: TComponent; var ABreak: Boolean)
+    var
+      GlowEffect: TInnerGlowEffect;
+    begin
+      if AInnerComponent.Name = AGlowEffectName then
+      begin
+        GlowEffect := TInnerGlowEffect(AInnerComponent);
+        GlowEffect.Enabled := AActivated;
+        GlowEffect.UpdateParentEffects;
+
+        ABreak := true;
+      end;
+    end
+  );
 end;
 
 class procedure TTools.Init;

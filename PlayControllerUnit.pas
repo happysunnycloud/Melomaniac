@@ -69,6 +69,8 @@ type
 
     class procedure MountCurrentTime;
     class procedure MountVolume;
+
+    class procedure HeighlightCopyMode;
   end;
 
 implementation
@@ -107,6 +109,7 @@ begin
     ACurrentTimeLabel);
 
   PlayListThreadFactory := AThreadFactoryRegistry.CreateThreadFactory;
+  PlayListThreadFactory.ThreadFactoryName := 'PlayListThreadFactory';
 
   FPlayList := TPlayList.Create(PlayListThreadFactory);
 
@@ -404,6 +407,45 @@ var
 begin
   X := TTools.ReadCaretPosition(MainForm.VolumeControl);
   Volume := TTools.VolumeCaretPositionToVolume(X);
+end;
+
+class procedure TPlayController.HeighlightCopyMode;
+begin
+  if TState.CopyMode = cmCopy then
+  begin
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.CopyModeControl,
+      true);
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.MoveModeControl,
+      false);
+  end
+  else
+  if TState.CopyMode = cmMove then
+  begin
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.CopyModeControl,
+      false);
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.MoveModeControl,
+      true);
+  end
+  else
+  if TState.CopyMode = cmNone then
+  begin
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.CopyModeControl,
+      false);
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.MoveModeControl,
+      false)
+  end;
 end;
 
 end.
