@@ -365,73 +365,98 @@ begin
 
   FClickListenerThread.IsButtonUp := true;
 
-  if Control = MainForm.TimelineCaretControl then
+  if Button = TMouseButton.mbLeft then
   begin
-    if TPlayController.PlayState = psPlay then
-      TPlayController.TimelineTrackerThread.UnHoldThread;
-  end
-  else
-  if Control = MainForm.TimelineControl then
-  begin
-    TPlayController.MountCurrentTime;
-  end
-  else
-  if Control = MainForm.VolumeControl then
-  begin
-    TPlayController.MountVolume;
-  end
-  else
-  if IsControlIn(Control,
-    [
-      MainForm.PlayControl,
-      MainForm.TopLeftControl,
-      MainForm.TopRightControl,
-      MainForm.BottomLeftControl,
-      MainForm.BottomRightControl,
-      MainForm.PrevTrackControl,
-      MainForm.NextTrackControl,
-      MainForm.InfoPanelControl
-    ])
-  then
-  begin
-//    FClickListenerThread.IsButtonUp := true;
-  end
-  else
-  if IsControlIn(Control,
-    [
-      MainForm.PrevNSecondsControl,
-      MainForm.NextNSecondsControl
-    ])
-  then
-  begin
-//    FClickListenerThread.IsButtonUp := true;
-    StopRewind(Sender);
-  end
-  else
-  if Control = MainForm.CopyModeControl then
-  begin
-    if TState.CopyMode <> cmCopy then
+    if Control = MainForm.TimelineCaretControl then
     begin
-      TState.CopyMode := cmCopy;
+      if TPlayController.PlayState = psPlay then
+        TPlayController.TimelineTrackerThread.UnHoldThread;
     end
     else
+    if Control = MainForm.TimelineControl then
     begin
-      TState.CopyMode := cmNone
-    end;
-    TPlayController.HeighlightCopyMode;
-  end
-  else
-  if Control = MainForm.MoveModeControl then
-  begin
-    if TState.CopyMode <> cmMove then
-    begin
-      TState.CopyMode := cmMove;
+      TPlayController.MountCurrentTime;
     end
     else
+    if Control = MainForm.VolumeControl then
     begin
-      TState.CopyMode := cmNone
-    end;
-    TPlayController.HeighlightCopyMode;
+      TPlayController.MountVolume;
+    end
+    else
+  //  if IsControlIn(Control,
+  //    [
+  //      MainForm.PlayControl,
+  //      MainForm.TopLeftControl,
+  //      MainForm.TopRightControl,
+  //      MainForm.BottomLeftControl,
+  //      MainForm.BottomRightControl,
+  //      MainForm.PrevTrackControl,
+  //      MainForm.NextTrackControl,
+  //      MainForm.InfoPanelControl
+  //    ])
+  //  then
+  //  begin
+  ////    FClickListenerThread.IsButtonUp := true;
+  //  end
+  //  else
+    if IsControlIn(Control,
+      [
+        MainForm.PrevNSecondsControl,
+        MainForm.NextNSecondsControl
+      ])
+    then
+    begin
+  //    FClickListenerThread.IsButtonUp := true;
+      StopRewind(Sender);
+    end
+    else
+    if Control = MainForm.MarkModeControl then
+    begin
+      if TState.MarkMode then
+        TState.MarkMode := false
+      else
+        TState.MarkMode := true;
+
+      TPlayController.HeighlightMarkMode;
+    end
+    else
+    if Control = MainForm.CopyModeControl then
+    begin
+      if TState.CopyMode <> cmCopy then
+      begin
+        TState.CopyMode := cmCopy;
+      end
+      else
+      begin
+        TState.CopyMode := cmNone
+      end;
+      TPlayController.HeighlightCopyMode;
+    end
+    else
+    if Control = MainForm.MoveModeControl then
+    begin
+      if TState.CopyMode <> cmMove then
+      begin
+        TState.CopyMode := cmMove;
+      end
+      else
+      begin
+        TState.CopyMode := cmNone
+      end;
+      TPlayController.HeighlightCopyMode;
+    end
+    else
+    if IsControlIn(Control,
+      [
+        MainForm.TopLeftControl,
+        MainForm.TopRightControl,
+        MainForm.BottomLeftControl,
+        MainForm.BottomRightControl
+      ])
+    then
+    begin
+      TPlayController.LeafeClicked(Control);
+    end
   end;
 end;
 

@@ -7,6 +7,7 @@ uses
   , FMX.Media
   , StateUnit
   , MelomaniacUnit
+  , System.UITypes
   ;
 
 type
@@ -26,7 +27,9 @@ type
     class procedure ConnectGlowEffect(
       const AExceptControls: array of TControl);
     class procedure ConnectHeighlightGlowEffect(
-      const AExceptControls: array of TControl);
+      const AExceptControls: array of TControl;
+      const AColor: TAlphaColor;
+      const AName: String);
     class procedure ChooseDestinationPath(const AControl: TControl);
     class procedure ChooseMainFolder;
 
@@ -34,6 +37,8 @@ type
     class procedure DisplayLeafPath(const AControl: TControl; const APath: String);
     class function LeafeControlByPathIndex(const APathIndex: Integer): TControl;
     class function PathIndexByLeafControl(const AControl: TControl): Integer;
+    class function LeafeToControl(const ALeafe: TLeafe): TControl;
+    class function ControlToLeafe(const AControl: TControl): TLeafe;
 
     class procedure FillPaths(const ASetOfPathIndex: Integer);
 
@@ -41,6 +46,13 @@ type
       const AGlowEffectName: String;
       const AControl: TControl;
       const AActivated: Boolean);
+
+    class procedure CreateHeighlightFailThread(const AControl: TControl);
+
+   class function CopyCompositoin(
+    const APathFrom: String; const APathTo: String): Boolean;
+   class function MoveCompositoin(
+    const APathFrom: String; const APathTo: String): Boolean;
 
     class procedure Init;
   end;
@@ -51,7 +63,6 @@ uses
     System.SysUtils
   , System.Classes
   , System.Types
-  , System.UITypes
   , Winapi.Windows
   , FMX.StdCtrls
   , FMX.Effects
@@ -59,6 +70,8 @@ uses
   , PlayControllerUnit
   , ConstantsUnit
   , FMX.ControlToolsUnit
+  , FileToolsUnit
+  , ThreadFactoryUnit
   ;
 
 { TTools }
@@ -261,7 +274,9 @@ begin
 end;
 
 class procedure TTools.ConnectHeighlightGlowEffect(
-  const AExceptControls: array of TControl);
+  const AExceptControls: array of TControl;
+  const AColor: TAlphaColor;
+  const AName: String);
 var
   ExceptControls: array of TControl;
   i: Integer;
@@ -294,10 +309,10 @@ begin
       GlowEffect := TInnerGlowEffect.Create(AControl);
       GlowEffect.Parent := AControl;
       GlowEffect.Opacity := 1;
-      GlowEffect.Softness := 1;
+      GlowEffect.Softness := 0.5;
       GlowEffect.Enabled := false;
-      GlowEffect.GlowColor := TAlphaColorRec.Limegreen;
-      GlowEffect.Name := HEIGHLIGTH_GLOW_EFFECT_IDENT;
+      GlowEffect.GlowColor := AColor;
+      GlowEffect.Name := AName;
     end
   );
 end;
@@ -377,6 +392,45 @@ begin
         [AControl.Name]);
 end;
 
+class function TTools.LeafeToControl(const ALeafe: TLeafe): TControl;
+begin
+  Result := nil;
+  case TState.Leafe of
+    liTopLeft:
+    begin
+      Result := MainForm.TopLeftControl;
+    end;
+    liTopRigth:
+    begin
+      Result := MainForm.TopRightControl;
+    end;
+    liBottomLeft:
+    begin
+      Result := MainForm.BottomLeftControl;
+    end;
+    liBottomRight:
+    begin
+      Result := MainForm.BottomRightControl;
+    end;
+  end;
+end;
+
+class function TTools.ControlToLeafe(const AControl: TControl): TLeafe;
+begin
+  Result := TLeafe.liNone;
+  if AControl = MainForm.TopLeftControl then
+    Result := TLeafe.liTopLeft
+  else
+  if AControl = MainForm.TopRightControl then
+    Result := TLeafe.liTopRigth
+  else
+  if AControl = MainForm.BottomLeftControl then
+    Result := TLeafe.liBottomLeft
+  else
+  if AControl = MainForm.BottomRightControl then
+    Result := TLeafe.liBottomRight;
+end;
+
 class procedure TTools.ChooseDestinationPath(const AControl: TControl);
 var
   DestPath: String;
@@ -431,7 +485,8 @@ class procedure TTools.GlowEffectActivated(
   const AControl: TControl;
   const AActivated: Boolean);
 begin
-  TControlTools.ComponentEnumerator(AControl,
+  TControlTools.ComponentEnumerator(
+    AControl,
     procedure (const AInnerComponent: TComponent; var ABreak: Boolean)
     var
       GlowEffect: TInnerGlowEffect;
@@ -446,6 +501,74 @@ begin
       end;
     end
   );
+end;
+
+class procedure TTools.CreateHeighlightFailThread(const AControl: TControl);
+begin
+  MainForm.ThreadFactory.CreateFreeOnTerminateThread(
+    'HeighlightFailThread',
+    procedure (const AThread: TThreadExt)
+    var
+      Control: TControl;
+      Count: Integer;
+    begin
+      Control := AControl;
+      Count := 20;
+
+      AThread.Queue(nil,
+        procedure
+        begin
+          TTools.GlowEffectActivated(
+            FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT,
+            Control,
+            true);
+        end
+      );
+
+      while (Count > 0) and not AThread.Terminated do
+      begin
+        Dec(Count);
+
+        Sleep(100);
+      end;
+
+      AThread.Queue(nil,
+        procedure
+        begin
+          TTools.GlowEffectActivated(
+            FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT,
+            Control,
+            false);
+        end
+      );
+    end
+  );
+end;
+
+class function TTools.CopyCompositoin(
+  const APathFrom: String; const APathTo: String): Boolean;
+var
+  FileName: String;
+  PathTo: String;
+begin
+  Result := false;
+  FileName := ExtractFileName(APathFrom);
+  PathTo := Concat(APathTo, '\', FileName);
+  if TFileTools.CopyFile(APathFrom, PathTo, TCopyFileAction.caRename) = crOk then
+    Result := true;
+end;
+
+class function TTools.MoveCompositoin(
+  const APathFrom: String; const APathTo: String): Boolean;
+var
+  FileName: String;
+  PathTo: String;
+begin
+  Result := false;
+  FileName := ExtractFileName(APathFrom);
+  PathTo := Concat(APathTo, '\', FileName);
+  if TFileTools.MoveFile(APathFrom, PathTo, TCopyFileAction.caRename) = crOk then
+    Result := true;
 end;
 
 class procedure TTools.Init;

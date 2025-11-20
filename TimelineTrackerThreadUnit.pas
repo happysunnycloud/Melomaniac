@@ -166,7 +166,7 @@ begin
   );
 end;
 
-procedure TTimelineTrackerThread.Execute;
+procedure TTimelineTrackerThread.Execute(const AThread: TThreadExt);
 begin
   HoldThread;
   ExecHold;
@@ -188,36 +188,33 @@ begin
             end);
           HoldThread;
           Break;
-        end;
-      end
-      else
-      begin
-        if RewindDirection <> rdNone then
+        end
+        else
         begin
-          while not Terminated and (RewindDirection <> rdNone) do
+          if RewindDirection <> rdNone then
           begin
-            if RewindDirection = rdBackward then
+            while not Terminated and (RewindDirection <> rdNone) do
             begin
-              if not BackwardRewind then
-                Break;
-            end
-            else
-            if RewindDirection = rdForward then
-            begin
-              if not ForwardRewind then
-                Break;
+              if RewindDirection = rdBackward then
+              begin
+                if not BackwardRewind then
+                  Break;
+              end
+              else
+              if RewindDirection = rdForward then
+              begin
+                if not ForwardRewind then
+                  Break;
+              end;
+
+              Sleep(100);
             end;
-
-            RenderCaret;
-
-            Sleep(100);
           end;
         end;
+
+        RenderCaret;
+        Sleep(400);
       end;
-
-      RenderCaret;
-
-      Sleep(400);
     end;
 
     ExecHold;

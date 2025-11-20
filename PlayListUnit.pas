@@ -57,6 +57,7 @@ type
     destructor Destroy; override;
 
     procedure Clear;
+    procedure FreeItem(const APlayItem: TPlayItem);
     function IndexOf(const AFileName: String): Integer;
 
     procedure ReloadPlayList(
@@ -129,6 +130,17 @@ begin
   inherited Clear;
 end;
 
+procedure TPlayList.FreeItem(const APlayItem: TPlayItem);
+var
+  Index: Integer;
+begin
+  Index := IndexOf(APlayItem.Path);
+  if Index = Pred(Self.Count) then
+    CurrentIndex := 0;
+  Remove(APlayItem);
+  APlayItem.Free;
+end;
+
 function TPlayList.IndexOf(const AFileName: String): Integer;
 var
   i: Integer;
@@ -143,7 +155,6 @@ begin
     if AFileName = Items[i].Path then
       Exit(i);
   end;
-
 end;
 
 procedure TPlayList.OnAllThreadsAreDestroyed(Sender: TObject);

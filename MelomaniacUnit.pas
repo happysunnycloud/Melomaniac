@@ -3,7 +3,7 @@
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  System.SysUtils, System.Types, {System.UITypes,} System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.SingleSoundUnit, FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls,
   FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.Objects,
@@ -77,6 +77,7 @@ implementation
 
 uses
     System.Generics.Collections
+  , System.UITypes
   , PlayControllerUnit
   , MouseHandlersUnit
   , ClickListenerThreadUnit
@@ -84,6 +85,7 @@ uses
   , VisualSchemeUnit
   , ToolsUnit
   , ConstantsUnit
+//  , ThreadFactoryUnit
   ;
 
 procedure TMainForm.CloseControlClick(Sender: TObject);
@@ -166,6 +168,7 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   ClickListenerThread: TClickListenerThread;
+//  HeighlightFailThread: TThreadExt;
 begin
   ReportMemoryLeaksOnShutdown := true;
 
@@ -181,6 +184,7 @@ begin
   TThread.ForceQueue(nil,
     procedure
     begin
+      TPlayController.HeighlightMarkMode;
       TPlayController.HeighlightCopyMode;
     end);
 
@@ -218,15 +222,47 @@ begin
     InfoPanelControl,
     TimelineControl,
     VolumeControl,
+    MarkModeControl,
     CopyModeControl,
     MoveModeControl
   ]);
 
-//  TimelineControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
-//  VolumeControl.OnMouseUp := TMouseHandlers.OnMouseUpHandler;
+//  HeighlightFailThread := ThreadFactory.CreateFreeOnTerminateThread(
+//    'HeighlightFailThread',
+//    procedure (const AThread: TThreadExt)
+//    begin
+//      while not AThread.Terminated do
+//      begin
+//        AThread.Queue(nil,
+//          procedure
+//          begin
+//            //On
+//          end
+//        );
+//
+//        Sleep(2000);
+//
+//        AThread.Queue(nil,
+//          procedure
+//          begin
+//            //Off
+//          end
+//        );
+//      end;
+//    end
+//  );
+//
+//  ThreadFactory.GetThreadByName('a').Terminate;
 
   TTools.ConnectGlowEffect([TimelineControl, VolumeControl]);
-  TTools.ConnectHeighlightGlowEffect([TimelineControl, VolumeControl]);
+  TTools.ConnectHeighlightGlowEffect(
+    [TimelineControl, VolumeControl],
+    TAlphaColorRec.Limegreen,
+    HEIGHLIGTH_GLOW_EFFECT_IDENT);
+  TTools.ConnectHeighlightGlowEffect(
+    [TimelineControl, VolumeControl],
+    TAlphaColorRec.Red,
+    FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT);
 
   PlayControl.BringToFront;
 

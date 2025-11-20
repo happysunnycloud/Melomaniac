@@ -11,8 +11,9 @@ const
   BITMAP_SOUND_IDENT = 'Sound';
   BITMAP_MUTE_IDENT = 'Mute';
   MOVE_CONTROLS_STEP = 20;
-  HEIGHLIGTH_GLOW_EFFECT_IDENT = 'HeighlightGlowEffect';
   GLOW_EFFECT_IDENT = 'GlowEffect';
+  HEIGHLIGTH_GLOW_EFFECT_IDENT = 'HeighlightGlowEffect';
+  FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT = 'FailHeighlightGlowEffect';
 
 //  TOP_LEFT_CONTROL_NAME = 'TopLeftControl';
 //  TOP_RIGHT_CONTROL_NAME = 'TopRightControl';

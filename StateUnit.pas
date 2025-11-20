@@ -10,6 +10,7 @@ uses
 type
   TPlayState = (psStop = -1, psPlay = 1, psPause = 0);
   TCopyMode = (cmNone = -1, cmCopy = 0, cmMove = 1);
+  TLeafe = (liNone = -1, liTopLeft = 0, liTopRigth = 1, liBottomLeft = 2, liBottomRight = 3);
 
   TPaths = class (TList<String>)
   strict private
@@ -40,6 +41,7 @@ type
     class var FVisualScheme: String;
     class var FSetOfPathsIndex: Integer;
     class var FSetOfPaths: TSetOfPaths;
+    class var FLeafe: TLeafe;
 
 //    class procedure SetSetOfPaths(const A)
     class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
@@ -80,6 +82,7 @@ type
       read FSetOfPathsIndex write FSetOfPathsIndex;
     class property SetOfPaths[const AIndex: Integer]: TPaths
       read GetSetOfPaths;
+    class property Leafe: TLeafe read FLeafe write FLeafe;
   end;
 
   TPlayStateHelper = record helper for TPlayState
@@ -92,6 +95,11 @@ type
   public
     function ToInt: Integer;
     procedure FromInt(const AVal: Integer);
+  end;
+
+  TLeafeHelper = record helper for TLeafe
+  public
+    function ToPath: String;
   end;
 
 implementation
@@ -141,6 +149,18 @@ begin
   end;
 end;
 
+{ TLeafeHelper }
+
+function TLeafeHelper.ToPath: String;
+begin
+  Result := '';
+  if Self < liTopLeft then
+    Exit;
+
+  Result :=
+    TState.SetOfPaths[TState.SetOfPathsIndex].Items[Integer(Self)];
+end;
+
 { TSetOfPaths }
 
 destructor TSetOfPaths.Destroy;
@@ -172,6 +192,7 @@ begin
   FDuplicateMode := false;
   FVisualScheme := '';
   FSetOfPathsIndex := 0;
+  FLeafe := liNone;
 
   FSetOfPaths := TSetOfPaths.Create;
   LoadConfig;

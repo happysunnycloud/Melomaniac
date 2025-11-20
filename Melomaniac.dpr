@@ -12,7 +12,6 @@ uses
   FMX.FormExtUnit in '..\DevelopmentsCollection\FMX.FormExtUnit.pas',
   ThreadFactoryRegistryUnit in '..\DevelopmentsCollection\ThreadFactoryRegistryUnit.pas',
   ObjectRegistryUnit in '..\DevelopmentsCollection\ObjectRegistryUnit.pas',
-  FileToolsUnit in '..\DevelopmentsCollection\FileToolsUnit.pas',
   PlayListUnit in 'PlayListUnit.pas',
   LockedListExtUnit in '..\DevelopmentsCollection\LockedListExtUnit.pas',
   TAGReaderThreadUnit in 'TAGReaderThreadUnit.pas',
@@ -34,7 +33,9 @@ uses
   FMX.PopupMenuExtFormUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtFormUnit.pas',
   FMX.PopupMenuExtThreadUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtThreadUnit.pas',
   FMX.ThemeUnit in '..\DevelopmentsCollection\FMX.ThemeUnit.pas',
-  DebugUnit in '..\DevelopmentsCollection\DebugUnit.pas';
+  DebugUnit in '..\DevelopmentsCollection\DebugUnit.pas',
+  FileToolsUnit in '..\DevelopmentsCollection\FileToolsUnit.pas',
+  HeighlightFailThreadUnit in 'HeighlightFailThreadUnit.pas';
 
 {$R *.res}
 
