@@ -106,6 +106,16 @@ begin
     procedure
     begin
       TTools.GlowEffectActivated(
+        GLOW_EFFECT_IDENT,
+        Control,
+        false);
+
+      TTools.GlowEffectActivated(
+        HEIGHLIGTH_GLOW_EFFECT_IDENT,
+        Control,
+        false);
+
+      TTools.GlowEffectActivated(
         FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT,
         Control,
         true);
@@ -126,6 +136,12 @@ begin
         FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT,
         Control,
         false);
+
+      if TTools.IsMouseOverControl(Control) then
+        TTools.GlowEffectActivated(
+          GLOW_EFFECT_IDENT,
+          Control,
+          true);
     end
   );
 
