@@ -14,6 +14,13 @@ type
   TTools = class
   strict private
     class var FCurrentRenderPlayState: TPlayState;
+
+    // class function GetLeafPath(const AControl: TControl): String;
+    class procedure SetLeafePath(
+      const AControl: TControl;
+      const ADestPath: String);
+
+    class function PathIndexByLeafControl(const AControl: TControl): Integer;
   public
     class procedure RenderPlayState(const APlayState: TPlayState);
     class procedure RenderTimelineCaretPosition(const AX: Single);
@@ -33,12 +40,13 @@ type
     class procedure ChooseDestinationPath(const AControl: TControl);
     class procedure ChooseMainFolder;
 
-    class function GetLeafPath(const AControl: TControl): String;
     class procedure DisplayLeafPath(const AControl: TControl; const APath: String);
     class function LeafeControlByPathIndex(const APathIndex: Integer): TControl;
-    class function PathIndexByLeafControl(const AControl: TControl): Integer;
     class function LeafeToControl(const ALeafe: TLeafe): TControl;
     class function ControlToLeafe(const AControl: TControl): TLeafe;
+    class function SetOfPathsIndexToControl(const ASetOfPathsIndex: Integer): TControl;
+    class function ControlToSetOfPathsIndex(const AControl: TControl): Integer;
+    class procedure SetLeafeEmptyPath(const AControl: TControl);
 
     class procedure FillPaths(const ASetOfPathIndex: Integer);
 
@@ -54,6 +62,9 @@ type
    class function MoveCompositoin(
     const APathFrom: String; const APathTo: String): Boolean;
 
+  class function IsMouseOverControl(
+    const AControl: TControl): Boolean;
+
     class procedure Init;
   end;
 
@@ -67,6 +78,8 @@ uses
   , FMX.StdCtrls
   , FMX.Effects
   , FMX.Dialogs
+  , FMX.Graphics
+  , FMX.Objects
   , PlayControllerUnit
   , ConstantsUnit
   , FMX.ControlToolsUnit
@@ -317,25 +330,25 @@ begin
   );
 end;
 
-class function TTools.GetLeafPath(const AControl: TControl): String;
-var
-  PathIndex: Integer;
-begin
-  PathIndex := 0;
-  if AControl = MainForm.TopLeftControl then
-    PathIndex := 0
-  else
-  if AControl = MainForm.TopRightControl then
-    PathIndex := 1
-  else
-  if AControl = MainForm.BottomLeftControlLabel then
-    PathIndex := 2
-  else
-  if AControl = MainForm.BottomRightControlLabel then
-    PathIndex := 3;
-
-  Result := TState.SetOfPaths[TState.SetOfPathsIndex][PathIndex];
-end;
+//class function TTools.GetLeafPath(const AControl: TControl): String;
+//var
+//  PathIndex: Integer;
+//begin
+//  PathIndex := 0;
+//  if AControl = MainForm.TopLeftControl then
+//    PathIndex := 0
+//  else
+//  if AControl = MainForm.TopRightControl then
+//    PathIndex := 1
+//  else
+//  if AControl = MainForm.BottomLeftControlLabel then
+//    PathIndex := 2
+//  else
+//  if AControl = MainForm.BottomRightControlLabel then
+//    PathIndex := 3;
+//
+//  Result := TState.SetOfPaths[TState.SetOfPathsIndex][PathIndex];
+//end;
 
 class procedure TTools.DisplayLeafPath(
   const AControl: TControl;
@@ -431,11 +444,55 @@ begin
     Result := TLeafe.liBottomRight;
 end;
 
+class function TTools.SetOfPathsIndexToControl(const ASetOfPathsIndex: Integer): TControl;
+begin
+  Result := nil;
+
+  case ASetOfPathsIndex of
+    0:
+      Result := MainForm.SetOfPathsNumber1Control;
+    1:
+      Result := MainForm.SetOfPathsNumber2Control;
+    2:
+      Result := MainForm.SetOfPathsNumber3Control;
+    3:
+      Result := MainForm.SetOfPathsNumber4Control;
+  end;
+end;
+
+class function TTools.ControlToSetOfPathsIndex(const AControl: TControl): Integer;
+begin
+  Result := 0;
+
+  if AControl = MainForm.SetOfPathsNumber1Control then
+    Result := 0
+  else
+  if AControl = MainForm.SetOfPathsNumber2Control then
+    Result := 1
+  else
+  if AControl = MainForm.SetOfPathsNumber3Control then
+    Result := 2
+  else
+  if AControl = MainForm.SetOfPathsNumber4Control then
+    Result := 3;
+end;
+
+class procedure TTools.SetLeafePath(
+  const AControl: TControl;
+  const ADestPath: String);
+var
+  LeafeControl: TControl;
+  PathIndex: Integer;
+begin
+  LeafeControl := AControl as TControl;
+  PathIndex := PathIndexByLeafControl(LeafeControl);
+  TState.SetOfPaths[TState.SetOfPathsIndex][PathIndex] := ADestPath;
+  DisplayLeafPath(LeafeControl, ADestPath);
+end;
+
 class procedure TTools.ChooseDestinationPath(const AControl: TControl);
 var
   DestPath: String;
-  LeafeControl: TControl;
-  PathIndex: Integer;
 begin
   if not Assigned(AControl) then
     raise Exception.
@@ -446,10 +503,16 @@ begin
   if DestPath.IsEmpty then
     Exit;
 
-  LeafeControl := AControl as TControl;
-  PathIndex := PathIndexByLeafControl(LeafeControl);
-  TState.SetOfPaths[TState.SetOfPathsIndex][PathIndex] := DestPath;
-  DisplayLeafPath(LeafeControl, DestPath);
+  SetLeafePath(AControl, DestPath);
+end;
+
+class procedure TTools.SetLeafeEmptyPath(const AControl: TControl);
+begin
+  if not Assigned(AControl) then
+    raise Exception.
+      Create('TTools.SetLeafeEmptyPath -> AControl in nil');
+
+  SetLeafePath(AControl, '');
 end;
 
 class procedure TTools.ChooseMainFolder;
@@ -569,6 +632,49 @@ begin
   PathTo := Concat(APathTo, '\', FileName);
   if TFileTools.MoveFile(APathFrom, PathTo, TCopyFileAction.caRename) = crOk then
     Result := true;
+end;
+
+class function TTools.IsMouseOverControl(
+  const AControl: TControl): Boolean;
+var
+  MousePoint: TPoint;
+  LocalMousePoint: TPointF;
+  RectF: TRectF;
+  BitMapData: TBitMapData;
+  GetBitMapResult: Boolean;
+  Control: TControl;
+begin
+  Result := false;
+
+  if AControl = nil then
+    Exit;
+
+  Control := AControl;
+
+  GetCursorPos(MousePoint);
+
+  LocalMousePoint := TPointF.Create(MousePoint);
+  LocalMousePoint := MainForm.ScreenToClient(LocalMousePoint);
+  LocalMousePoint := AControl.AbsoluteToLocal(LocalMousePoint);
+
+  RectF  := TRectF.Create(MainForm.ClientToScreen(Control.LocalToAbsolute(Control.ClipRect.TopLeft)),
+                          MainForm.ClientToScreen(Control.LocalToAbsolute(Control.ClipRect.BottomRight)));
+
+  if not RectF.IsEmpty then
+    if RectF.Contains(MousePoint) then
+    begin
+      GetBitMapResult := false;
+
+      if Control is TShape then
+        GetBitMapResult :=
+          TShape(Control).Fill.Bitmap.Bitmap.Map(TMapAccess.Read, BitMapData);
+
+      if GetBitMapResult then
+        if BitMapData.
+          GetPixel(Trunc(localMousePoint.X), Trunc(localMousePoint.Y)) <> 0
+        then
+          Result := true;
+    end;
 end;
 
 class procedure TTools.Init;
