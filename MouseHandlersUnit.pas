@@ -383,22 +383,6 @@ begin
       TPlayController.MountVolume;
     end
     else
-  //  if IsControlIn(Control,
-  //    [
-  //      MainForm.PlayControl,
-  //      MainForm.TopLeftControl,
-  //      MainForm.TopRightControl,
-  //      MainForm.BottomLeftControl,
-  //      MainForm.BottomRightControl,
-  //      MainForm.PrevTrackControl,
-  //      MainForm.NextTrackControl,
-  //      MainForm.InfoPanelControl
-  //    ])
-  //  then
-  //  begin
-  ////    FClickListenerThread.IsButtonUp := true;
-  //  end
-  //  else
     if IsControlIn(Control,
       [
         MainForm.PrevNSecondsControl,
@@ -406,7 +390,6 @@ begin
       ])
     then
     begin
-  //    FClickListenerThread.IsButtonUp := true;
       StopRewind(Sender);
     end
     else
@@ -456,6 +439,18 @@ begin
     then
     begin
       TPlayController.LeafeClicked(Control);
+    end
+    else
+    if IsControlIn(Control,
+      [
+        MainForm.SetOfPathsNumber1Control,
+        MainForm.SetOfPathsNumber2Control,
+        MainForm.SetOfPathsNumber3Control,
+        MainForm.SetOfPathsNumber4Control
+      ])
+    then
+    begin
+      TPlayController.SetOfPathClicked(Control);
     end
   end;
 end;
@@ -514,44 +509,5 @@ begin
     Control.OnMouseLeave := TMouseHandlers.OnMouseLeave;
   end;
 end;
-
-//class function TMouseHandlers.IsMouseOverControl(fControl: TControl): Boolean;
-//var
-//  mousePoint: TPoint;
-//  localizedMousePoint: TPointF;
-//  RectF: TRectF;
-//  BitMapData: TBitMapData;
-//  bGetBitMapResult: Boolean;
-//begin
-//  MainForm.Memo1.Lines.Insert(0, fControl.Name);
-//  MainForm.Memo1.ScrollToTop;
-//
-//  Result := false;
-//
-//  if fControl = nil then
-//    Exit;
-//
-//  GetCursorPos(mousePoint);
-//
-//  localizedMousePoint := TPointF.Create(mousePoint);
-//  localizedMousePoint := MainForm.ScreenToClient(localizedMousePoint);
-//  localizedMousePoint := fControl.AbsoluteToLocal(localizedMousePoint);
-//
-//  RectF  := TRectF.Create(MainForm.ClientToScreen(fControl.LocalToAbsolute(fControl.ClipRect.TopLeft)),
-//                          MainForm.ClientToScreen(fControl.LocalToAbsolute(fControl.ClipRect.BottomRight)));
-//
-//  if not RectF.IsEmpty then
-//    if RectF.Contains(mousePoint) then
-//    begin
-//      bGetBitMapResult := false;
-//
-//      if fControl is TShape then
-//        bGetBitMapResult := TShape(fControl).Fill.Bitmap.Bitmap.Map(TMapAccess.Read, BitMapData);
-//
-//      if bGetBitMapResult then
-//        if BitMapData.GetPixel(Trunc(localizedMousePoint.X), Trunc(localizedMousePoint.Y)) <> 0 then
-//          Result := true;
-//    end;
-//end;
 
 end.

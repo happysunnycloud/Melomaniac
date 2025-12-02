@@ -49,6 +49,7 @@ type
     class var FPlayState: TPlayState;
 
     class procedure SetPlayState(const APlayState: TPlayState); static;
+    class procedure SetSetOfPathsIndex(const ASetOfPathsIndex: Integer); static;
   public
     class procedure Init;
     class procedure UnInit;
@@ -79,7 +80,7 @@ type
     class property VisualScheme: String
       read FVisualScheme write FVisualScheme;
     class property SetOfPathsIndex: Integer
-      read FSetOfPathsIndex write FSetOfPathsIndex;
+      read FSetOfPathsIndex write SetSetOfPathsIndex;
     class property SetOfPaths[const AIndex: Integer]: TPaths
       read GetSetOfPaths;
     class property Leafe: TLeafe read FLeafe write FLeafe;
@@ -108,6 +109,8 @@ uses
     System.SysUtils
   , Xml.XMLIntf
   , Xml.XMLDoc
+  , ToolsUnit
+  , PlayControllerUnit
   ;
 
 { TPlayStateHelper }
@@ -245,6 +248,13 @@ end;
 class procedure TState.SetPlayState(const APlayState: TPlayState);
 begin
   FPlayState := APlayState;
+end;
+
+class procedure TState.SetSetOfPathsIndex(const ASetOfPathsIndex: Integer);
+begin
+  FSetOfPathsIndex := ASetOfPathsIndex;
+  TTools.FillPaths(FSetOfPathsIndex);
+  TPlayController.HeighlightSetOfPaths;
 end;
 
 class function TState.SaveConfig: Boolean;

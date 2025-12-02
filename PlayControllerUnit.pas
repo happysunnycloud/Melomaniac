@@ -31,6 +31,8 @@ type
     class function SetPrev: Boolean;
     class function SetNext: Boolean;
     class function SetCurrent: Boolean;
+
+    class procedure OffHeighlight(const AControlsArray: array of TControl);
   public
     class procedure Init(
       const AThreadFactory: TThreadFactory;
@@ -76,7 +78,9 @@ type
     class procedure HeighlightMarkMode;
     class procedure HeighlightLeafe;
     class procedure HeighlightFail(const AControl: TControl);
+    class procedure HeighlightSetOfPaths;
     class procedure LeafeClicked(Sender: TObject);
+    class procedure SetOfPathClicked(Sender: TObject);
 
     //class function CopyMove: TCopyResult;
     class procedure CopyThenNext;
@@ -178,6 +182,13 @@ var
   LastPlayState: TPlayState;
   FileName: String;
 begin
+  if TPlayController.PlayList.Count = 0 then
+  begin
+    HeighlightFail(MainForm.PlayControl);
+
+    Exit;
+  end;
+
   FileName := FSingleSound.FileName;
   if FileName.IsEmpty then
     Exit;
@@ -422,6 +433,19 @@ begin
   Volume := TTools.VolumeCaretPositionToVolume(X);
 end;
 
+class procedure TPlayController.OffHeighlight(const AControlsArray: array of TControl);
+var
+  i: Integer;
+begin
+  for i := 0 to Pred(Length(AControlsArray)) do
+  begin
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      AControlsArray[i],
+      false);
+  end;
+end;
+
 class procedure TPlayController.HeighlightMarkMode;
 begin
   TTools.GlowEffectActivated(
@@ -535,6 +559,25 @@ begin
       AControl);
 end;
 
+class procedure TPlayController.HeighlightSetOfPaths;
+var
+  SetOfPathsControl: TControl;
+begin
+  OffHeighlight([
+    MainForm.SetOfPathsNumber1Control,
+    MainForm.SetOfPathsNumber2Control,
+    MainForm.SetOfPathsNumber3Control,
+    MainForm.SetOfPathsNumber4Control
+  ]);
+
+  SetOfPathsControl := TTools.SetOfPathsIndexToControl(TState.SetOfPathsIndex);
+  if Assigned(SetOfPathsControl) then
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      SetOfPathsControl,
+      true);
+end;
+
 class procedure TPlayController.LeafeClicked(Sender: TObject);
 var
   Control: TControl;
@@ -542,22 +585,42 @@ var
 begin
   Control := Sender as TControl;
 
-  HeighlightFail(Control);
-  Exit;
+  if TState.CopyMode = TCopyMode.cmNone then
+  begin
+    HeighlightFail(Control);
+
+    Exit;
+  end;
 
   Leafe := TTools.ControlToLeafe(Control);
   if Leafe = TLeafe.liNone then
     Exit;
+
+  if Leafe.ToPath.IsEmpty then
+  begin
+    HeighlightFail(Control);
+
+    Exit;
+  end;
 
   if Leafe = TState.Leafe then
     TState.Leafe := liNone
   else
     TState.Leafe := Leafe;
 
-  TPlayController.HeighlightLeafe;
+  HeighlightLeafe;
 
   if not TState.MarkMode then
     TPlayController.Next;
+end;
+
+class procedure TPlayController.SetOfPathClicked(Sender: TObject);
+var
+  Control: TControl;
+begin
+  Control := Sender as TControl;
+
+  TState.SetOfPathsIndex := TTools.ControlToSetOfPathsIndex(Control);
 end;
 
 //class function TPlayController.CopyMove: TCopyResult;
