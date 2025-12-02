@@ -179,26 +179,38 @@ begin
   Clear;
 
   SetLength(FileNames, 0);
-  TFileTools.GetTreeOfFileNames(ADir, 'mp3', FileNames);
+  TFileTools.GetTreeOfFileNames(ADir, ['mp3', 'ogg'], FileNames);
 
   FCurrentIndex := 0;
 
   // создаём потоки
   FileCount := Length(FileNames);
-  FilesPerThread := Ceil(FileCount / PLAY_LIST_RELOAD_THREAD_COUNT);
-  for i := 0 to PLAY_LIST_RELOAD_THREAD_COUNT - 1 do
+  if FileCount > PLAY_LIST_RELOAD_THREAD_COUNT then
   begin
-    StartIndex := i * FilesPerThread;
-    FinishIndex := Min(StartIndex + FilesPerThread - 1, FileCount - 1);
-    if StartIndex > FileCount then
-      Break;
+    FilesPerThread := Ceil(FileCount / PLAY_LIST_RELOAD_THREAD_COUNT);
+    for i := 0 to PLAY_LIST_RELOAD_THREAD_COUNT - 1 do
+    begin
+      StartIndex := i * FilesPerThread;
+      FinishIndex := Min(StartIndex + FilesPerThread - 1, FileCount - 1);
+      if StartIndex > FileCount then
+        Break;
 
+      TTAGReaderThread.Create(
+        FThreadFactory,
+        Self,
+        FileNames,
+        StartIndex,
+        FinishIndex);
+    end;
+  end
+  else
+  begin
     TTAGReaderThread.Create(
       FThreadFactory,
       Self,
       FileNames,
-      StartIndex,
-      FinishIndex);
+      0,
+      Pred(FileCount));
   end;
 
   FThreadFactory.OnAllThreadsAreDestroyed := OnAllThreadsAreDestroyed;
