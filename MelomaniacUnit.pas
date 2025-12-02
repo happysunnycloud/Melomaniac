@@ -60,6 +60,7 @@ type
     FMainPopupMenu: TPopupMenuExt;
     procedure BuilPopupMenus;
     procedure ChooseDestinationMenuItemOnClick(Sender: TObject);
+    procedure SetEmptyPathMenuItemOnClick(Sender: TObject);
     procedure OpenFolderMenuItemOnClick(Sender: TObject);
     procedure FirstAfterPlayListReload;
     procedure CommonAfterPlayListReload;
@@ -168,7 +169,6 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   ClickListenerThread: TClickListenerThread;
-//  HeighlightFailThread: TThreadExt;
 begin
   ReportMemoryLeaksOnShutdown := true;
 
@@ -181,14 +181,8 @@ begin
     TimelineControl,
     CurrentTimeLabel,
     TState.PlayState);
-  TThread.ForceQueue(nil,
-    procedure
-    begin
-      TPlayController.HeighlightMarkMode;
-      TPlayController.HeighlightCopyMode;
-    end);
 
-  TTools.FillPaths(TState.SetOfPathsIndex);
+//  TTools.FillPaths(TState.SetOfPathsIndex);
 
   TVisualScheme.Init;
   TVisualScheme.Load(Self, 'Steampunk');
@@ -224,35 +218,12 @@ begin
     VolumeControl,
     MarkModeControl,
     CopyModeControl,
-    MoveModeControl
+    MoveModeControl,
+    SetOfPathsNumber1Control,
+    SetOfPathsNumber2Control,
+    SetOfPathsNumber3Control,
+    SetOfPathsNumber4Control
   ]);
-
-//  HeighlightFailThread := ThreadFactory.CreateFreeOnTerminateThread(
-//    'HeighlightFailThread',
-//    procedure (const AThread: TThreadExt)
-//    begin
-//      while not AThread.Terminated do
-//      begin
-//        AThread.Queue(nil,
-//          procedure
-//          begin
-//            //On
-//          end
-//        );
-//
-//        Sleep(2000);
-//
-//        AThread.Queue(nil,
-//          procedure
-//          begin
-//            //Off
-//          end
-//        );
-//      end;
-//    end
-//  );
-//
-//  ThreadFactory.GetThreadByName('a').Terminate;
 
   TTools.ConnectGlowEffect([TimelineControl, VolumeControl]);
   TTools.ConnectHeighlightGlowEffect(
@@ -263,6 +234,18 @@ begin
     [TimelineControl, VolumeControl],
     TAlphaColorRec.Red,
     FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT);
+
+//  TThread.ForceQueue(nil,
+//    procedure
+//    begin
+//      TPlayController.HeighlightMarkMode;
+//      TPlayController.HeighlightCopyMode;
+//    end);
+
+  TPlayController.HeighlightMarkMode;
+  TPlayController.HeighlightCopyMode;
+  TState.SetOfPathsIndex := TState.SetOfPathsIndex;
+//  TPlayController.HeighlightSetOfPaths;
 
   PlayControl.BringToFront;
 
@@ -292,6 +275,11 @@ begin
   MenuItem.OnClick := ChooseDestinationMenuItemOnClick;
   FLeafePopupMenu.Add(MenuItem);
 
+  MenuItem := TItem.Create;
+  MenuItem.Text := 'Set empty path';
+  MenuItem.OnClick := SetEmptyPathMenuItemOnClick;
+  FLeafePopupMenu.Add(MenuItem);
+
   FMainPopupMenu := TPopupMenuExt.Create(Self);
 //  TState.MenuTheme.CopyTo(FSettingsPopupMenuExt.Theme);
 
@@ -304,6 +292,11 @@ end;
 procedure TMainForm.ChooseDestinationMenuItemOnClick(Sender: TObject);
 begin
   TTools.ChooseDestinationPath(TControl(FLeafePopupMenu.CallingObject));
+end;
+
+procedure TMainForm.SetEmptyPathMenuItemOnClick(Sender: TObject);
+begin
+  TTools.SetLeafeEmptyPath(TControl(FLeafePopupMenu.CallingObject));
 end;
 
 procedure TMainForm.OpenFolderMenuItemOnClick(Sender: TObject);
