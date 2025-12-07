@@ -179,7 +179,7 @@ begin
   Clear;
 
   SetLength(FileNames, 0);
-  TFileTools.GetTreeOfFileNames(ADir, ['mp3', 'ogg'], FileNames);
+  TFileTools.GetTreeOfFileNames(ADir, ['mp3', 'ogg', 'flac', 'wav'], FileNames);
 
   FCurrentIndex := 0;
 
