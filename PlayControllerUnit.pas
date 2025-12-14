@@ -296,15 +296,22 @@ begin
 end;
 
 class procedure TPlayController.First;
-var
-  LastPlayState: TPlayState;
 begin
-  LastPlayState := FPlayState;
   Stop;
   SetFirst;
-  if LastPlayState = psPlay then
-    Play;
+  Play;
 end;
+
+//class procedure TPlayController.First;
+//var
+//  LastPlayState: TPlayState;
+//begin
+//  LastPlayState := FPlayState;
+//  Stop;
+//  SetFirst;
+//  if LastPlayState = psPlay then
+//    Play;
+//end;
 
 class procedure TPlayController.Prev;
 var

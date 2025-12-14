@@ -42,6 +42,7 @@ type
     class var FSetOfPathsIndex: Integer;
     class var FSetOfPaths: TSetOfPaths;
     class var FLeafe: TLeafe;
+    class var FPlayState: TPlayState;
     // Выставляется в true, когда стартуем
     // Определяем как будет запускаться композиция
     // Если true, то с момента последнего останова
@@ -49,12 +50,12 @@ type
     class var FIsAppStarting: Boolean;
 
 //    class procedure SetSetOfPaths(const A)
-    class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
   strict private
-    class var FPlayState: TPlayState;
+    class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
 
     class procedure SetPlayState(const APlayState: TPlayState); static;
     class procedure SetSetOfPathsIndex(const ASetOfPathsIndex: Integer); static;
+    class function GetIsAppStarting: Boolean; static;
   public
     class procedure Init;
     class procedure UnInit;
@@ -89,7 +90,7 @@ type
     class property SetOfPaths[const AIndex: Integer]: TPaths
       read GetSetOfPaths;
     class property Leafe: TLeafe read FLeafe write FLeafe;
-    class property IsAppStarting: Boolean read FIsAppStarting write FIsAppStarting;
+    class property IsAppStarting: Boolean read GetIsAppStarting;
   end;
 
   TPlayStateHelper = record helper for TPlayState
@@ -262,6 +263,12 @@ begin
   FSetOfPathsIndex := ASetOfPathsIndex;
   TTools.FillPaths(FSetOfPathsIndex);
   TPlayController.HeighlightSetOfPaths;
+end;
+
+class function TState.GetIsAppStarting: Boolean;
+begin
+  Result := FIsAppStarting;
+  FIsAppStarting := false;
 end;
 
 class function TState.SaveConfig: Boolean;

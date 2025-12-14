@@ -109,11 +109,12 @@ var
   CurrentIndex: Integer;
   PlayState: TPlayState;
 begin
-  if TPlayController.PlayList.Count = 0 then
-    Exit;
+//  if TPlayController.PlayList.Count = 0 then
+//    Exit;
 
   PlayItemsList := TPlayController.PlayList.LockList;
   try
+    Memo1.Lines.Clear;
     for PlayItem in PlayItemsList do
     begin
       Memo1.Lines.Add(PlayItem.Path);
@@ -138,8 +139,6 @@ begin
     TPlayController.First;
     TPlayController.CurrentTime := TState.CurrentTime;
   end;
-
-  TState.IsAppStarting := false;
 
   if TState.Volume = 0 then
   begin
@@ -263,19 +262,25 @@ begin
   TVisualScheme.Load(Self, 'Steampunk');
 
   MainPath := TState.MainPath;
-  if not MainPath.IsEmpty then
+//  if not MainPath.IsEmpty then
   begin
-    if TTools.CheckPath(MainPath) then
-    begin
-      TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
-      TPlayController.PlayList.SyncPlayLists(MainPath);
-    end
-    else
-    begin
-      TPlayController.PlayList.OnPlayListReloaded := OnAfterPlayListReloadFromPath;
-      TPlayController.PlayList.ReloadPlayListFromPath(MainPath);
-    end
+    TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+    TPlayController.PlayList.SyncPlayLists(MainPath);
   end;
+
+//  if not MainPath.IsEmpty then
+//  begin
+//    if TTools.CheckPath(MainPath) then
+//    begin
+//      TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+//      TPlayController.PlayList.SyncPlayLists(MainPath);
+//    end
+//    else
+//    begin
+//      TPlayController.PlayList.OnPlayListReloaded := OnAfterPlayListReloadFromPath;
+//      TPlayController.PlayList.ReloadPlayListFromPath(MainPath);
+//    end
+//  end;
 
   ClickListenerThread := TClickListenerThread.Create(ThreadFactory);
   TMouseHandlers.Init(ClickListenerThread);
@@ -382,21 +387,30 @@ end;
 procedure TMainForm.OpenFolderMenuItemOnClick(Sender: TObject);
 var
   MainPath: String;
+//  PlayState: TPlayState;
 begin
+//  PlayState := TState.PlayState;
+  TPlayController.Stop;
+  TPlayController.PlayList.Clear;
+
   TState.CurrentTime := 0;
   TTools.ChooseMainFolder;
 
+//  TState.PlayState := psPlay;
   MainPath := TState.MainPath;
-  if TTools.CheckPath(MainPath) then
-  begin
-    TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
-    TPlayController.PlayList.SyncPlayLists(MainPath);
-  end
-  else
-  begin
-    TPlayController.PlayList.OnPlayListReloaded := OnAfterPlayListReloadFromPath;
-    TPlayController.PlayList.ReloadPlayListFromPath(MainPath);
-  end;
+  TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+  TPlayController.PlayList.SyncPlayLists(MainPath);
+
+//  if TTools.CheckPath(MainPath) then
+//  begin
+//    TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+//    TPlayController.PlayList.SyncPlayLists(MainPath);
+//  end
+//  else
+//  begin
+//    TPlayController.PlayList.OnPlayListReloaded := OnAfterPlayListReloadFromPath;
+//    TPlayController.PlayList.ReloadPlayListFromPath(MainPath);
+//  end;
 end;
 
 end.

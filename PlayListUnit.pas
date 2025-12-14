@@ -294,7 +294,10 @@ begin
     TTools.SelectPlayItemsListFromDB(Path, DBPlayItemsList);
 
     SetLength(FileNames, 0);
-    TFileTools.GetTreeOfFileNames(Path, ALLOWED_EXTENSIONS, FileNames);
+    // Проверяем на пустой путь, если путь пуст, то пойдет поиск по всему диску
+    // Нам не нужно искать по всему диску, только по конкретной папке
+    if Length(Path) > 0 then
+      TFileTools.GetTreeOfFileNames(Path, ALLOWED_EXTENSIONS, FileNames);
     for i := 0 to Pred(Length(FileNames)) do
     begin
       FileName := FileNames[i];
@@ -306,6 +309,7 @@ begin
     for PathPlayItem in PathPlayItemsList do
     begin
       IsFound := false;
+
       for i := 0 to Pred(DBPlayItemsList.Count) do
       begin
         DBPlayItem := DBPlayItemsList[i];
