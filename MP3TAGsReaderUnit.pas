@@ -14,13 +14,12 @@ type
     Comment: string;
     Genre: Byte;
     Duration: Double; // в секундах
-    FileName: String;
+//    FileName: String;
   end;
 
   TMP3Reader = class
   public
     class function ReadMP3(const FileName: string): TMP3Info;
-    class function IsMP3Strict(const FileName: string; MinFrames: Integer = 3): Boolean;
   end;
 
 implementation
@@ -277,113 +276,7 @@ begin
     ReadID3v2(FS, Result);
     ReadID3v1(FS, Result);
     Result.Duration := GetMP3Duration(FS);
-    Result.FileName := FileName;
-  finally
-    FS.Free;
-  end;
-end;
-
-class function TMP3Reader.IsMP3Strict(const FileName: string; MinFrames: Integer = 3): Boolean;
-type
-  TMPEGVersion = (mvMPEG25, mvMPEG2, mvMPEG1);
-var
-  FS: TFileStream;
-  Header: array[0..9] of Byte;
-  Frame: array[0..3] of Byte;
-  FrameOffset: Int64;
-  TagSize: Integer;
-  VersionBits, LayerBits, BitRateIndex, SampleRateIndex: Integer;
-  //  Version: TMPEGVersion;
-  XingHeader: array[0..3] of Byte;
-begin
-  Result := False;
-  if not FileExists(FileName) then Exit;
-  FS := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
-  try
-    // -------------------- Проверка ID3v2 заголовка --------------------
-    FS.Position := 0;
-    if FS.Read(Header, 10) = 10 then
-    begin
-      if (Header[0] = Ord('I')) and (Header[1] = Ord('D')) and (Header[2] = Ord('3')) then
-      begin
-        // Проверка версии ID3v2 (допустимо 2..4)
-        if not (Header[3] in [2..4]) then Exit;
-        // Проверка флагов (только биты 7,6,5 используются)
-        if Header[5] and $1F <> 0 then Exit;
-        // Размер тега (sync-safe)
-        TagSize := (Header[6] shl 21) or (Header[7] shl 14) or (Header[8] shl 7) or Header[9];
-        if TagSize < 0 then Exit;
-        FrameOffset := 10 + TagSize; // пропускаем ID3v2 перед поиском MPEG
-      end
-      else
-        FrameOffset := 0; // ID3v2 нет
-    end
-    else
-      Exit;
-
-    // -------------------- Поиск первого MPEG-фрейма --------------------
-    while FrameOffset < FS.Size - 4 do
-    begin
-      FS.Position := FrameOffset;
-      if FS.Read(Frame, 4) <> 4 then Exit;
-      // Проверка синхросигнатуры
-      if (Frame[0] = $FF) and ((Frame[1] and $E0) = $E0) then
-      begin
-        VersionBits := (Frame[1] shr 3) and $03;
-        if not (VersionBits in [0,2,3]) then
-        begin
-          Inc(FrameOffset);
-          Continue;
-        end;
-        //        // Определяем версию MPEG
-        //        VersionBits := (Frame[1] shr 3) and $03;
-        //        case VersionBits of
-        //          0: Version := mvMPEG25;
-        //          2: Version := mvMPEG2;
-        //          3: Version := mvMPEG1;
-        //        else
-        //          Inc(FrameOffset);
-        //          Continue;
-        //        end;
-        // Проверка Layer III
-        LayerBits := (Frame[1] shr 1) and $03;
-        if LayerBits <> 1 then
-        begin
-          Inc(FrameOffset);
-          Continue;
-        end;
-
-        // Проверка индексов битрейта и частоты дискретизации
-        BitRateIndex := (Frame[2] shr 4) and $0F;
-        SampleRateIndex := (Frame[2] shr 2) and $03;
-        if (BitRateIndex = 0) or (BitRateIndex = 15) or (SampleRateIndex > 2) then
-        begin
-          Inc(FrameOffset);
-          Continue;
-        end;
-
-        // -------------------- Проверка VBR/XING заголовка --------------------
-        FS.Position := FrameOffset + 4; // после заголовка MPEG-фрейма
-        if FS.Read(XingHeader, 4) = 4 then
-        begin
-          if ((XingHeader[0] = Ord('X')) and (XingHeader[1] = Ord('i')) and
-              (XingHeader[2] = Ord('n')) and (XingHeader[3] = Ord('g'))) or
-             ((XingHeader[0] = Ord('I')) and (XingHeader[1] = Ord('n')) and
-              (XingHeader[2] = Ord('f')) and (XingHeader[3] = Ord('o'))) then
-          begin
-            // Найден VBR/XING заголовок — пока считаем файл валидным
-            // TODO: можно добавить проверку количества фреймов для полной валидации
-            Result := True;
-            Exit;
-          end;
-        end;
-
-        // Если XING нет — CBR fallback
-        Result := True;
-        Exit;
-      end;
-      Inc(FrameOffset);
-    end;
+//    Result.FileName := FileName;
   finally
     FS.Free;
   end;

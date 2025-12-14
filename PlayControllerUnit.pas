@@ -14,8 +14,6 @@ uses
   ;
 
 type
-  //TCopyResult = (crNone = 0, crCopied = 1, crMoved = 2);
-
   TPlayController = class
   strict private
     class var FSingleSound: TSingleSound;
@@ -82,7 +80,6 @@ type
     class procedure LeafeClicked(Sender: TObject);
     class procedure SetOfPathClicked(Sender: TObject);
 
-    //class function CopyMove: TCopyResult;
     class procedure CopyThenNext;
   end;
 
@@ -623,34 +620,6 @@ begin
   TState.SetOfPathsIndex := TTools.ControlToSetOfPathsIndex(Control);
 end;
 
-//class function TPlayController.CopyMove: TCopyResult;
-//var
-//  Path: String;
-//begin
-//  Result := crNone;
-//  if TState.Leafe = liNone then
-//    Exit;
-//
-//  Path := TState.Leafe.ToPath;
-//  if TState.CopyMode = cmCopy then
-//  begin
-//    if TTools.CopyCompositoin(FPlayList.CurrentComposition, Path) then
-//      Result := crCopied;
-//  end
-//  else
-//  if TState.CopyMode = cmMove then
-//  begin
-//    if TTools.MoveCompositoin(FPlayList.CurrentComposition, Path) then
-//    begin
-//      FPlayList.FreeItem(FPlayList.Current);
-//      Result := crMoved;
-//    end;
-//  end;
-//
-//  TState.Leafe := liNone;
-//  HeighlightLeafe;
-//end;
-
 class procedure TPlayController.CopyThenNext;
 var
   Path: String;
@@ -665,13 +634,13 @@ begin
   Path := TState.Leafe.ToPath;
   if TState.CopyMode = cmCopy then
   begin
-    if TTools.CopyCompositoin(FPlayList.CurrentComposition, Path) then
+    if TTools.CopyComposition(FPlayList.CurrentComposition, Path) then
       SetCurrent;
   end
   else
   if TState.CopyMode = cmMove then
   begin
-    if TTools.MoveCompositoin(FPlayList.CurrentComposition, Path) then
+    if TTools.MoveComposition(FPlayList.CurrentComposition, Path) then
     begin
       FPlayList.FreeItem(FPlayList.Current);
       SetNext;

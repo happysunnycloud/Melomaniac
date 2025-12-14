@@ -7,7 +7,11 @@ uses
   , System.Classes
   , ThreadFactoryUnit
   , LockedListExtUnit
+  , FileToolsUnit
   ;
+
+const
+  ALLOWED_EXTENSIONS: array[0..3] of String = ('mp3', 'ogg', 'flac', 'wav');
 
 type
   TPlayListReloadedProRef = reference to procedure;
@@ -37,7 +41,6 @@ type
   strict private
     FThreadFactory: TThreadFactory;
     FOnPlayListReloaded: TPlayListReloadedProRef;
-
     FCurrentIndex: Integer;
 
     function GetFirst: TPlayItem;
@@ -52,6 +55,8 @@ type
     function GetCurrentComposition: String;
 
     procedure OnAllThreadsAreDestroyed(Sender: TObject);
+
+    procedure FreePlayItemsList(var APlayItemsList: TPlayItemsList);
   public
     constructor Create(const AThreadFactory: TThreadFactory);
     destructor Destroy; override;
@@ -60,8 +65,17 @@ type
     procedure FreeItem(const APlayItem: TPlayItem);
     function IndexOf(const AFileName: String): Integer;
 
-    procedure ReloadPlayList(
-      const ADir: String);
+    procedure ReloadPlayListFromPath(
+      const APath: String);
+    procedure ReloadPlayListByFileNames(
+      const AFileNames: TFileNames);
+    procedure ReloadPlayListFromDB(
+      const AMainPath: String);
+
+    procedure SyncPlayLists(
+      const APath: String);
+
+    procedure SaveToDB;
 
     property OnPlayListReloaded: TPlayListReloadedProRef
       read FOnPlayListReloaded write FOnPlayListReloaded;
@@ -83,9 +97,9 @@ implementation
 uses
     System.SysUtils
   , System.Math
-  , FileToolsUnit
   , TAGReaderThreadUnit
   , ConstantsUnit
+  , ToolsUnit
   ;
 
 { TPlayItem }
@@ -120,11 +134,18 @@ begin
 end;
 
 procedure TPlayList.Clear;
+var
+  PlayItemsList: TPlayItemsList;
 begin
-  while Count > 0 do
-  begin
-    Items[0].Free;
-    Delete(0);
+  PlayItemsList := LockList;
+  try
+    while PlayItemsList.Count > 0 do
+    begin
+      PlayItemsList.Items[0].Free;
+      PlayItemsList.Delete(0);
+    end;
+  finally
+    UnlockList;
   end;
 
   inherited Clear;
@@ -167,9 +188,32 @@ begin
     end);
 end;
 
-procedure TPlayList.ReloadPlayList(const ADir: String);
+procedure TPlayList.FreePlayItemsList(var APlayItemsList: TPlayItemsList);
+begin
+  while APlayItemsList.Count > 0 do
+  begin
+    APlayItemsList.Items[0].Free;
+    APlayItemsList.Delete(0);
+  end;
+
+  FreeAndNil(APlayItemsList);
+end;
+
+procedure TPlayList.ReloadPlayListFromPath(const APath: String);
 var
   FileNames: TFileNames;
+begin
+  SetLength(FileNames, 0);
+  TFileTools.GetTreeOfFileNames(APath, ALLOWED_EXTENSIONS, FileNames);
+
+  if Length(FileNames) > 0 then
+    ReloadPlayListByFileNames(FileNames);
+end;
+
+procedure TPlayList.ReloadPlayListByFileNames(
+  const AFileNames: TFileNames);
+var
+  FileNames: TFileNames absolute AFileNames;
   i: Integer;
   StartIndex: Integer;
   FinishIndex: Integer;
@@ -177,9 +221,6 @@ var
   FileCount: Integer;
 begin
   Clear;
-
-  SetLength(FileNames, 0);
-  TFileTools.GetTreeOfFileNames(ADir, ['mp3', 'ogg', 'flac', 'wav'], FileNames);
 
   FCurrentIndex := 0;
 
@@ -214,6 +255,103 @@ begin
   end;
 
   FThreadFactory.OnAllThreadsAreDestroyed := OnAllThreadsAreDestroyed;
+end;
+
+procedure TPlayList.ReloadPlayListFromDB(
+  const AMainPath: String);
+var
+  PlayItemsList: TPlayItemsList;
+begin
+  Clear;
+
+  PlayItemsList := LockList;
+  try
+    TTools.SelectPlayItemsListFromDB(AMainPath, PlayItemsList);
+  finally
+    UnlockList;
+  end;
+end;
+
+procedure TPlayList.SyncPlayLists(
+  const APath: String);
+var
+  Path: String;
+  DBPlayItemsList: TPlayItemsList;
+  PathPlayItemsList: TPlayItemsList;
+  ToAddFileNames: TFileNames;
+  DBPlayItem: TPlayItem;
+  PathPlayItem: TPlayItem;
+  FileNames: TFileNames;
+  FileName: String;
+  i: Integer;
+  IsFound: Boolean;
+begin
+  Path := APath;
+
+  DBPlayItemsList := TPlayItemsList.Create;
+  PathPlayItemsList := TPlayItemsList.Create;
+  try
+    TTools.SelectPlayItemsListFromDB(Path, DBPlayItemsList);
+
+    SetLength(FileNames, 0);
+    TFileTools.GetTreeOfFileNames(Path, ALLOWED_EXTENSIONS, FileNames);
+    for i := 0 to Pred(Length(FileNames)) do
+    begin
+      FileName := FileNames[i];
+      PathPlayItem := TPlayItem.Create;
+      PathPlayItem.Path := FileName;
+      PathPlayItemsList.Add(PathPlayItem);
+    end;
+
+    for PathPlayItem in PathPlayItemsList do
+    begin
+      IsFound := false;
+      for i := 0 to Pred(DBPlayItemsList.Count) do
+      begin
+        DBPlayItem := DBPlayItemsList[i];
+        if PathPlayItem.Path = DBPlayItem.Path then
+        begin
+          DBPlayItemsList.Delete(i);
+          FreeAndNil(DBPlayItem);
+
+          IsFound := true;
+
+          Break;
+        end;
+      end;
+
+      if not IsFound then
+        ToAddFileNames.Add(PathPlayItem.Path);
+    end;
+
+    if DBPlayItemsList.Count > 0 then
+      TTools.DeletePlayItemsListFromDB(DBPlayItemsList);
+
+    if Length(ToAddFileNames) > 0 then
+      ReloadPlayListByFileNames(ToAddFileNames)
+    else
+      if Assigned(OnPlayListReloaded) then
+        OnPlayListReloaded;
+
+  finally
+    FreePlayItemsList(PathPlayItemsList);
+    FreePlayItemsList(DBPlayItemsList);
+  end;
+end;
+
+procedure TPlayList.SaveToDB;
+var
+  PlayItemsList: TPlayItemsList;
+begin
+  PlayItemsList := LockList;
+  try
+    if PlayItemsList.Count = 0 then
+      Exit;
+
+    TTools.InsertPlayItemsListToDB(PlayItemsList);
+  finally
+    UnlockList;
+  end;
 end;
 
 function TPlayList.GetFirst: TPlayItem;

@@ -64,7 +64,7 @@ begin
   {$ELSE}
   Result := Format('%s', [RootName]);
   {$ENDIF}
-  Result := Concat(Result, '\', ASchemeName, '.pck');
+  Result := Concat(Result, PATH_SPLITTER, ASchemeName, '.pck');
 
   if not FileExists(Result) then
     raise Exception.

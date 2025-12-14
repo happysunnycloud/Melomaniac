@@ -33,7 +33,7 @@ type
 //    class function ReadUInt16(const S: TStream): Word;
     class procedure ParseINFOChunk(S: TStream; ChunkSize: Cardinal; var Info: TWavInfo);
   public
-    class function ReadInfo(const FileName: string): TWavInfo;
+    class function ReadWAV(const FileName: string): TWavInfo;
   end;
 
 implementation
@@ -98,7 +98,7 @@ begin
   S.Position := EndPos;
 end;
 
-class function TWavReader.ReadInfo(const FileName: string): TWavInfo;
+class function TWavReader.ReadWAV(const FileName: string): TWavInfo;
 var
   FS: TFileStream;
   ChunkID: string;

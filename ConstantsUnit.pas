@@ -14,6 +14,7 @@ const
   GLOW_EFFECT_IDENT = 'GlowEffect';
   HEIGHLIGTH_GLOW_EFFECT_IDENT = 'HeighlightGlowEffect';
   FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT = 'FailHeighlightGlowEffect';
+  PATH_SPLITTER = '\';
 
 //  TOP_LEFT_CONTROL_NAME = 'TopLeftControl';
 //  TOP_RIGHT_CONTROL_NAME = 'TopRightControl';

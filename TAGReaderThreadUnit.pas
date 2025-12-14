@@ -4,12 +4,26 @@ interface
 
 uses
     System.Classes
+  , System.Generics.Collections
   , ThreadFactoryUnit
   , PlayListUnit
   , FileToolsUnit
   ;
 
 type
+  TTAGInfo = record
+    Title: String;
+    Artist: String;
+    Album: String;
+    Year: String;
+    Comment: String;
+    Genre: String;
+    Duration: Double; // в секундах
+    FileName: String;
+  end;
+
+  TTAGInfoList = TList<TTAGInfo>;
+
   TTAGReaderThread = class(TThreadExt)
   strict private
     FFileNames: TFileNames;
@@ -29,8 +43,11 @@ implementation
 
 uses
     System.SysUtils
-  , System.Generics.Collections
+  , AudioFormatDetectorUnit
   , MP3TAGsReaderUnit
+  , FlacTAGReaderUnit
+  , OGGTAGReaderUnit
+  , WavTAGReaderUnit
   ;
 
 { TTAGReaderThread }
@@ -54,22 +71,83 @@ end;
 procedure TTAGReaderThread.Execute;
 var
   MP3Info: TMP3Info;
-  MP3InfoList: TList<TMP3Info>;
+  OGGInfo: TOGGInfo;
+  FlacInfo: TFlacInfo;
+  WAVInfo: TWAVInfo;
+  TAGInfo: TTAGInfo;
+  TAGInfoList: TTAGInfoList;
   FileName: String;
   i: Integer;
   PlayItemsList: TPlayItemsList;
   PlayItem: TPlayItem;
+  AudioFormat: TAudioFormat;
 begin
-  MP3InfoList := TList<TMP3Info>.Create;
+  TAGInfoList := TTAGInfoList.Create;
   try
     i := 0;
     while (not Terminated) and (i < Length(FFileNames)) do
     begin
       FileName := FFileNames[i];
-      if TMP3Reader.IsMP3Strict(FileName) then
-      begin
-        MP3Info := TMP3Reader.ReadMP3(FileName);
-        MP3InfoList.Add(MP3Info);
+      AudioFormat := DetectAudioFormat(FileName);
+      case AudioFormat of
+        TAudioFormat.afMP3:
+        begin
+          MP3Info := TMP3Reader.ReadMP3(FileName);
+          TAGInfo.Title := MP3Info.Title;
+          TAGInfo.Artist := MP3Info.Artist;
+          TAGInfo.Album := MP3Info.Album;
+          TAGInfo.Year := MP3Info.Year;
+          TAGInfo.Comment := MP3Info.Comment;
+          //asd расшифровать жанры
+          TAGInfo.Genre := IntToStr(MP3Info.Genre);
+          TAGInfo.Duration := MP3Info.Duration;
+          TAGInfo.FileName := FileName;
+          TAGInfoList.Add(TAGInfo);
+        end;
+        TAudioFormat.afOGG:
+        begin
+          OGGInfo := TOGGReader.ReadOGG(FileName);
+          TAGInfo.Title := OGGInfo.Title;
+          TAGInfo.Artist := OGGInfo.Artist;
+          TAGInfo.Album := OGGInfo.Album;
+          TAGInfo.Year := OGGInfo.Year;
+          TAGInfo.Comment := OGGInfo.Comment;
+          TAGInfo.Genre := OGGInfo.Genre;
+          TAGInfo.Duration := OGGInfo.Duration;
+          TAGInfo.FileName := FileName;
+          TAGInfoList.Add(TAGInfo);
+        end;
+        TAudioFormat.afFLAC:
+        begin
+          FlacInfo := TFlacReader.ReadFLAC(FileName);
+          TAGInfo.Title := FlacInfo.Title;
+          TAGInfo.Artist := FlacInfo.Artist;
+          TAGInfo.Album := FlacInfo.Album;
+          TAGInfo.Year := FlacInfo.Year;
+          TAGInfo.Comment := FlacInfo.Comment;
+          TAGInfo.Genre := FlacInfo.Genre;
+          TAGInfo.Duration := FlacInfo.Duration;
+          TAGInfo.FileName := FileName;
+          TAGInfoList.Add(TAGInfo);
+        end;
+        TAudioFormat.afWAV:
+        begin
+          WAVInfo := TWAVReader.ReadWAV(FileName);
+          TAGInfo.Title := WAVInfo.Title;
+          TAGInfo.Artist := WAVInfo.Artist;
+          TAGInfo.Album := WAVInfo.Album;
+          TAGInfo.Year := WAVInfo.Year;
+          TAGInfo.Comment := WAVInfo.Comment;
+          TAGInfo.Genre := WAVInfo.Genre;
+          TAGInfo.Duration := WAVInfo.Duration;
+          TAGInfo.FileName := FileName;
+          TAGInfoList.Add(TAGInfo);
+        end
+        else
+        begin
+          raise Exception.
+            CreateFmt('Unprocessable file format "%s"', [AudioFormat.ToStr]);
+        end;
       end;
 
       Inc(i);
@@ -80,15 +158,15 @@ begin
       PlayItemsList := FPlayList.LockList;
       try
         i := 0;
-        while i < MP3InfoList.Count do
+        while i < TAGInfoList.Count do
         begin
           PlayItem := TPlayItem.Create;
-          PlayItem.Title := MP3InfoList[i].Title;
-          PlayItem.Artist := MP3InfoList[i].Artist;
-          PlayItem.Album := MP3InfoList[i].Album;
-          PlayItem.Year := MP3InfoList[i].Year;
-          PlayItem.Duration := MP3InfoList[i].Duration;
-          PlayItem.Path := MP3InfoList[i].FileName;
+          PlayItem.Title := TAGInfoList[i].Title;
+          PlayItem.Artist := TAGInfoList[i].Artist;
+          PlayItem.Album := TAGInfoList[i].Album;
+          PlayItem.Year := TAGInfoList[i].Year;
+          PlayItem.Duration := TAGInfoList[i].Duration;
+          PlayItem.Path := TAGInfoList[i].FileName;
 
           PlayItemsList.Add(PlayItem);
 
@@ -99,7 +177,7 @@ begin
       end;
     end;
   finally
-    FreeAndNil(MP3InfoList);
+    FreeAndNil(TAGInfoList);
   end;
 end;
 

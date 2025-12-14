@@ -8,20 +8,29 @@ uses
   , StateUnit
   , MelomaniacUnit
   , System.UITypes
+  , DBAccessUnit
+  , PlayListUnit
   ;
+
+const
+  SQL_TEMPLATES_PATH = '..\..\SQLTemplates\';
 
 type
   TTools = class
   strict private
+    class var FDBAccess: TDBAccess;
     class var FCurrentRenderPlayState: TPlayState;
 
-    // class function GetLeafPath(const AControl: TControl): String;
     class procedure SetLeafePath(
       const AControl: TControl;
       const ADestPath: String);
 
     class function PathIndexByLeafControl(const AControl: TControl): Integer;
+    class property DBAccess: TDBAccess read FDBAccess;
   public
+    class procedure Init;
+    class procedure UnInit;
+
     class procedure RenderPlayState(const APlayState: TPlayState);
     class procedure RenderTimelineCaretPosition(const AX: Single);
     class procedure RenderVolumeCaretPosition(const AX: Single);
@@ -47,25 +56,28 @@ type
     class function SetOfPathsIndexToControl(const ASetOfPathsIndex: Integer): TControl;
     class function ControlToSetOfPathsIndex(const AControl: TControl): Integer;
     class procedure SetLeafeEmptyPath(const AControl: TControl);
-
     class procedure FillPaths(const ASetOfPathIndex: Integer);
-
     class procedure GlowEffectActivated(
       const AGlowEffectName: String;
       const AControl: TControl;
       const AActivated: Boolean);
-
     class procedure CreateHeighlightFailThread(const AControl: TControl);
+    class function CopyComposition(
+      const APathFrom: String; const APathTo: String): Boolean;
+    class function MoveComposition(
+      const APathFrom: String; const APathTo: String): Boolean;
 
-   class function CopyCompositoin(
-    const APathFrom: String; const APathTo: String): Boolean;
-   class function MoveCompositoin(
-    const APathFrom: String; const APathTo: String): Boolean;
+    class function IsMouseOverControl(
+      const AControl: TControl): Boolean;
 
-  class function IsMouseOverControl(
-    const AControl: TControl): Boolean;
-
-    class procedure Init;
+    class function CheckPath(const APath: String): Boolean;
+    class procedure InsertPlayItemsListToDB(
+      const APlayItemsList: TPlayItemsList);
+    class procedure DeletePlayItemsListFromDB(
+      const APlayItemsList: TPlayItemsList);
+    class procedure SelectPlayItemsListFromDB(
+      const AMainPath: String;
+      const APlayItemsList: TPlayItemsList);
   end;
 
 implementation
@@ -85,9 +97,54 @@ uses
   , FMX.ControlToolsUnit
   , FileToolsUnit
   , ThreadFactoryUnit
+  , SQLTemplatesUnit
   ;
 
 { TTools }
+
+class procedure TTools.Init;
+  procedure _CheckAndCreateDb(const ADBFileName: String);
+  var
+    DBFileName: String;
+    DBFile: TFileStream;
+  begin
+    DBFileName := ADBFileName;
+    if not FileExists(DBFileName) then
+    begin
+      try
+        try
+          DBFile := TFileStream.Create(DBFileName, fmCreate);
+        except
+          raise;
+        end;
+      finally
+        FreeAndNil(DBFile);
+      end;
+    end;
+  end;
+
+var
+  DBFileName: String;
+begin
+  FCurrentRenderPlayState := psStop;
+
+  DBFileName := 'Catalog.db';
+  try
+    _CheckAndCreateDb(DBFileName);
+  except
+    on e: Exception do
+      raise Exception.CreateFmt('Fatal error: Can`t create "%s"', [DBFileName]);
+  end;
+
+  FDBAccess :=
+    TDBAccess.Create(DBFileName, SQL_TEMPLATES_PATH, TTemplatesKind.tkPath);
+  FDBAccess.CreateCatalogTable;
+end;
+
+class procedure TTools.UnInit;
+begin
+  FreeAndNil(FDBAccess);
+end;
 
 class procedure TTools.RenderPlayState(const APlayState: TPlayState);
 var
@@ -330,26 +387,6 @@ begin
   );
 end;
 
-//class function TTools.GetLeafPath(const AControl: TControl): String;
-//var
-//  PathIndex: Integer;
-//begin
-//  PathIndex := 0;
-//  if AControl = MainForm.TopLeftControl then
-//    PathIndex := 0
-//  else
-//  if AControl = MainForm.TopRightControl then
-//    PathIndex := 1
-//  else
-//  if AControl = MainForm.BottomLeftControlLabel then
-//    PathIndex := 2
-//  else
-//  if AControl = MainForm.BottomRightControlLabel then
-//    PathIndex := 3;
-//
-//  Result := TState.SetOfPaths[TState.SetOfPathsIndex][PathIndex];
-//end;
-
 class procedure TTools.DisplayLeafPath(
   const AControl: TControl;
   const APath: String);
@@ -518,15 +555,13 @@ end;
 class procedure TTools.ChooseMainFolder;
 var
   Path: String;
-//  LeafeControl: TControl;
-  //PathIndex: Integer;
 begin
   SelectDirectory('Choose folder:', '', Path);
 
   if Path.IsEmpty then
     Exit;
 
-  TState.MainPath := Path;
+  TState.MainPath := Concat(Path, PATH_SPLITTER);
 end;
 
 class procedure TTools.FillPaths(const ASetOfPathIndex: Integer);
@@ -608,7 +643,7 @@ begin
   );
 end;
 
-class function TTools.CopyCompositoin(
+class function TTools.CopyComposition(
   const APathFrom: String; const APathTo: String): Boolean;
 var
   FileName: String;
@@ -616,12 +651,12 @@ var
 begin
   Result := false;
   FileName := ExtractFileName(APathFrom);
-  PathTo := Concat(APathTo, '\', FileName);
+  PathTo := Concat(APathTo, PATH_SPLITTER, FileName);
   if TFileTools.CopyFile(APathFrom, PathTo, TCopyFileAction.caRename) = crOk then
     Result := true;
 end;
 
-class function TTools.MoveCompositoin(
+class function TTools.MoveComposition(
   const APathFrom: String; const APathTo: String): Boolean;
 var
   FileName: String;
@@ -629,7 +664,7 @@ var
 begin
   Result := false;
   FileName := ExtractFileName(APathFrom);
-  PathTo := Concat(APathTo, '\', FileName);
+  PathTo := Concat(APathTo, PATH_SPLITTER, FileName);
   if TFileTools.MoveFile(APathFrom, PathTo, TCopyFileAction.caRename) = crOk then
     Result := true;
 end;
@@ -677,13 +712,34 @@ begin
     end;
 end;
 
-class procedure TTools.Init;
+class function TTools.CheckPath(const APath: String): Boolean;
 begin
-  FCurrentRenderPlayState := psStop;
+  Result := DBAccess.CheckPath(APath);
+end;
+
+class procedure TTools.InsertPlayItemsListToDB(
+  const APlayItemsList: TPlayItemsList);
+begin
+  FDBAccess.InsertIntoCatalogTable(APlayItemsList);
+end;
+
+class procedure TTools.DeletePlayItemsListFromDB(
+  const APlayItemsList: TPlayItemsList);
+begin
+  FDBAccess.DeleteFromCatalogTable(APlayItemsList);
+end;
+
+class procedure TTools.SelectPlayItemsListFromDB(
+  const AMainPath: String;
+  const APlayItemsList: TPlayItemsList);
+begin
+  FDBAccess.SelectFromCatalogTable(AMainPath, APlayItemsList);
 end;
 
 initialization
   TTools.Init;
 
+finalization
+  TTools.UnInit;
 
 end.

@@ -19,7 +19,6 @@ type
   TOGGReader = class
   public
     class function ReadOGG(const FileName: string): TOGGInfo;
-    class function IsOGGStric(const FileName: string): Boolean;
   end;
 
 implementation
@@ -503,38 +502,6 @@ begin
       else
         Result.Duration := 0;
     end;
-  finally
-    FS.Free;
-  end;
-end;
-
-{ Strict OGG check                                                             }
-class function TOGGReader.IsOGGStric(const FileName: string): Boolean;
-var
-  FS: TFileStream;
-  H: TOGGPageHeader;
-  SegCount: Byte;
-  SegSizes: TBytes;
-  TotalSegSize: Integer;
-  i: Integer;
-begin
-  Result := False;
-  if not FileExists(FileName) then Exit;
-  FS := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
-  try
-    if FS.Size < SizeOf(TOGGPageHeader) then Exit;
-    if not ReadPageHeader(FS, H) then Exit;
-    if H.Version <> 0 then Exit;
-    SegCount := H.SegCount;
-    if SegCount = 0 then Exit;
-    if FS.Position + SegCount > FS.Size then Exit;
-    SetLength(SegSizes, SegCount);
-    FS.Read(SegSizes[0], SegCount);
-    TotalSegSize := 0;
-    for i := 0 to SegCount - 1 do
-      Inc(TotalSegSize, SegSizes[i]);
-    if FS.Position + TotalSegSize > FS.Size then Exit;
-    Result := True;
   finally
     FS.Free;
   end;

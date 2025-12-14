@@ -62,8 +62,11 @@ type
     procedure ChooseDestinationMenuItemOnClick(Sender: TObject);
     procedure SetEmptyPathMenuItemOnClick(Sender: TObject);
     procedure OpenFolderMenuItemOnClick(Sender: TObject);
-    procedure FirstAfterPlayListReload;
-    procedure CommonAfterPlayListReload;
+    procedure OnAfterPlayListReloadFromPath;
+    procedure OnAfterSyncPlayList;
+    procedure StartPlay;
+//    procedure StartPlayWhenAppStarted;
+//    procedure StartPlayFromBeginPlayList;
   public
     property LeafePopupMenu: TPopupMenuExt read FLeafePopupMenu;
     property MainPopupMenu: TPopupMenuExt read FMainPopupMenu;
@@ -99,16 +102,15 @@ begin
   );
 end;
 
-procedure TMainForm.FirstAfterPlayListReload;
+procedure TMainForm.StartPlay;
 var
   PlayItemsList: TPlayItemsList;
   PlayItem: TPlayItem;
   CurrentIndex: Integer;
   PlayState: TPlayState;
 begin
-  TPlayController.PlayList.OnPlayListReloaded := CommonAfterPlayListReload;
-
-  PlayState := TState.PlayState;
+  if TPlayController.PlayList.Count = 0 then
+    Exit;
 
   PlayItemsList := TPlayController.PlayList.LockList;
   try
@@ -120,12 +122,24 @@ begin
     TPlayController.PlayList.UnlockList;
   end;
 
-  CurrentIndex := TPlayController.PlayList.IndexOf(TState.Composition);
-  if CurrentIndex < 0 then
-    Exit;
+  if TState.IsAppStarting then
+  begin
+    PlayState := TState.PlayState;
 
-  TPlayController.PlayList.CurrentIndex := CurrentIndex;
-  TPlayController.Current(PlayState, TState.CurrentTime);
+    CurrentIndex := TPlayController.PlayList.IndexOf(TState.Composition);
+    if CurrentIndex < 0 then
+      Exit;
+
+    TPlayController.PlayList.CurrentIndex := CurrentIndex;
+    TPlayController.Current(PlayState, TState.CurrentTime);
+  end
+  else
+  begin
+    TPlayController.First;
+    TPlayController.CurrentTime := TState.CurrentTime;
+  end;
+
+  TState.IsAppStarting := false;
 
   if TState.Volume = 0 then
   begin
@@ -138,37 +152,100 @@ begin
   end;
 end;
 
-procedure TMainForm.CommonAfterPlayListReload;
-var
-  PlayItemsList: TPlayItemsList;
-  PlayItem: TPlayItem;
-begin
-  PlayItemsList := TPlayController.PlayList.LockList;
-  try
-    for PlayItem in PlayItemsList do
-    begin
-      Memo1.Lines.Add(PlayItem.Path);
-    end;
-  finally
-    TPlayController.PlayList.UnlockList;
-  end;
+//procedure TMainForm.StartPlayWhenAppStarted;
+//var
+//  PlayItemsList: TPlayItemsList;
+//  PlayItem: TPlayItem;
+//  CurrentIndex: Integer;
+//  PlayState: TPlayState;
+//begin
+//  if TPlayController.PlayList.Count = 0 then
+//    Exit;
+//
+//  PlayState := TState.PlayState;
+//
+//  PlayItemsList := TPlayController.PlayList.LockList;
+//  try
+//    for PlayItem in PlayItemsList do
+//    begin
+//      Memo1.Lines.Add(PlayItem.Path);
+//    end;
+//  finally
+//    TPlayController.PlayList.UnlockList;
+//  end;
+//
+//  CurrentIndex := TPlayController.PlayList.IndexOf(TState.Composition);
+//  if CurrentIndex < 0 then
+//    Exit;
+//
+//  TPlayController.PlayList.CurrentIndex := CurrentIndex;
+//  TPlayController.Current(PlayState, TState.CurrentTime);
+//
+//  if TState.Volume = 0 then
+//  begin
+//    TPlayController.Volume := TState.LastVolume;
+//    TPlayController.Volume := 0;
+//  end
+//  else
+//  begin
+//    TPlayController.Volume := TState.Volume;
+//  end;
+//end;
 
-  TPlayController.First;
-  TPlayController.CurrentTime := TState.CurrentTime;
-  if TState.Volume = 0 then
-  begin
-    TPlayController.Volume := TState.LastVolume;
-    TPlayController.Volume := 0;
-  end
-  else
-  begin
-    TPlayController.Volume := TState.Volume;
-  end;
+//procedure TMainForm.StartPlayFromBeginPlayList;
+//var
+//  PlayItemsList: TPlayItemsList;
+//  PlayItem: TPlayItem;
+//begin
+//  if TPlayController.PlayList.Count = 0 then
+//    Exit;
+//
+//  PlayItemsList := TPlayController.PlayList.LockList;
+//  try
+//    for PlayItem in PlayItemsList do
+//    begin
+//      Memo1.Lines.Add(PlayItem.Path);
+//    end;
+//  finally
+//    TPlayController.PlayList.UnlockList;
+//  end;
+//
+//  TPlayController.First;
+//  TPlayController.CurrentTime := TState.CurrentTime;
+//  if TState.Volume = 0 then
+//  begin
+//    TPlayController.Volume := TState.LastVolume;
+//    TPlayController.Volume := 0;
+//  end
+//  else
+//  begin
+//    TPlayController.Volume := TState.Volume;
+//  end;
+//end;
+
+procedure TMainForm.OnAfterPlayListReloadFromPath;
+begin
+  TPlayController.PlayList.SaveToDB;
+
+  StartPlay;
+end;
+
+procedure TMainForm.OnAfterSyncPlayList;
+var
+  MainPath: String;
+begin
+  TPlayController.PlayList.SaveToDB;
+
+  MainPath := TState.MainPath;
+  TPlayController.PlayList.ReloadPlayListFromDB(MainPath);
+
+  StartPlay;
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   ClickListenerThread: TClickListenerThread;
+  MainPath: String;
 begin
   ReportMemoryLeaksOnShutdown := true;
 
@@ -182,20 +259,23 @@ begin
     CurrentTimeLabel,
     TState.PlayState);
 
-//  TTools.FillPaths(TState.SetOfPathsIndex);
-
   TVisualScheme.Init;
   TVisualScheme.Load(Self, 'Steampunk');
 
-//  TPlayController.PlayList.ReloadPlayList('E:\Desktop\Music\Alternative\Collection\');
-//  TPlayController.PlayList.ReloadPlayList('C:\000');
-  if not TState.MainPath.IsEmpty then
+  MainPath := TState.MainPath;
+  if not MainPath.IsEmpty then
   begin
-    TPlayController.PlayList.ReloadPlayList(TState.MainPath);
-    TPlayController.PlayList.OnPlayListReloaded := FirstAfterPlayListReload;
-  end
-  else
-    TPlayController.PlayList.OnPlayListReloaded := CommonAfterPlayListReload;
+    if TTools.CheckPath(MainPath) then
+    begin
+      TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+      TPlayController.PlayList.SyncPlayLists(MainPath);
+    end
+    else
+    begin
+      TPlayController.PlayList.OnPlayListReloaded := OnAfterPlayListReloadFromPath;
+      TPlayController.PlayList.ReloadPlayListFromPath(MainPath);
+    end
+  end;
 
   ClickListenerThread := TClickListenerThread.Create(ThreadFactory);
   TMouseHandlers.Init(ClickListenerThread);
@@ -256,7 +336,7 @@ procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   TState.CurrentTime := TPlayController.CurrentTime;
   TState.Composition := TPlayController.PlayList.CurrentComposition;
-  TState.MainPath := ExtractFileDir(TState.Composition);
+  TState.MainPath := ExtractFilePath(TState.Composition);
 
   TPlayController.UnInit;
   TVisualScheme.UnInit;
@@ -300,11 +380,23 @@ begin
 end;
 
 procedure TMainForm.OpenFolderMenuItemOnClick(Sender: TObject);
+var
+  MainPath: String;
 begin
-//  TPlayController.Stop;
   TState.CurrentTime := 0;
   TTools.ChooseMainFolder;
-  TPlayController.PlayList.ReloadPlayList(TState.MainPath);
+
+  MainPath := TState.MainPath;
+  if TTools.CheckPath(MainPath) then
+  begin
+    TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+    TPlayController.PlayList.SyncPlayLists(MainPath);
+  end
+  else
+  begin
+    TPlayController.PlayList.OnPlayListReloaded := OnAfterPlayListReloadFromPath;
+    TPlayController.PlayList.ReloadPlayListFromPath(MainPath);
+  end;
 end;
 
 end.

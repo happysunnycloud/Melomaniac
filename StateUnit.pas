@@ -42,6 +42,11 @@ type
     class var FSetOfPathsIndex: Integer;
     class var FSetOfPaths: TSetOfPaths;
     class var FLeafe: TLeafe;
+    // Выставляется в true, когда стартуем
+    // Определяем как будет запускаться композиция
+    // Если true, то с момента последнего останова
+    // Если false, то с первого трека в плейлисте
+    class var FIsAppStarting: Boolean;
 
 //    class procedure SetSetOfPaths(const A)
     class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
@@ -84,6 +89,7 @@ type
     class property SetOfPaths[const AIndex: Integer]: TPaths
       read GetSetOfPaths;
     class property Leafe: TLeafe read FLeafe write FLeafe;
+    class property IsAppStarting: Boolean read FIsAppStarting write FIsAppStarting;
   end;
 
   TPlayStateHelper = record helper for TPlayState
@@ -196,6 +202,7 @@ begin
   FVisualScheme := '';
   FSetOfPathsIndex := 0;
   FLeafe := liNone;
+  FIsAppStarting := true;
 
   FSetOfPaths := TSetOfPaths.Create;
   LoadConfig;

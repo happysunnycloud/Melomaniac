@@ -35,7 +35,17 @@ uses
   FMX.ThemeUnit in '..\DevelopmentsCollection\FMX.ThemeUnit.pas',
   DebugUnit in '..\DevelopmentsCollection\DebugUnit.pas',
   FileToolsUnit in '..\DevelopmentsCollection\FileToolsUnit.pas',
-  HeighlightFailThreadUnit in 'HeighlightFailThreadUnit.pas';
+  HeighlightFailThreadUnit in 'HeighlightFailThreadUnit.pas',
+  FlacTAGReaderUnit in 'FlacTAGReaderUnit.pas',
+  OGGTAGReaderUnit in 'OGGTAGReaderUnit.pas',
+  WAVTAGReaderUnit in 'WAVTAGReaderUnit.pas',
+  AudioFormatDetectorUnit in 'AudioFormatDetectorUnit.pas',
+  BaseDBAccessUnit in '..\DevelopmentsCollection\SQL\BaseDBAccessUnit.pas',
+  DBToolsUnit in '..\DevelopmentsCollection\SQLite\DBToolsUnit.pas',
+  SQLTemplatesUnit in '..\DevelopmentsCollection\SQL\SQLTemplatesUnit.pas',
+  TextExtractorUnit in '..\DevelopmentsCollection\FilePacker\TextExtractorUnit.pas',
+  DBExceptionContainerUnit in '..\DevelopmentsCollection\SQL\DBExceptionContainerUnit.pas',
+  DBAccessUnit in 'DBAccessUnit.pas';
 
 {$R *.res}
 
