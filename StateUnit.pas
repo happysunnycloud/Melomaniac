@@ -376,7 +376,7 @@ begin
   FLastMainPath := CommonNode.ChildNodes['MainPath'].Text;
   FVolume := StrToFloat(CommonNode.ChildNodes['Volume'].Text);
   FLastVolume := StrToFloat(CommonNode.ChildNodes['LastVolume'].Text);
-  FCurrentTime := StrToInt(CommonNode.ChildNodes['CurrentTime'].Text);
+  FCurrentTime := StrToInt64(CommonNode.ChildNodes['CurrentTime'].Text);
   FComposition := CommonNode.ChildNodes['Composition'].Text;
   CopyModeStrVal := CommonNode.ChildNodes['CopyMode'].Text;
   FCopyMode.FromInt(StrToIntDef(CopyModeStrVal, cmNone.ToInt));

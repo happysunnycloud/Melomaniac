@@ -5,7 +5,6 @@ uses
   FMX.Forms,
   MelomaniacUnit in 'MelomaniacUnit.pas' {MainForm},
   FMX.SingleSoundUnit in '..\DevelopmentsCollection\FMX.SingleSoundUnit.pas',
-  MP3TAGsReaderUnit in 'MP3TAGsReaderUnit.pas',
   ThreadFactoryUnit in '..\DevelopmentsCollection\ThreadFactoryUnit.pas',
   ThreadRegistryUnit in '..\DevelopmentsCollection\ThreadRegistryUnit.pas',
   ParamsExtUnit in '..\DevelopmentsCollection\ParamsExtUnit.pas',
@@ -14,7 +13,6 @@ uses
   ObjectRegistryUnit in '..\DevelopmentsCollection\ObjectRegistryUnit.pas',
   PlayListUnit in 'PlayListUnit.pas',
   LockedListExtUnit in '..\DevelopmentsCollection\LockedListExtUnit.pas',
-  TAGReaderThreadUnit in 'TAGReaderThreadUnit.pas',
   MouseHandlersUnit in 'MouseHandlersUnit.pas',
   StringToolsUnit in '..\DevelopmentsCollection\StringToolsUnit.pas',
   TimelineTrackerThreadUnit in 'TimelineTrackerThreadUnit.pas',
@@ -36,16 +34,18 @@ uses
   DebugUnit in '..\DevelopmentsCollection\DebugUnit.pas',
   FileToolsUnit in '..\DevelopmentsCollection\FileToolsUnit.pas',
   HeighlightFailThreadUnit in 'HeighlightFailThreadUnit.pas',
-  FlacTAGReaderUnit in 'FlacTAGReaderUnit.pas',
-  OGGTAGReaderUnit in 'OGGTAGReaderUnit.pas',
-  WAVTAGReaderUnit in 'WAVTAGReaderUnit.pas',
   AudioFormatDetectorUnit in 'AudioFormatDetectorUnit.pas',
   BaseDBAccessUnit in '..\DevelopmentsCollection\SQL\BaseDBAccessUnit.pas',
   DBToolsUnit in '..\DevelopmentsCollection\SQLite\DBToolsUnit.pas',
   SQLTemplatesUnit in '..\DevelopmentsCollection\SQL\SQLTemplatesUnit.pas',
   TextExtractorUnit in '..\DevelopmentsCollection\FilePacker\TextExtractorUnit.pas',
   DBExceptionContainerUnit in '..\DevelopmentsCollection\SQL\DBExceptionContainerUnit.pas',
-  DBAccessUnit in 'DBAccessUnit.pas';
+  DBAccessUnit in 'DBAccessUnit.pas',
+  FlacTAGReaderUnit in 'TAGReaders\FlacTAGReaderUnit.pas',
+  MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas',
+  OGGTAGReaderUnit in 'TAGReaders\OGGTAGReaderUnit.pas',
+  TAGReaderThreadUnit in 'TAGReaders\TAGReaderThreadUnit.pas',
+  WAVTAGReaderUnit in 'TAGReaders\WAVTAGReaderUnit.pas';
 
 {$R *.res}
 

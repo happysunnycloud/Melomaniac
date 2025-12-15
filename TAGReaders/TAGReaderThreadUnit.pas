@@ -18,7 +18,6 @@ type
     Year: String;
     Comment: String;
     Genre: String;
-    Duration: Double; // в секундах
     FileName: String;
   end;
 
@@ -48,6 +47,7 @@ uses
   , FlacTAGReaderUnit
   , OGGTAGReaderUnit
   , WavTAGReaderUnit
+  , FMX.Media
   ;
 
 { TTAGReaderThread }
@@ -81,6 +81,7 @@ var
   PlayItemsList: TPlayItemsList;
   PlayItem: TPlayItem;
   AudioFormat: TAudioFormat;
+  MediaPlayer: TMedia;
 begin
   TAGInfoList := TTAGInfoList.Create;
   try
@@ -98,9 +99,7 @@ begin
           TAGInfo.Album := MP3Info.Album;
           TAGInfo.Year := MP3Info.Year;
           TAGInfo.Comment := MP3Info.Comment;
-          //asd расшифровать жанры
-          TAGInfo.Genre := IntToStr(MP3Info.Genre);
-          TAGInfo.Duration := MP3Info.Duration;
+          TAGInfo.Genre := MP3Info.Genre;
           TAGInfo.FileName := FileName;
           TAGInfoList.Add(TAGInfo);
         end;
@@ -113,7 +112,6 @@ begin
           TAGInfo.Year := OGGInfo.Year;
           TAGInfo.Comment := OGGInfo.Comment;
           TAGInfo.Genre := OGGInfo.Genre;
-          TAGInfo.Duration := OGGInfo.Duration;
           TAGInfo.FileName := FileName;
           TAGInfoList.Add(TAGInfo);
         end;
@@ -126,7 +124,6 @@ begin
           TAGInfo.Year := FlacInfo.Year;
           TAGInfo.Comment := FlacInfo.Comment;
           TAGInfo.Genre := FlacInfo.Genre;
-          TAGInfo.Duration := FlacInfo.Duration;
           TAGInfo.FileName := FileName;
           TAGInfoList.Add(TAGInfo);
         end;
@@ -139,7 +136,6 @@ begin
           TAGInfo.Year := WAVInfo.Year;
           TAGInfo.Comment := WAVInfo.Comment;
           TAGInfo.Genre := WAVInfo.Genre;
-          TAGInfo.Duration := WAVInfo.Duration;
           TAGInfo.FileName := FileName;
           TAGInfoList.Add(TAGInfo);
         end
@@ -165,8 +161,25 @@ begin
           PlayItem.Artist := TAGInfoList[i].Artist;
           PlayItem.Album := TAGInfoList[i].Album;
           PlayItem.Year := TAGInfoList[i].Year;
-          PlayItem.Duration := TAGInfoList[i].Duration;
           PlayItem.Path := TAGInfoList[i].FileName;
+          // Duration вычисляем через TMediaPlayer.Duration
+          // Он поднимает нужный кодак и, тот высчитывает верный Duration
+          // Считать в "ручную" - лепить химеру
+          //MediaPlayer := TMedia.Create(PlayItem.Path);
+          MediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
+          try
+            PlayItem.Duration := MediaPlayer.Duration;
+          finally
+            MediaPlayer.Free;
+          end;
+
+//          Synchronize(
+//            procedure
+//            begin
+//              MediaPlayer.Clear;
+//              MediaPlayer.FileName := PlayItem.Path;
+//              PlayItem.Duration := MediaPlayer.Duration;
+//            end);
 
           PlayItemsList.Add(PlayItem);
 
@@ -178,6 +191,7 @@ begin
     end;
   finally
     FreeAndNil(TAGInfoList);
+//    FreeAndNil(MediaPlayer);
   end;
 end;
 

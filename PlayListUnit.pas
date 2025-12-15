@@ -22,7 +22,7 @@ type
     FArtist: String;
     FAlbum: String;
     FYear: String;
-    FDuration: Double; // в секундах
+    FDuration: Int64; // в секундах
     FPath: String;
   public
     constructor Create;
@@ -31,7 +31,7 @@ type
     property Artist: String read FArtist  write FArtist;
     property Album: String read FAlbum write FAlbum;
     property Year: String read FYear write FYear;
-    property Duration: Double read FDuration write FDuration;
+    property Duration: Int64 read FDuration write FDuration;
     property Path: String read FPath write FPath;
   end;
 

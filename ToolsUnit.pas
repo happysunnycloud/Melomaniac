@@ -26,7 +26,7 @@ type
       const ADestPath: String);
 
     class function PathIndexByLeafControl(const AControl: TControl): Integer;
-    class property DBAccess: TDBAccess read FDBAccess;
+//    class property DBAccess: TDBAccess read FDBAccess;
   public
     class procedure Init;
     class procedure UnInit;
@@ -70,7 +70,7 @@ type
     class function IsMouseOverControl(
       const AControl: TControl): Boolean;
 
-    class function CheckPath(const APath: String): Boolean;
+//    class function CheckPath(const APath: String): Boolean;
     class procedure InsertPlayItemsListToDB(
       const APlayItemsList: TPlayItemsList);
     class procedure DeletePlayItemsListFromDB(
@@ -712,10 +712,10 @@ begin
     end;
 end;
 
-class function TTools.CheckPath(const APath: String): Boolean;
-begin
-  Result := DBAccess.CheckPath(APath);
-end;
+//class function TTools.CheckPath(const APath: String): Boolean;
+//begin
+//  Result := DBAccess.CheckPath(APath);
+//end;
 
 class procedure TTools.InsertPlayItemsListToDB(
   const APlayItemsList: TPlayItemsList);

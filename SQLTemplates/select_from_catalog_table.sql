@@ -5,7 +5,7 @@ SELECT
 		artist,
 		album,
 		year,
-		duration
+		CAST(duration AS TEXT) AS duration
 FROM 
 		catalog
 WHERE

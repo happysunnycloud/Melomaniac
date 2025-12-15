@@ -17,7 +17,7 @@ type
       const AE: Exception);
   public
     procedure CreateCatalogTable;
-    function CheckPath(const APath: String): Boolean;
+//    function CheckPath(const APath: String): Boolean;
     procedure InsertIntoCatalogTable(
       const APlayItemsList: TPlayItemsList);
     procedure DeleteFromCatalogTable(
@@ -100,78 +100,78 @@ begin
   end;
 end;
 
-function TDBAccess.CheckPath(const APath: String): Boolean;
-const
-  METHOD = 'TDBAccess.CheckPath';
-var
-  Proc: TParamsProcRef;
-  InParams: TParamsExt;
-  OutParams: TParamsExt;
-begin
-  Result := false;
-
-  Proc := (
-    procedure(const AInParams: TParamsExt; const AOutParams: TParamsExt)
-    var
-      DBTools: TDBTools;
-      SQLTemplateIdent: String;
-      SQLTemplate: String;
-      QueryResult: TDBQuery;
-      CheckResult: Boolean;
-      Path: String;
-    begin
-      try
-        Path := InParams.AsStringByIdent['Path'];
-
-        SQLTemplateIdent := 'check_path';
-        SQLTemplate := SQLTemplates.GetTemplate(SQLTemplateIdent);
-
-        DBTools := TDBTools.Create(DBFileName);
-
-        try
-          DBTools.CreateQuery;
-          DBTools.Query.ClearQuery;
-          DBTools.Query.AddQuery(SQLTemplate);
-          DBTools.Query.AddParameterAsString(':path', Path);
-
-          QueryResult := DBTools.OpenQuery;
-          CheckResult := not QueryResult.IsEmpty;
-
-          DBTools.CloseQuery;
-        finally
-          DBTools.FreeQuery;
-          FreeAndNil(DBTools);
-        end;
-
-        AOutParams.Clear;
-        AOutParams.Add(CheckResult, 'CheckResult');
-      except
-        on e: Exception do
-        begin
-          raise TDBExceptionContainer.CreateExceptionContainer(e, METHOD);
-        end;
-      end;
-    end
-  );
-
-  try
-    InParams := TParamsExt.Create;
-    OutParams := TParamsExt.Create;
-    try
-      InParams.Add(APath, 'Path');
-
-      DBAParamsFunc(Proc, InParams, OutParams);
-
-      Result := OutParams.AsBooleanByIdent['CheckResult'];
-    finally
-      FreeAndNil(OutParams);
-      FreeAndNil(InParams);
-    end;
-  except
-    on e: Exception do
-      ShowExceptionMessage(METHOD, e);
-  end;
-end;
+//function TDBAccess.CheckPath(const APath: String): Boolean;
+//const
+//  METHOD = 'TDBAccess.CheckPath';
+//var
+//  Proc: TParamsProcRef;
+//  InParams: TParamsExt;
+//  OutParams: TParamsExt;
+//begin
+//  Result := false;
+//
+//  Proc := (
+//    procedure(const AInParams: TParamsExt; const AOutParams: TParamsExt)
+//    var
+//      DBTools: TDBTools;
+//      SQLTemplateIdent: String;
+//      SQLTemplate: String;
+//      QueryResult: TDBQuery;
+//      CheckResult: Boolean;
+//      Path: String;
+//    begin
+//      try
+//        Path := InParams.AsStringByIdent['Path'];
+//
+//        SQLTemplateIdent := 'check_path';
+//        SQLTemplate := SQLTemplates.GetTemplate(SQLTemplateIdent);
+//
+//        DBTools := TDBTools.Create(DBFileName);
+//
+//        try
+//          DBTools.CreateQuery;
+//          DBTools.Query.ClearQuery;
+//          DBTools.Query.AddQuery(SQLTemplate);
+//          DBTools.Query.AddParameterAsString(':path', Path);
+//
+//          QueryResult := DBTools.OpenQuery;
+//          CheckResult := not QueryResult.IsEmpty;
+//
+//          DBTools.CloseQuery;
+//        finally
+//          DBTools.FreeQuery;
+//          FreeAndNil(DBTools);
+//        end;
+//
+//        AOutParams.Clear;
+//        AOutParams.Add(CheckResult, 'CheckResult');
+//      except
+//        on e: Exception do
+//        begin
+//          raise TDBExceptionContainer.CreateExceptionContainer(e, METHOD);
+//        end;
+//      end;
+//    end
+//  );
+//
+//  try
+//    InParams := TParamsExt.Create;
+//    OutParams := TParamsExt.Create;
+//    try
+//      InParams.Add(APath, 'Path');
+//
+//      DBAParamsFunc(Proc, InParams, OutParams);
+//
+//      Result := OutParams.AsBooleanByIdent['CheckResult'];
+//    finally
+//      FreeAndNil(OutParams);
+//      FreeAndNil(InParams);
+//    end;
+//  except
+//    on e: Exception do
+//      ShowExceptionMessage(METHOD, e);
+//  end;
+//end;
 
 procedure TDBAccess.InsertIntoCatalogTable(const APlayItemsList: TPlayItemsList);
 const
@@ -345,6 +345,7 @@ var
   QueryResult: TDBQuery;
   InParams: TParamsExt;
   Path: String;
+  DurationString: String;
 begin
   Proc := (
     procedure(const AInParams: TParamsExt; const AOutParams: TParamsExt)
@@ -381,7 +382,8 @@ begin
             PlayItem.Artist := QueryResult.FindField('artist').AsString;
             PlayItem.Album := QueryResult.FindField('album').AsString;
             PlayItem.Year := QueryResult.FindField('year').AsString;
-            PlayItem.Duration := QueryResult.FindField('duration').AsFloat;
+            DurationString := QueryResult.FindField('duration').AsString;
+            PlayItem.Duration := StrToInt64(DurationString);
 
             PlayItemsList.Add(PlayItem);
 

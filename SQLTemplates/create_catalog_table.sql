@@ -6,7 +6,7 @@ CREATE TABLE if not exists catalog (
     artist    TEXT,
     album     TEXT,
     year      INTEGER,
-    duration  REAL,
+    duration  INTEGER,
 	UNIQUE(path, file_name)
 );
 

@@ -7,14 +7,12 @@ uses
 
 type
   TMP3Info = record
-    Title: string;
-    Artist: string;
-    Album: string;
-    Year: string;
-    Comment: string;
-    Genre: Byte;
-    Duration: Double; // в секундах
-//    FileName: String;
+    Title: String;
+    Artist: String;
+    Album: String;
+    Year: String;
+    Comment: String;
+    Genre: String;
   end;
 
   TMP3Reader = class
@@ -29,6 +27,25 @@ const
   MPEG2_L3_BitRates: array[1..14] of Integer = (8,16,24,32,40,48,56,64,80,96,112,128,144,160);
   MPEG1_SampleRates: array[0..2] of Integer = (44100,48000,32000);
   MPEG2_SampleRates: array[0..2] of Integer = (22050,24000,16000);
+
+  ID3v1Genres: array[0..125] of string = (
+    'Blues','Classic Rock','Country','Dance','Disco','Funk','Grunge','Hip-Hop',
+    'Jazz','Metal','New Age','Oldies','Other','Pop','R&B','Rap','Reggae','Rock',
+    'Techno','Industrial','Alternative','Ska','Death Metal','Pranks','Soundtrack',
+    'Euro-Techno','Ambient','Trip-Hop','Vocal','Jazz+Funk','Fusion','Trance','Classical',
+    'Instrumental','Acid','House','Game','Sound Clip','Gospel','Noise','AlternRock',
+    'Bass','Soul','Punk','Space','Meditative','Instrumental Pop','Instrumental Rock',
+    'Ethnic','Gothic','Darkwave','Techno-Industrial','Electronic','Pop-Folk','Eurodance',
+    'Dream','Southern Rock','Comedy','Cult','Gangsta','Top 40','Christian Rap','Pop/Funk',
+    'Jungle','Native American','Cabaret','New Wave','Psychadelic','Rave','Showtunes','Trailer',
+    'Lo-Fi','Tribal','Acid Punk','Acid Jazz','Polka','Retro','Musical','Rock & Roll',
+    'Hard Rock','Folk','Folk-Rock','National Folk','Swing','Fast Fusion','Bebob','Latin',
+    'Revival','Celtic','Bluegrass','Avantgarde','Gothic Rock','Progressive Rock','Psychedelic Rock',
+    'Symphonic Rock','Slow Rock','Big Band','Chorus','Easy Listening','Acoustic','Humour','Speech',
+    'Chanson','Opera','Chamber Music','Sonata','Symphony','Booty Bass','Primus','Porn Groove','Satire',
+    'Slow Jam','Club','Tango','Samba','Folklore','Ballad','Power Ballad','Rhythmic Soul','Freestyle',
+    'Duet','Punk Rock','Drum Solo','Acapella','Euro-House','Dance Hall'
+  );
 
 {-------------------- Вспомогательные функции --------------------}
 
@@ -68,6 +85,7 @@ procedure ReadID3v1(Stream: TFileStream; var Info: TMP3Info);
 var
   Tag: array[0..127] of Byte;
   Buffer: TBytes;
+  GenreIndex: Integer;
 begin
   if Stream.Size < 128 then Exit;
   Stream.Position := Stream.Size - 128;
@@ -93,7 +111,11 @@ begin
     Move(Tag[97], Buffer[0], 30);
     Info.Comment := Trim(TEncoding.ANSI.GetString(Buffer));
 
-    Info.Genre := Tag[127];
+    GenreIndex := Tag[127];
+    if (GenreIndex >= Low(ID3v1Genres)) and (GenreIndex <= High(ID3v1Genres)) then
+      Info.Genre := ID3v1Genres[GenreIndex]
+    else
+      Info.Genre := 'Unknown';
   end;
 end;
 
@@ -173,96 +195,6 @@ begin
   end;
 end;
 
-{-------------------- Duration с поддержкой VBR (XING/VBRI) --------------------}
-
-function GetMP3Duration(const Stream: TFileStream): Double;
-type
-  TMPEGVersion = (mvMPEG25, mvMPEG2, mvMPEG1);
-var
-  Header: array[0..3] of Byte;
-  FrameOffset: Int64;
-  VersionBits, LayerBits, BitRateIndex, SampleRateIndex: Integer;
-  Version: TMPEGVersion;
-  BitRate, SampleRate: Integer;
-  XingPos: Int64;
-  XingHeader: array[0..3] of Byte;
-  Frames: Cardinal;
-begin
-  Result := 0;
-  FrameOffset := 0;
-  while FrameOffset < Stream.Size - 4 do
-  begin
-    Stream.Position := FrameOffset;
-    if Stream.Read(Header, 4) <> 4 then Exit;
-    if (Header[0] = $FF) and ((Header[1] and $E0) = $E0) then
-    begin
-      VersionBits := (Header[1] shr 3) and $03;
-      case VersionBits of
-        0: Version := mvMPEG25;
-        2: Version := mvMPEG2;
-        3: Version := mvMPEG1;
-      else
-        Inc(FrameOffset);
-        Continue;
-      end;
-      LayerBits := (Header[1] shr 1) and $03;
-      if LayerBits <> 1 then
-      begin
-        Inc(FrameOffset);
-        Continue;
-      end;
-      BitRateIndex := (Header[2] shr 4) and $0F;
-      SampleRateIndex := (Header[2] shr 2) and $03;
-      if (BitRateIndex = 0) or (BitRateIndex = 15) or (SampleRateIndex > 2) then
-      begin
-        Inc(FrameOffset);
-        Continue;
-      end;
-
-      if Version = mvMPEG1 then
-      begin
-        BitRate := MPEG1_L3_BitRates[BitRateIndex] * 1000;
-        SampleRate := MPEG1_SampleRates[SampleRateIndex];
-      end
-      else
-      begin
-        BitRate := MPEG2_L3_BitRates[BitRateIndex] * 1000;
-        SampleRate := MPEG2_SampleRates[SampleRateIndex];
-      end;
-
-      // Проверка XING/Info (VBR)
-      XingPos := Stream.Position + 4;
-      Stream.Position := XingPos;
-      if Stream.Read(XingHeader, 4) = 4 then
-      begin
-        if ((XingHeader[0] = Ord('X')) and (XingHeader[1] = Ord('i')) and
-            (XingHeader[2] = Ord('n')) and (XingHeader[3] = Ord('g'))) or
-           ((XingHeader[0] = Ord('I')) and (XingHeader[1] = Ord('n')) and
-            (XingHeader[2] = Ord('f')) and (XingHeader[3] = Ord('o'))) then
-        begin
-          if Stream.Read(Frames, 4) = 4 then
-          begin
-            Frames := ((Frames and $FF) shl 24) or
-                      (((Frames shr 8) and $FF) shl 16) or
-                      (((Frames shr 16) and $FF) shl 8) or
-                      ((Frames shr 24) and $FF);
-            if Frames > 0 then
-            begin
-              Result := Frames * 1152 / SampleRate;
-              Exit;
-            end;
-          end;
-        end;
-      end;
-
-      // CBR fallback
-      Result := (Stream.Size - FrameOffset) * 8 / BitRate;
-      Exit;
-    end;
-    Inc(FrameOffset);
-  end;
-end;
-
 {-------------------- TMP3Reader --------------------}
 
 class function TMP3Reader.ReadMP3(const FileName: string): TMP3Info;
@@ -275,8 +207,6 @@ begin
   try
     ReadID3v2(FS, Result);
     ReadID3v1(FS, Result);
-    Result.Duration := GetMP3Duration(FS);
-//    Result.FileName := FileName;
   finally
     FS.Free;
   end;

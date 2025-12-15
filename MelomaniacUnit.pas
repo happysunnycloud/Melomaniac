@@ -52,9 +52,12 @@ type
     InfoPanelPathLabel: TLabel;
     InfoPanelTitleLabel: TLabel;
     LockerLayout: TLayout;
+    DurationLabel: TLabel;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     FLeafePopupMenu: TPopupMenuExt;
     FMainPopupMenu: TPopupMenuExt;
@@ -62,7 +65,6 @@ type
     procedure ChooseDestinationMenuItemOnClick(Sender: TObject);
     procedure SetEmptyPathMenuItemOnClick(Sender: TObject);
     procedure OpenFolderMenuItemOnClick(Sender: TObject);
-    procedure OnAfterPlayListReloadFromPath;
     procedure OnAfterSyncPlayList;
     procedure StartPlay;
 //    procedure StartPlayWhenAppStarted;
@@ -89,9 +91,11 @@ uses
   , VisualSchemeUnit
   , ToolsUnit
   , ConstantsUnit
-//  , ThreadFactoryUnit
-  ;
+  //asd debug
+  , MP3TAGsReaderUnit
+  //asd debug
 
+  ;
 procedure TMainForm.CloseControlClick(Sender: TObject);
 begin
   TThread.ForceQueue(nil,
@@ -151,84 +155,6 @@ begin
   end;
 end;
 
-//procedure TMainForm.StartPlayWhenAppStarted;
-//var
-//  PlayItemsList: TPlayItemsList;
-//  PlayItem: TPlayItem;
-//  CurrentIndex: Integer;
-//  PlayState: TPlayState;
-//begin
-//  if TPlayController.PlayList.Count = 0 then
-//    Exit;
-//
-//  PlayState := TState.PlayState;
-//
-//  PlayItemsList := TPlayController.PlayList.LockList;
-//  try
-//    for PlayItem in PlayItemsList do
-//    begin
-//      Memo1.Lines.Add(PlayItem.Path);
-//    end;
-//  finally
-//    TPlayController.PlayList.UnlockList;
-//  end;
-//
-//  CurrentIndex := TPlayController.PlayList.IndexOf(TState.Composition);
-//  if CurrentIndex < 0 then
-//    Exit;
-//
-//  TPlayController.PlayList.CurrentIndex := CurrentIndex;
-//  TPlayController.Current(PlayState, TState.CurrentTime);
-//
-//  if TState.Volume = 0 then
-//  begin
-//    TPlayController.Volume := TState.LastVolume;
-//    TPlayController.Volume := 0;
-//  end
-//  else
-//  begin
-//    TPlayController.Volume := TState.Volume;
-//  end;
-//end;
-
-//procedure TMainForm.StartPlayFromBeginPlayList;
-//var
-//  PlayItemsList: TPlayItemsList;
-//  PlayItem: TPlayItem;
-//begin
-//  if TPlayController.PlayList.Count = 0 then
-//    Exit;
-//
-//  PlayItemsList := TPlayController.PlayList.LockList;
-//  try
-//    for PlayItem in PlayItemsList do
-//    begin
-//      Memo1.Lines.Add(PlayItem.Path);
-//    end;
-//  finally
-//    TPlayController.PlayList.UnlockList;
-//  end;
-//
-//  TPlayController.First;
-//  TPlayController.CurrentTime := TState.CurrentTime;
-//  if TState.Volume = 0 then
-//  begin
-//    TPlayController.Volume := TState.LastVolume;
-//    TPlayController.Volume := 0;
-//  end
-//  else
-//  begin
-//    TPlayController.Volume := TState.Volume;
-//  end;
-//end;
-
-procedure TMainForm.OnAfterPlayListReloadFromPath;
-begin
-  TPlayController.PlayList.SaveToDB;
-
-  StartPlay;
-end;
-
 procedure TMainForm.OnAfterSyncPlayList;
 var
   MainPath: String;
@@ -255,32 +181,14 @@ begin
     ThreadFactoryRegistry,
     TimelineCaretControl,
     TimelineControl,
-    CurrentTimeLabel,
-    TState.PlayState);
+    CurrentTimeLabel);
 
   TVisualScheme.Init;
   TVisualScheme.Load(Self, 'Steampunk');
 
   MainPath := TState.MainPath;
-//  if not MainPath.IsEmpty then
-  begin
-    TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
-    TPlayController.PlayList.SyncPlayLists(MainPath);
-  end;
-
-//  if not MainPath.IsEmpty then
-//  begin
-//    if TTools.CheckPath(MainPath) then
-//    begin
-//      TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
-//      TPlayController.PlayList.SyncPlayLists(MainPath);
-//    end
-//    else
-//    begin
-//      TPlayController.PlayList.OnPlayListReloaded := OnAfterPlayListReloadFromPath;
-//      TPlayController.PlayList.ReloadPlayListFromPath(MainPath);
-//    end
-//  end;
+  TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+  TPlayController.PlayList.SyncPlayLists(MainPath);
 
   ClickListenerThread := TClickListenerThread.Create(ThreadFactory);
   TMouseHandlers.Init(ClickListenerThread);
@@ -320,17 +228,9 @@ begin
     TAlphaColorRec.Red,
     FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT);
 
-//  TThread.ForceQueue(nil,
-//    procedure
-//    begin
-//      TPlayController.HeighlightMarkMode;
-//      TPlayController.HeighlightCopyMode;
-//    end);
-
   TPlayController.HeighlightMarkMode;
   TPlayController.HeighlightCopyMode;
   TState.SetOfPathsIndex := TState.SetOfPathsIndex;
-//  TPlayController.HeighlightSetOfPaths;
 
   PlayControl.BringToFront;
 
@@ -374,6 +274,25 @@ begin
   FMainPopupMenu.Add(MenuItem);
 end;
 
+procedure TMainForm.Button1Click(Sender: TObject);
+var
+  MP3Info: TMP3Info;
+  FileName: String;
+  SingleSound: TSingleSound;
+  Duration: Int64;
+begin
+//  FileName := 'C:\000\Store\phoebe_cates_paradise.mp3';
+  FileName := 'C:\000\Store\Ударные_ Stereo Kit B (Dubstep Drum Sample).ogg';
+  MP3Info := TMP3Reader.ReadMP3(FileName);
+  SingleSound := TSingleSound.Create;
+  try
+    SingleSound.FileName := FileName;
+    Duration := SingleSound.Duration;
+  finally
+    FreeAndNil(SingleSound);
+  end;
+end;
+
 procedure TMainForm.ChooseDestinationMenuItemOnClick(Sender: TObject);
 begin
   TTools.ChooseDestinationPath(TControl(FLeafePopupMenu.CallingObject));
@@ -387,30 +306,16 @@ end;
 procedure TMainForm.OpenFolderMenuItemOnClick(Sender: TObject);
 var
   MainPath: String;
-//  PlayState: TPlayState;
 begin
-//  PlayState := TState.PlayState;
   TPlayController.Stop;
   TPlayController.PlayList.Clear;
 
   TState.CurrentTime := 0;
   TTools.ChooseMainFolder;
 
-//  TState.PlayState := psPlay;
   MainPath := TState.MainPath;
   TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
   TPlayController.PlayList.SyncPlayLists(MainPath);
-
-//  if TTools.CheckPath(MainPath) then
-//  begin
-//    TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
-//    TPlayController.PlayList.SyncPlayLists(MainPath);
-//  end
-//  else
-//  begin
-//    TPlayController.PlayList.OnPlayListReloaded := OnAfterPlayListReloadFromPath;
-//    TPlayController.PlayList.ReloadPlayListFromPath(MainPath);
-//  end;
 end;
 
 end.

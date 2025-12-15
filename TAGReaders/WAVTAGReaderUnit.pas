@@ -13,7 +13,6 @@ type
     Year: string;
     Comment: string;
     Genre: string;
-    Duration: Double;
   end;
 
   TWavReader = class
@@ -103,13 +102,6 @@ var
   FS: TFileStream;
   ChunkID: string;
   ChunkSize: Cardinal;
-//  FormatTag: Word;
-//  NumChannels: Word;
-//  SampleRate: Cardinal;
-  ByteRate: Cardinal;
-//  BlockAlign: Word;
-//  BitsPerSample: Word;
-  DataSize: Cardinal;
 begin
   Result.Title   := '';
   Result.Artist  := '';
@@ -117,8 +109,6 @@ begin
   Result.Year    := '';
   Result.Comment := '';
   Result.Genre   := '';
-  Result.Duration := 0;
-  ByteRate := 1;
 
   FS := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
   try
@@ -132,7 +122,6 @@ begin
       raise Exception.Create('Not a WAVE file');
 
     // --- Iterate WAV chunks ---
-    DataSize := 0;
 
     while FS.Position < FS.Size do
     begin
@@ -141,20 +130,12 @@ begin
 
       if ChunkID = CID_FMT then
       begin
-//        FormatTag := ReadUInt16(FS);
-//        NumChannels := ReadUInt16(FS);
-//        SampleRate := ReadUInt32(FS);
-        ByteRate := ReadUInt32(FS);
-//        BlockAlign := ReadUInt16(FS);
-//        BitsPerSample := ReadUInt16(FS);
-
         // пропустить возможные расширенные данные
         if ChunkSize > 16 then
           FS.Position := FS.Position + (ChunkSize - 16);
       end
       else if ChunkID = CID_DATA then
       begin
-        DataSize := ChunkSize;
         FS.Position := FS.Position + ChunkSize;
       end
       else if (ChunkID = CID_LIST) then
@@ -174,10 +155,6 @@ begin
       if (ChunkSize mod 2) = 1 then
         FS.Position := FS.Position + 1;
     end;
-
-    // --- Duration ---
-    if ByteRate > 0 then
-      Result.Duration := DataSize / ByteRate;
 
   finally
     FS.Free;

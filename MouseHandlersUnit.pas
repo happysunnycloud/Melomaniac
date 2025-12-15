@@ -115,14 +115,14 @@ end;
 
 class procedure TMouseHandlers.PlayClicked(Sender: TObject);
 begin
-  if (TPlayController.PlayState = psPause) or
-     (TPlayController.PlayState = psStop)
+  if (TState.PlayState = psPause) or
+     (TState.PlayState = psStop)
   then
   begin
     TPlayController.Play;
   end
   else
-  if TPlayController.PlayState = psPlay then
+  if TState.PlayState = psPlay then
   begin
     TPlayController.Pause;
   end;
@@ -369,7 +369,7 @@ begin
   begin
     if Control = MainForm.TimelineCaretControl then
     begin
-      if TPlayController.PlayState = psPlay then
+      if TState.PlayState = psPlay then
         TPlayController.TimelineTrackerThread.UnHoldThread;
     end
     else

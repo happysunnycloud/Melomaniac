@@ -19,12 +19,12 @@ type
     class var FSingleSound: TSingleSound;
     class var FTimelineTrackerThread: TTimelineTrackerThread;
     class var FPlayList: TPlayList;
-    class var FPlayState: TPlayState;
 
     class procedure SetCurrentTime(const ACurrentTime: TMediaTime); static;
     class function GetCurrentTime: TMediaTime; static;
     class procedure SetVolume(const AVolume: Single); static;
 
+    class function SetPlayItem(const APlayItem: TPlayItem): Boolean;
     class function SetFirst: Boolean;
     class function SetPrev: Boolean;
     class function SetNext: Boolean;
@@ -37,8 +37,7 @@ type
       const AThreadFactoryRegistry: TThreadFactoryRegistry;
       const ATimelineCaret: TControl;
       const ADurationBar: TControl;
-      const ACurrentTimeLabel: TControl;
-      const AInitializingPlayState: TPlayState);
+      const ACurrentTimeLabel: TControl);
     class procedure UnInit;
 
     class property SingleSound: TSingleSound read FSingleSound write FSingleSound;
@@ -46,7 +45,6 @@ type
     class property CurrentTime: TMediaTime read GetCurrentTime write SetCurrentTime;
     class property Volume: Single write SetVolume;
     class property TimelineTrackerThread: TTimelineTrackerThread read FTimelineTrackerThread;
-    class property PlayState: TPlayState read FPlayState;
 
     class procedure Play;
     class procedure Stop;
@@ -102,8 +100,7 @@ class procedure TPlayController.Init(
   const AThreadFactoryRegistry: TThreadFactoryRegistry;
   const ATimelineCaret: TControl;
   const ADurationBar: TControl;
-  const ACurrentTimeLabel: TControl;
-  const AInitializingPlayState: TPlayState);
+  const ACurrentTimeLabel: TControl);
 var
   PlayListThreadFactory: TThreadFactory;
 begin
@@ -123,8 +120,6 @@ begin
   PlayListThreadFactory.ThreadFactoryName := 'PlayListThreadFactory';
 
   FPlayList := TPlayList.Create(PlayListThreadFactory);
-
-  FPlayState := AInitializingPlayState;
 end;
 
 class procedure TPlayController.UnInit;
@@ -148,7 +143,7 @@ begin
   // то CurrentTime становится равным Duration
   // и плеер автоматически останавливает воспроизведение
   // По этому проверяем текущий статус воспроизведения и запускаем если он psPlay
-  if FPlayState = psPlay then
+  if TState.PlayState = psPlay then
     FSingleSound.Play;
 end;
 
@@ -190,36 +185,31 @@ begin
   if FileName.IsEmpty then
     Exit;
 
-  LastPlayState := FPlayState;
+  LastPlayState := TState.PlayState;
 
   FSingleSound.Play;
   FTimelineTrackerThread.UnHoldThread;
-//  FTimelineTrackerThread.OnAfterHold := OnTimelineTrackerThreadAfterHoldHandler;
 
-  FPlayState := psPlay;
-
-  TState.PlayState := FPlayState;
+  TState.PlayState := psPlay;
 
   if LastPlayState = psPlay then
     Exit;
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, BITMAP_PLAY_IDENT);
   TTools.DisplayCurrentComposition;
-  TTools.RenderPlayState(FPlayState);
+  TTools.RenderPlayState(TState.PlayState);
 end;
 
 class procedure TPlayController.Stop;
 var
   LastPlayState: TPlayState;
 begin
-  LastPlayState := FPlayState;
+  LastPlayState := TState.PlayState;
 
   FSingleSound.Stop;
   FTimelineTrackerThread.HoldThread;
 
-  FPlayState := psStop;
-
-  TState.PlayState := FPlayState;
+  TState.PlayState := psStop;
 
   if LastPlayState = psStop then
     Exit;
@@ -228,27 +218,25 @@ begin
     Exit;
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, BITMAP_PAUSE_IDENT);
-  TTools.RenderPlayState(FPlayState);
+  TTools.RenderPlayState(TState.PlayState);
 end;
 
 class procedure TPlayController.Pause;
 var
   LastPlayState: TPlayState;
 begin
-  LastPlayState := FPlayState;
+  LastPlayState := TState.PlayState;
 
   FSingleSound.Pause;
   FTimelineTrackerThread.HoldThread;
 
-  FPlayState := psPause;
-
-  TState.PlayState := FPlayState;
+  TState.PlayState := psPause;
 
   if LastPlayState = psPause then
     Exit;
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, BITMAP_PAUSE_IDENT);
-  TTools.RenderPlayState(FPlayState);
+  TTools.RenderPlayState(TState.PlayState);
 end;
 
 class procedure TPlayController.Mute;
@@ -288,7 +276,7 @@ class procedure TPlayController.StopRewind;
 begin
   FTimelineTrackerThread.RewindDirection := rdNone;
 
-  case FPlayState of
+  case TState.PlayState of
     psPlay: Play;
     psPause: Pause;
     psStop: Stop;
@@ -302,22 +290,11 @@ begin
   Play;
 end;
 
-//class procedure TPlayController.First;
-//var
-//  LastPlayState: TPlayState;
-//begin
-//  LastPlayState := FPlayState;
-//  Stop;
-//  SetFirst;
-//  if LastPlayState = psPlay then
-//    Play;
-//end;
-
 class procedure TPlayController.Prev;
 var
   LastPlayState: TPlayState;
 begin
-  LastPlayState := FPlayState;
+  LastPlayState := TState.PlayState;
   Stop;
   SetPrev;
   CurrentTime := 0;
@@ -329,12 +306,9 @@ class procedure TPlayController.Next;
 var
   LastPlayState: TPlayState;
 begin
-  LastPlayState := FPlayState;
-
+  LastPlayState := TState.PlayState;
   Stop;
-
   CopyThenNext;
-
   CurrentTime := 0;
   if LastPlayState = psPlay then
     Play;
@@ -365,60 +339,41 @@ begin
   APath := PlayItem.Path;
 end;
 
-class function TPlayController.SetFirst: Boolean;
+class function TPlayController.SetPlayItem(const APlayItem: TPlayItem): Boolean;
 var
-  Composition: String;
+  PlayItem: TPlayItem;
 begin
   Result := false;
 
-  Composition := FPlayList.FirstComposition;
-  if Composition.IsEmpty then
+  PlayItem :=  APlayItem;
+  if not Assigned(PlayItem) then
     Exit;
 
-  FSingleSound.FileName := Composition;
+  FSingleSound.FileName := PlayItem.Path;
+  MainForm.DurationLabel.Text :=
+    TStringTools.GetHumanTime(PlayItem.Duration, MediaTimeScale);
+
   Result := true;
+end;
+
+class function TPlayController.SetFirst: Boolean;
+begin
+  Result := SetPlayItem(FPlayList.First);
 end;
 
 class function TPlayController.SetPrev: Boolean;
-var
-  Composition: String;
 begin
-  Result := false;
-
-  Composition := FPlayList.PrevComposition;
-  if Composition.IsEmpty then
-    Exit;
-
-  FSingleSound.FileName := Composition;
-  Result := true;
+  Result := SetPlayItem(FPlayList.Prev);
 end;
 
 class function TPlayController.SetNext: Boolean;
-var
-  Composition: String;
 begin
-  Result := false;
-
-  Composition := FPlayList.NextComposition;
-  if Composition.IsEmpty then
-    Exit;
-
-  FSingleSound.FileName := Composition;
-  Result := true;
+  Result := SetPlayItem(FPlayList.Next);
 end;
 
 class function TPlayController.SetCurrent: Boolean;
-var
-  Composition: String;
 begin
-  Result := false;
-
-  Composition := FPlayList.CurrentComposition;
-  if Composition.IsEmpty then
-    Exit;
-
-  FSingleSound.FileName := Composition;
-  Result := true;
+  Result := SetPlayItem(FPlayList.Current);
 end;
 
 class procedure TPlayController.MountCurrentTime;
