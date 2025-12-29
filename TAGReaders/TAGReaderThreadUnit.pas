@@ -166,12 +166,16 @@ begin
           // Он поднимает нужный кодак и, тот высчитывает верный Duration
           // Считать в "ручную" - лепить химеру
           //MediaPlayer := TMedia.Create(PlayItem.Path);
-          MediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
-          try
-            PlayItem.Duration := MediaPlayer.Duration;
-          finally
-            MediaPlayer.Free;
-          end;
+          Synchronize(
+            procedure
+            begin
+              MediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
+              try
+                PlayItem.Duration := MediaPlayer.Duration;
+              finally
+                MediaPlayer.Free;
+              end;
+            end);
 
 //          Synchronize(
 //            procedure

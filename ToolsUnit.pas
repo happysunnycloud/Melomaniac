@@ -3,11 +3,14 @@
 interface
 
 uses
-    FMX.Controls
+    System.UITypes
+  , System.Generics.Collections
+  , System.Classes
+  , System.SysUtils
+  , FMX.Controls
   , FMX.Media
   , StateUnit
   , MelomaniacUnit
-  , System.UITypes
   , DBAccessUnit
   , PlayListUnit
   ;
@@ -20,13 +23,17 @@ type
   strict private
     class var FDBAccess: TDBAccess;
     class var FCurrentRenderPlayState: TPlayState;
+    class var FHookedOnMouseEnterHandlerDict: TDictionary<TControl, TControl>;
+    class var FHookedOnMouseLeaveHandlerDict: TDictionary<TControl, TControl>;
 
     class procedure SetLeafePath(
       const AControl: TControl;
       const ADestPath: String);
 
     class function PathIndexByLeafControl(const AControl: TControl): Integer;
-//    class property DBAccess: TDBAccess read FDBAccess;
+
+    class procedure HookedOnMouseEnterHandler(Sender: TObject);
+    class procedure HookedOnMouseLeaveHandler(Sender: TObject);
   public
     class procedure Init;
     class procedure UnInit;
@@ -78,14 +85,22 @@ type
     class procedure SelectPlayItemsListFromDB(
       const AMainPath: String;
       const APlayItemsList: TPlayItemsList);
+
+    class procedure OnMouseEnterHook(
+      const ASourceControl: TControl;
+      const ADestControl: TControl);
+    class procedure OnMouseLeaveHook(
+      const ASourceControl: TControl;
+      const ADestControl: TControl);
+    class procedure OnMouseDownkHook(
+      const ASourceControl: TControl;
+      const ADestControl: TControl);
   end;
 
 implementation
 
 uses
-    System.SysUtils
-  , System.Classes
-  , System.Types
+    System.Types
   , Winapi.Windows
   , FMX.StdCtrls
   , FMX.Effects
@@ -126,6 +141,9 @@ class procedure TTools.Init;
 var
   DBFileName: String;
 begin
+  FHookedOnMouseEnterHandlerDict := TDictionary<TControl, TControl>.Create;
+  FHookedOnMouseLeaveHandlerDict := TDictionary<TControl, TControl>.Create;
+
   FCurrentRenderPlayState := psStop;
 
   DBFileName := 'Catalog.db';
@@ -143,6 +161,8 @@ end;
 
 class procedure TTools.UnInit;
 begin
+  FreeAndNil(FHookedOnMouseEnterHandlerDict);
+  FreeAndNil(FHookedOnMouseLeaveHandlerDict);
   FreeAndNil(FDBAccess);
 end;
 
@@ -298,7 +318,9 @@ var
 begin
   TPlayController.GetCurrentCompositonInfo(Title, Path);
   MainForm.InfoPanelTitleLabel.Text := Title;
+  MainForm.InfoPanelTitleLabel.Hint := MainForm.InfoPanelTitleLabel.Text;
   MainForm.InfoPanelPathLabel.Text := Path;
+  MainForm.InfoPanelPathLabel.Hint := MainForm.InfoPanelPathLabel.Text;
 end;
 
 class procedure TTools.ConnectGlowEffect(
@@ -402,6 +424,7 @@ begin
 
   LeafeControlLabel := Component as TLabel;
   LeafeControlLabel.Text := APath;
+  LeafeControlLabel.Hint := LeafeControlLabel.Text;
 end;
 
 class function TTools.LeafeControlByPathIndex(const APathIndex: Integer): TControl;
@@ -440,6 +463,38 @@ begin
     raise Exception.
       CreateFmt('TTools.PathIndexByLeafeControl -> AControl "%s" not found',
         [AControl.Name]);
+end;
+
+class procedure TTools.HookedOnMouseEnterHandler(Sender: TObject);
+var
+  SourceControl: TControl;
+  DestControl: TControl;
+begin
+  SourceControl := Sender as TControl;
+
+  FHookedOnMouseEnterHandlerDict.TryGetValue(SourceControl, DestControl);
+
+  if Assigned(DestControl) then
+    TTools.GlowEffectActivated(
+      GLOW_EFFECT_IDENT,
+      DestControl,
+      true);
+end;
+
+class procedure TTools.HookedOnMouseLeaveHandler(Sender: TObject);
+var
+  SourceControl: TControl;
+  DestControl: TControl;
+begin
+  SourceControl := Sender as TControl;
+
+  FHookedOnMouseLeaveHandlerDict.TryGetValue(SourceControl, DestControl);
+
+  if Assigned(DestControl) then
+    TTools.GlowEffectActivated(
+      GLOW_EFFECT_IDENT,
+      DestControl,
+      false);
 end;
 
 class function TTools.LeafeToControl(const ALeafe: TLeafe): TControl;
@@ -734,6 +789,31 @@ class procedure TTools.SelectPlayItemsListFromDB(
   const APlayItemsList: TPlayItemsList);
 begin
   FDBAccess.SelectFromCatalogTable(AMainPath, APlayItemsList);
+end;
+
+class procedure TTools.OnMouseEnterHook(
+  const ASourceControl: TControl;
+  const ADestControl: TControl);
+begin
+  ASourceControl.OnMouseEnter := HookedOnMouseEnterHandler;
+
+  FHookedOnMouseEnterHandlerDict.Add(ASourceControl, ADestControl);
+end;
+
+class procedure TTools.OnMouseLeaveHook(
+  const ASourceControl: TControl;
+  const ADestControl: TControl);
+begin
+  ASourceControl.OnMouseLeave := HookedOnMouseLeaveHandler;
+
+  FHookedOnMouseLeaveHandlerDict.Add(ASourceControl, ADestControl);
+end;
+
+class procedure TTools.OnMouseDownkHook(
+  const ASourceControl: TControl;
+  const ADestControl: TControl);
+begin
+  ASourceControl.OnMouseDown := ADestControl.OnMouseDown;
 end;
 
 initialization

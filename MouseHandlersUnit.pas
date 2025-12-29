@@ -325,6 +325,12 @@ begin
   else
   if IsControlIn(Control,
     [
+      MainForm.InfoPanelTitleLabel,
+      MainForm.InfoPanelPathLabel,
+      MainForm.TopLeftControlLabel,
+      MainForm.TopRightControlLabel,
+      MainForm.BottomLeftControlLabel,
+      MainForm.BottomRightControlLabel,
       MainForm.PlayControl,
       MainForm.TopLeftControl,
       MainForm.TopRightControl,

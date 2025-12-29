@@ -53,11 +53,9 @@ type
     InfoPanelTitleLabel: TLabel;
     LockerLayout: TLayout;
     DurationLabel: TLabel;
-    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
   private
     FLeafePopupMenu: TPopupMenuExt;
     FMainPopupMenu: TPopupMenuExt;
@@ -91,10 +89,7 @@ uses
   , VisualSchemeUnit
   , ToolsUnit
   , ConstantsUnit
-  //asd debug
-  , MP3TAGsReaderUnit
-  //asd debug
-
+  , FMX.HintUnit
   ;
 procedure TMainForm.CloseControlClick(Sender: TObject);
 begin
@@ -171,6 +166,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 var
   ClickListenerThread: TClickListenerThread;
   MainPath: String;
+  CustomHint: TCustomHint;
 begin
   ReportMemoryLeaksOnShutdown := true;
 
@@ -194,6 +190,12 @@ begin
   TMouseHandlers.Init(ClickListenerThread);
 
   TMouseHandlers.ConnectHandlers([
+    InfoPanelTitleLabel,
+    InfoPanelPathLabel,
+    TopLeftControlLabel,
+    TopRightControlLabel,
+    BottomLeftControlLabel,
+    BottomRightControlLabel,
     PlayControl,
     TimelineCaretControl,
     TopLeftControl,
@@ -218,13 +220,38 @@ begin
     SetOfPathsNumber4Control
   ]);
 
-  TTools.ConnectGlowEffect([TimelineControl, VolumeControl]);
-  TTools.ConnectHeighlightGlowEffect(
-    [TimelineControl, VolumeControl],
+  TTools.ConnectGlowEffect([
+    TimelineControl,
+    VolumeControl,
+    InfoPanelTitleLabel,
+    InfoPanelPathLabel,
+    TopLeftControlLabel,
+    TopRightControlLabel,
+    BottomLeftControlLabel,
+    BottomRightControlLabel
+    ]);
+  TTools.ConnectHeighlightGlowEffect([
+    TimelineControl,
+    VolumeControl,
+    InfoPanelTitleLabel,
+    InfoPanelPathLabel,
+    TopLeftControlLabel,
+    TopRightControlLabel,
+    BottomLeftControlLabel,
+    BottomRightControlLabel
+    ],
     TAlphaColorRec.Limegreen,
     HEIGHLIGTH_GLOW_EFFECT_IDENT);
-  TTools.ConnectHeighlightGlowEffect(
-    [TimelineControl, VolumeControl],
+  TTools.ConnectHeighlightGlowEffect([
+    TimelineControl,
+    VolumeControl,
+    InfoPanelTitleLabel,
+    InfoPanelPathLabel,
+    TopLeftControlLabel,
+    TopRightControlLabel,
+    BottomLeftControlLabel,
+    BottomRightControlLabel
+    ],
     TAlphaColorRec.Red,
     FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT);
 
@@ -235,6 +262,27 @@ begin
   PlayControl.BringToFront;
 
   BuilPopupMenus;
+
+  TTools.OnMouseEnterHook(InfoPanelTitleLabel, InfoPanelControl);
+  TTools.OnMouseEnterHook(InfoPanelPathLabel, InfoPanelControl);
+  TTools.OnMouseEnterHook(TopLeftControlLabel, TopLeftControl);
+  TTools.OnMouseEnterHook(TopRightControlLabel, TopRightControl);
+  TTools.OnMouseEnterHook(BottomLeftControlLabel, BottomLeftControl);
+  TTools.OnMouseEnterHook(BottomRightControlLabel, BottomRightControl);
+
+  TTools.OnMouseLeaveHook(InfoPanelTitleLabel, InfoPanelControl);
+  TTools.OnMouseLeaveHook(InfoPanelPathLabel, InfoPanelControl);
+  TTools.OnMouseLeaveHook(TopLeftControlLabel, TopLeftControl);
+  TTools.OnMouseLeaveHook(TopRightControlLabel, TopRightControl);
+  TTools.OnMouseLeaveHook(BottomLeftControlLabel, BottomLeftControl);
+  TTools.OnMouseLeaveHook(BottomRightControlLabel, BottomRightControl);
+
+  CustomHint := TCustomHint.Create(Self);
+  CustomHint.HookHints(Self);
+  CustomHint.Theme.BackgroundColor := $FF994A00;
+  CustomHint.Theme.CommonTextProps.TextSettings.FontColor := TAlphaColorRec.White;
+  CustomHint.Theme.CommonTextProps.CopyFromOrigin(InfoPanelTitleLabel);
+  CustomHint.Theme.Apply;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -272,25 +320,6 @@ begin
   MenuItem.Text := 'Open folder';
   MenuItem.OnClick := OpenFolderMenuItemOnClick;
   FMainPopupMenu.Add(MenuItem);
-end;
-
-procedure TMainForm.Button1Click(Sender: TObject);
-var
-  MP3Info: TMP3Info;
-  FileName: String;
-  SingleSound: TSingleSound;
-  Duration: Int64;
-begin
-//  FileName := 'C:\000\Store\phoebe_cates_paradise.mp3';
-  FileName := 'C:\000\Store\Ударные_ Stereo Kit B (Dubstep Drum Sample).ogg';
-  MP3Info := TMP3Reader.ReadMP3(FileName);
-  SingleSound := TSingleSound.Create;
-  try
-    SingleSound.FileName := FileName;
-    Duration := SingleSound.Duration;
-  finally
-    FreeAndNil(SingleSound);
-  end;
 end;
 
 procedure TMainForm.ChooseDestinationMenuItemOnClick(Sender: TObject);

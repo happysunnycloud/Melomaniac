@@ -45,7 +45,10 @@ uses
   MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas',
   OGGTAGReaderUnit in 'TAGReaders\OGGTAGReaderUnit.pas',
   TAGReaderThreadUnit in 'TAGReaders\TAGReaderThreadUnit.pas',
-  WAVTAGReaderUnit in 'TAGReaders\WAVTAGReaderUnit.pas';
+  WAVTAGReaderUnit in 'TAGReaders\WAVTAGReaderUnit.pas',
+  FMX.HintFormUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintFormUnit.pas',
+  FMX.HintThreadUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintThreadUnit.pas',
+  FMX.HintUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintUnit.pas';
 
 {$R *.res}
 
