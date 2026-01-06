@@ -1,0 +1,135 @@
+object PlayListItemFrame: TPlayListItemFrame
+  Size.Width = 668.000000000000000000
+  Size.Height = 104.000000000000000000
+  Size.PlatformDefault = False
+  object BaseLayout: TLayout
+    Align = Contents
+    Size.Width = 668.000000000000000000
+    Size.Height = 104.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    OnMouseEnter = BaseLayoutMouseEnter
+    OnMouseLeave = BaseLayoutMouseLeave
+    object BackgroundRectangle: TRectangle
+      Align = Client
+      HitTest = False
+      Size.Width = 668.000000000000000000
+      Size.Height = 104.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      Stroke.Thickness = 0.000000000000000000
+      object LeftLayout: TLayout
+        Align = Left
+        Size.Width = 50.000000000000000000
+        Size.Height = 104.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object NumberLabel: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 40.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'NumberLabel'
+          TabOrder = 0
+        end
+      end
+      object ClientLayout: TLayout
+        Align = Client
+        Size.Width = 544.000000000000000000
+        Size.Height = 104.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object PathLabel: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 534.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'PathLabel'
+          TabOrder = 0
+        end
+        object TitleLabel: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 27.000000000000000000
+          Size.Width = 534.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'TitleLabel'
+          TabOrder = 1
+        end
+        object ArtistLabel: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 49.000000000000000000
+          Size.Width = 534.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'ArtistLabel'
+          TabOrder = 2
+        end
+        object AlbumLabel: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 71.000000000000000000
+          Size.Width = 534.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'AlbumLabel'
+          TabOrder = 3
+        end
+      end
+      object RightLayout: TLayout
+        Align = Right
+        Position.X = 594.000000000000000000
+        Size.Width = 74.000000000000000000
+        Size.Height = 104.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        object DurationLabel: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 64.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'DurationLabel'
+          TabOrder = 0
+        end
+      end
+    end
+    object FrameRectangle: TRectangle
+      Align = Contents
+      Fill.Kind = None
+      HitTest = False
+      Size.Width = 668.000000000000000000
+      Size.Height = 104.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 4.000000000000000000
+    end
+  end
+end

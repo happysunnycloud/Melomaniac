@@ -15,9 +15,7 @@ uses
   LockedListExtUnit in '..\DevelopmentsCollection\LockedListExtUnit.pas',
   MouseHandlersUnit in 'MouseHandlersUnit.pas',
   StringToolsUnit in '..\DevelopmentsCollection\StringToolsUnit.pas',
-  TimelineTrackerThreadUnit in 'TimelineTrackerThreadUnit.pas',
   PlayControllerUnit in 'PlayControllerUnit.pas',
-  ClickListenerThreadUnit in 'ClickListenerThreadUnit.pas',
   StateUnit in 'StateUnit.pas',
   ConstantsUnit in 'ConstantsUnit.pas',
   FMX.MultiResBitmapExtractorUnit in '..\DevelopmentsCollection\FilePacker\FMX.MultiResBitmapExtractorUnit.pas',
@@ -33,7 +31,6 @@ uses
   FMX.ThemeUnit in '..\DevelopmentsCollection\FMX.ThemeUnit.pas',
   DebugUnit in '..\DevelopmentsCollection\DebugUnit.pas',
   FileToolsUnit in '..\DevelopmentsCollection\FileToolsUnit.pas',
-  HeighlightFailThreadUnit in 'HeighlightFailThreadUnit.pas',
   AudioFormatDetectorUnit in 'AudioFormatDetectorUnit.pas',
   BaseDBAccessUnit in '..\DevelopmentsCollection\SQL\BaseDBAccessUnit.pas',
   DBToolsUnit in '..\DevelopmentsCollection\SQLite\DBToolsUnit.pas',
@@ -48,7 +45,14 @@ uses
   WAVTAGReaderUnit in 'TAGReaders\WAVTAGReaderUnit.pas',
   FMX.HintFormUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintFormUnit.pas',
   FMX.HintThreadUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintThreadUnit.pas',
-  FMX.HintUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintUnit.pas';
+  FMX.HintUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintUnit.pas',
+  FMX.TrayIcon.Win in '..\DevelopmentsCollection\FMX.TrayIcon.Win.pas',
+  BorderFrameUnit in '..\DevelopmentsCollection\BorderFrame\BorderFrameUnit.pas' {BorderFrame: TFrame},
+  FMX.ImageToolsUnit in '..\DevelopmentsCollection\FMX.ImageToolsUnit.pas',
+  BorderFrameTypesUnit in '..\DevelopmentsCollection\BorderFrame\BorderFrameTypesUnit.pas',
+  TimelineTrackerThreadUnit in 'Threads\TimelineTrackerThreadUnit.pas',
+  HeighlightFailThreadUnit in 'Threads\HeighlightFailThreadUnit.pas',
+  ClickListenerThreadUnit in 'Threads\ClickListenerThreadUnit.pas';
 
 {$R *.res}
 

@@ -492,7 +492,7 @@ var
   HeighlightFailThread: THeighlightFailThread;
 begin
   ThreadName := Concat('THeighlightFailThread', AControl.Name);
-  Thread := MainForm.ThreadFactory.GetThreadByName(ThreadName);
+  Thread := MainForm.ThreadFactory.FindThread(ThreadName);
 
   if Assigned(Thread) then
   begin
