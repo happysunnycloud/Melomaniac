@@ -24,6 +24,9 @@ type
     FYear: String;
     FDuration: Int64; // в секундах
     FPath: String;
+    FMD5: String;
+    FSHA256: String;
+    FFileSize: Int64;
   public
     constructor Create;
 
@@ -33,6 +36,9 @@ type
     property Year: String read FYear write FYear;
     property Duration: Int64 read FDuration write FDuration;
     property Path: String read FPath write FPath;
+    property MD5: String read FMD5 write FMD5;
+    property SHA256: String read FSHA256 write FSHA256;
+    property FileSize: Int64 read FFileSize write FFileSize;
   end;
 
   TPlayItemsList = TList<TPlayItem>;
@@ -63,14 +69,15 @@ type
 
     procedure Clear;
     procedure FreeItem(const APlayItem: TPlayItem);
-    function IndexOf(const AFileName: String): Integer;
+    function IndexOf(const APath: String): Integer;
 
     procedure ReloadPlayListFromPath(
       const APath: String);
     procedure ReloadPlayListByFileNames(
       const AFileNames: TFileNames);
     procedure ReloadPlayListFromDB(
-      const AMainPath: String);
+      const AMainPath: String;
+      const ADuplicateMode: Boolean);
 
     procedure SyncPlayLists(
       const APath: String);
@@ -112,6 +119,9 @@ begin
   FYear := '';
   FDuration := 0;
   FPath := '';
+  FMD5 := '';
+  FSHA256 := '';
+  FFileSize := 0;
 end;
 
 { TPlayList }
@@ -162,7 +172,7 @@ begin
   APlayItem.Free;
 end;
 
-function TPlayList.IndexOf(const AFileName: String): Integer;
+function TPlayList.IndexOf(const APath: String): Integer;
 var
   i: Integer;
 begin
@@ -173,7 +183,7 @@ begin
   begin
     Dec(i);
 
-    if AFileName = Items[i].Path then
+    if APath = Items[i].Path then
       Exit(i);
   end;
 end;
@@ -224,7 +234,7 @@ begin
 
   FCurrentIndex := 0;
 
-  // создаём потоки
+  // Создаём потоки
   FileCount := Length(FileNames);
   if FileCount > PLAY_LIST_RELOAD_THREAD_COUNT then
   begin
@@ -258,7 +268,8 @@ begin
 end;
 
 procedure TPlayList.ReloadPlayListFromDB(
-  const AMainPath: String);
+  const AMainPath: String;
+  const ADuplicateMode: Boolean);
 var
   PlayItemsList: TPlayItemsList;
 begin
@@ -266,7 +277,7 @@ begin
 
   PlayItemsList := LockList;
   try
-    TTools.SelectPlayItemsListFromDB(AMainPath, PlayItemsList);
+    TTools.SelectPlayItemsListFromDB(AMainPath, PlayItemsList, ADuplicateMode);
   finally
     UnlockList;
   end;
@@ -291,7 +302,7 @@ begin
   DBPlayItemsList := TPlayItemsList.Create;
   PathPlayItemsList := TPlayItemsList.Create;
   try
-    TTools.SelectPlayItemsListFromDB(Path, DBPlayItemsList);
+    TTools.SelectPlayItemsListFromDB(Path, DBPlayItemsList, false);
 
     SetLength(FileNames, 0);
     // Проверяем на пустой путь, если путь пуст, то пойдет поиск по всему диску

@@ -24,7 +24,8 @@ type
       const APlayItemsList: TPlayItemsList);
     procedure SelectFromCatalogTable(
       const APath: String;
-      const APlayItemsList: TPlayItemsList);
+      const APlayItemsList: TPlayItemsList;
+      const ADuplicateMode: Boolean);
   end;
 
 implementation
@@ -215,6 +216,9 @@ begin
             DBTools.Query.AddParameterAsString(':album', PlayItem.Album);
             DBTools.Query.AddParameterAsString(':year', PlayItem.Year);
             DBTools.Query.AddParameterAsDouble(':duration', PlayItem.Duration);
+            DBTools.Query.AddParameterAsString(':md5', PlayItem.MD5);
+            DBTools.Query.AddParameterAsString(':sha256', PlayItem.SHA256);
+            DBTools.Query.AddParameterAsDouble(':file_size', PlayItem.FileSize);
 
             DBTools.StartTransaction;
             try
@@ -334,7 +338,8 @@ end;
 
 procedure TDBAccess.SelectFromCatalogTable(
   const APath: String;
-  const APlayItemsList: TPlayItemsList);
+  const APlayItemsList: TPlayItemsList;
+  const ADuplicateMode: Boolean);
 const
   METHOD = 'TDBAccess.SelectFromCatalogTable';
 var
@@ -358,6 +363,9 @@ begin
         PlayItemsList := InParams.AsPointerByIdent['PlayItemsList'];
 
         SQLTemplateIdent := 'select_from_catalog_table';
+        if ADuplicateMode then
+          SQLTemplateIdent := 'select_duplicates_from_catalog_table';
+
         SQLTemplate := SQLTemplates.GetTemplate(SQLTemplateIdent);
         if Length(Trim(SQLTemplate)) = 0 then
           raise Exception.
