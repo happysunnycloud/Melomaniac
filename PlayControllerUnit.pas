@@ -3,7 +3,9 @@
 interface
 
 uses
-    FMX.Controls
+    System.Classes
+  , System.SyncObjs
+  , FMX.Controls
   , FMX.Media
   , ThreadFactoryUnit
   , ThreadFactoryRegistryUnit
@@ -19,6 +21,10 @@ type
     class var FSingleSound: TSingleSound;
     class var FTimelineTrackerThread: TTimelineTrackerThread;
     class var FPlayList: TPlayList;
+
+    //class var FForwardRewindThread: TThread;
+    class var FTerminateThreadEvent: TEvent;
+    class var FStepRewindDoneEvent: TEvent;
 
     class procedure SetCurrentTime(const ACurrentTime: TMediaTime); static;
     class function GetCurrentTime: TMediaTime; static;
@@ -53,19 +59,20 @@ type
     class procedure UnMute;
     class procedure BackwardRewind;
     class procedure ForwardRewind;
-    class procedure BackwardRewindStep;
-    class procedure ForwardRewindStep;
     class procedure StopRewind;
+
     class procedure First;
     class procedure Prev;
     class procedure Next;
     class procedure Current(
       const APlayState: TPlayState;
       const ACurrentTime: TMediaTime);
+    class procedure PlayOf(const APath: String);
 
     class procedure GetCurrentCompositonInfo(
       out ATitle: String;
-      out APath: String);
+      out APath: String;
+      out ADuration: String);
 
     class procedure MountCurrentTime;
     class procedure MountVolume;
@@ -73,12 +80,30 @@ type
     class procedure HeighlightCopyMode;
     class procedure HeighlightMarkMode;
     class procedure HeighlightLeafe;
+    class procedure HeighlightDuplicateMode;
     class procedure HeighlightFail(const AControl: TControl);
     class procedure HeighlightSetOfPaths;
     class procedure LeafeClicked(Sender: TObject);
     class procedure SetOfPathClicked(Sender: TObject);
 
     class procedure CopyThenNext;
+
+    class procedure RefreshPlayListForm;
+  end;
+
+  TRewindDirection = (rdNone = 0, rdForward = 1, rdBackward = 2);
+  TRewinder = class
+  strict private
+    class var FForwardRewindThread: TThread;
+    class var FTerminateThreadEvent: TEvent;
+    class var FStepRewindDoneEvent: TEvent;
+    class var FSingleSound: TSingleSound;
+  private
+    class procedure StartRewind(const ARewindDirection: TRewindDirection);
+    class procedure StopRewind;
+
+    class procedure Init(const ASingleSound: TSingleSound);
+    class procedure UnInit;
   end;
 
 implementation
@@ -86,11 +111,12 @@ implementation
 uses
     System.SysUtils
   , ToolsUnit
-  , StringToolsUnit
+//  , StringToolsUnit
   , MelomaniacUnit
   , VisualSchemeUnit
   , ConstantsUnit
   , HeighlightFailThreadUnit
+  , PlayListFormUnit
   ;
 
 { TPlayController }
@@ -104,14 +130,13 @@ class procedure TPlayController.Init(
 var
   PlayListThreadFactory: TThreadFactory;
 begin
-  FSingleSound := TSingleSound.Create;
+  FSingleSound := TSingleSound.Create(MainForm.ThreadFactory);
 
   // FTimelineTrackerThread уничтожается через фабрику в которой зарегистрирован
   // Отдельно его уничтожать не нужно
   // Фабрика уничтожается при загрытии главного окна
   FTimelineTrackerThread := TTimelineTrackerThread.Create(
     AThreadFactory,
-//    TPlayController.SingleSound,
     ATimelineCaret,
     ADurationBar,
     ACurrentTimeLabel);
@@ -120,10 +145,22 @@ begin
   PlayListThreadFactory.ThreadFactoryName := 'PlayListThreadFactory';
 
   FPlayList := TPlayList.Create(PlayListThreadFactory);
+
+  FTerminateThreadEvent := TEvent.Create(nil, true, false, '');
+  FStepRewindDoneEvent := TEvent.Create(nil, true, false, '');
+
+  TRewinder.Init(SingleSound);
 end;
 
 class procedure TPlayController.UnInit;
 begin
+//  StopRewind;
+  TRewinder.StopRewind;
+  TRewinder.UnInit;
+
+  FreeAndNil(FTerminateThreadEvent);
+  FreeAndNil(FStepRewindDoneEvent);
+
   FreeAndNil(FPlayList);
   FreeAndNil(FSingleSound);
 end;
@@ -133,11 +170,13 @@ var
   X: Single;
   CurrentTime: TMediaTime;
 begin
-  X := TTools.TimeToCaretPosition(ACurrentTime);
+  X := TTools.TimeToXPosition(ACurrentTime);
   TTools.RenderTimelineCaretPosition(X);
 
   CurrentTime := ACurrentTime;
-  MainForm.CurrentTimeLabel.Text := TStringTools.GetHumanTime(CurrentTime, MediaTimeScale);
+  MainForm.CurrentTimeLabel.Text :=
+    TSingleSound.GetHumanTime(CurrentTime);
+
   FSingleSound.CurrentTime := CurrentTime;
   // Если каретку увели максимально вправо,
   // то CurrentTime становится равным Duration
@@ -160,7 +199,7 @@ begin
   TState.Volume := AVolume;
   FSingleSound.Volume := TState.Volume;
 
-  X := TTools.VolumeToVolumeCaretPosition(TState.Volume);
+  X := TTools.VolumeToXPosition(TState.Volume);
   TTools.RenderVolumeCaretPosition(X);
 
   if TState.Volume = 0 then
@@ -188,6 +227,7 @@ begin
   LastPlayState := TState.PlayState;
 
   FSingleSound.Play;
+  FSingleSound.Volume := TState.Volume;
   FTimelineTrackerThread.UnHoldThread;
 
   TState.PlayState := psPlay;
@@ -196,7 +236,7 @@ begin
     Exit;
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, BITMAP_PLAY_IDENT);
-  TTools.DisplayCurrentComposition;
+//  TTools.DisplayCurrentComposition;
   TTools.RenderPlayState(TState.PlayState);
 end;
 
@@ -252,35 +292,17 @@ end;
 
 class procedure TPlayController.BackwardRewind;
 begin
-  FTimelineTrackerThread.RewindDirection := rdBackward;
-  FTimelineTrackerThread.UnHoldThread;
+  TRewinder.StartRewind(rdBackward);
 end;
 
 class procedure TPlayController.ForwardRewind;
 begin
-  FTimelineTrackerThread.RewindDirection := rdForward;
-  FTimelineTrackerThread.UnHoldThread;
-end;
-
-class procedure TPlayController.BackwardRewindStep;
-begin
-  FTimelineTrackerThread.BackwardRewind;
-end;
-
-class procedure TPlayController.ForwardRewindStep;
-begin
-  FTimelineTrackerThread.ForwardRewind;
+  TRewinder.StartRewind(rdForward);
 end;
 
 class procedure TPlayController.StopRewind;
 begin
-  FTimelineTrackerThread.RewindDirection := rdNone;
-
-  case TState.PlayState of
-    psPlay: Play;
-    psPause: Pause;
-    psStop: Stop;
-  end;
+  TRewinder.StopRewind;
 end;
 
 class procedure TPlayController.First;
@@ -325,33 +347,61 @@ begin
     Play;
 end;
 
+class procedure TPlayController.PlayOf(const APath: String);
+var
+  i: Integer;
+  PlayItem: TPlayItem;
+  LastPlayState: TPlayState;
+begin
+  LastPlayState := TState.PlayState;
+  Stop;
+  i := TPlayController.PlayList.IndexOf(APath);
+  PlayItem := TPlayController.PlayList.Items[i];
+  CurrentTime := 0;
+  SetPlayItem(PlayItem);
+  if LastPlayState = psPlay then
+    Play;
+end;
+
 class procedure TPlayController.GetCurrentCompositonInfo(
   out ATitle: String;
-  out APath: String);
+  out APath: String;
+  out ADuration: String);
 var
   PlayItem: TPlayItem;
 begin
   ATitle := '';
   APath := '';
+  ADuration := '00:00';
 
   PlayItem := FPlayList.Current;
   ATitle := PlayItem.Title;
   APath := PlayItem.Path;
+  ADuration := TSingleSound.GetHumanTime(PlayItem.Duration);
 end;
 
 class function TPlayController.SetPlayItem(const APlayItem: TPlayItem): Boolean;
 var
+  i: Integer;
   PlayItem: TPlayItem;
+  Path: String;
 begin
   Result := false;
 
-  PlayItem :=  APlayItem;
+  PlayItem := APlayItem;
   if not Assigned(PlayItem) then
     Exit;
 
-  FSingleSound.FileName := PlayItem.Path;
-  MainForm.DurationLabel.Text :=
-    TStringTools.GetHumanTime(PlayItem.Duration, MediaTimeScale);
+  Path := PlayItem.Path;
+  FSingleSound.FileName := Path;
+
+  i := PlayList.IndexOf(Path);
+  PlayList.CurrentIndex := i;
+
+  TTools.DisplayCurrentComposition;
+
+  if Assigned(PlayListForm) then
+    PlayListForm.Select(FSingleSound.FileName);
 
   Result := true;
 end;
@@ -380,16 +430,16 @@ class procedure TPlayController.MountCurrentTime;
 var
   X: Single;
 begin
-  X := TTools.ReadCaretPosition(MainForm.TimeLineControl);
-  CurrentTime := TTools.TimelineCaretPositionToTime(X);
+  X := TTools.ReadMousePosition(MainForm.TimeLineControl);
+  Self.CurrentTime := TTools.TimelineMousePositionToTime(X);
 end;
 
 class procedure TPlayController.MountVolume;
 var
   X: Single;
 begin
-  X := TTools.ReadCaretPosition(MainForm.VolumeControl);
-  Volume := TTools.VolumeCaretPositionToVolume(X);
+  X := TTools.ReadMousePosition(MainForm.VolumeControl);
+  Volume := TTools.VolumeMousePositionToVolume(X);
 end;
 
 class procedure TPlayController.OffHeighlight(const AControlsArray: array of TControl);
@@ -483,6 +533,14 @@ begin
       HEIGHLIGTH_GLOW_EFFECT_IDENT,
       LeafeControl,
       true);
+end;
+
+class procedure TPlayController.HeighlightDuplicateMode;
+begin
+  TTools.GlowEffectActivated(
+    HEIGHLIGTH_GLOW_EFFECT_IDENT,
+    MainForm.DuplicateModeControl,
+    TState.DuplicateMode);
 end;
 
 class procedure TPlayController.HeighlightFail(const AControl: TControl);
@@ -612,5 +670,105 @@ begin
   TState.Leafe := liNone;
   HeighlightLeafe;
 end;
+
+class procedure TPlayController.RefreshPlayListForm;
+begin
+  if not Assigned(PlayListForm) then
+    Exit;
+
+  PlayListForm.Refresh(PlayList);
+  PlayListForm.Theme.Apply;
+  PlayListForm.Select(TPlayController.PlayList.First.Path);
+end;
+
+{ TRewinder }
+
+class procedure TRewinder.Init(const ASingleSound: TSingleSound);
+begin
+  FTerminateThreadEvent := TEvent.Create(nil, true, false, '');
+  FStepRewindDoneEvent := TEvent.Create(nil, true, false, '');
+
+  FSingleSound := ASingleSound;
+end;
+
+class procedure TRewinder.UnInit;
+begin
+  StopRewind;
+  FreeAndNil(FTerminateThreadEvent);
+  FreeAndNil(FStepRewindDoneEvent);
+end;
+
+class procedure TRewinder.StartRewind(const ARewindDirection: TRewindDirection);
+begin
+  FTerminateThreadEvent.ResetEvent;
+//  FStepRewindDoneEvent.ResetEvent;
+
+  FForwardRewindThread := TThread.CreateAnonymousThread(
+    procedure
+    var
+      Duration: Single;
+      NewTime: TMediaTime;
+      CurrentTime: TMediaTime;
+    begin
+      try
+        while true do
+        begin
+          if FTerminateThreadEvent.WaitFor(0) = wrSignaled then
+            Break;
+
+          FStepRewindDoneEvent.ResetEvent;
+          TThread.Queue(nil,
+            procedure
+            begin
+              CurrentTime := FSingleSound.CurrentTime;
+              Duration := FSingleSound.Duration;
+
+              if Duration = 0 then
+                Duration := 1;
+
+              if ARewindDirection = rdForward then
+              begin
+                NewTime := TPlayController.SingleSound.CurrentTime +
+                  (REWIND_TIME * MediaTimeScale);
+                if NewTime <= TPlayController.SingleSound.Duration then
+                  TPlayController.CurrentTime := NewTime
+                else
+                  Exit;
+              end
+              else
+              if ARewindDirection = rdBackward then
+              begin
+                NewTime := TPlayController.SingleSound.CurrentTime -
+                  (REWIND_TIME * MediaTimeScale);
+                if NewTime >= 0 then
+                  TPlayController.CurrentTime := NewTime
+                else
+                begin
+                  TPlayController.CurrentTime := 0;
+                  Exit;
+                end;
+              end;
+
+              FStepRewindDoneEvent.SetEvent;
+            end);
+
+          FStepRewindDoneEvent.WaitFor(INFINITE);
+
+          Sleep(10);
+        end;
+      finally
+        FStepRewindDoneEvent.SetEvent;
+      end;
+    end);
+
+  FForwardRewindThread.Start;
+end;
+
+class procedure TRewinder.StopRewind;
+begin
+  FTerminateThreadEvent.SetEvent;
+  FStepRewindDoneEvent.SetEvent;
+end;
+
 
 end.
