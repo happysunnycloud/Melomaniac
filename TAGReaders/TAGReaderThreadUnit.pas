@@ -19,6 +19,11 @@ type
     Comment: String;
     Genre: String;
     FileName: String;
+    MD5: String;
+    SHA256: String;
+    FileSize: Int64;
+//  public
+//    procedure Clear;
   end;
 
   TTAGInfoList = TList<TTAGInfo>;
@@ -28,7 +33,7 @@ type
     FFileNames: TFileNames;
     FPlayList: TPlayList;
   protected
-    procedure Execute(const AThread: TThreadExt); reintroduce; // override;
+    procedure InnerExecute; override;
   public
     constructor Create(
       const AThreadFactory: TThreadFactory;
@@ -50,6 +55,22 @@ uses
   , FMX.Media
   ;
 
+//{ TTAGInfo }
+//
+//procedure TTAGInfo.Clear;
+//begin
+//  Title := '';
+//  Artist := '';
+//  Album := '';
+//  Year := '';
+//  Comment := '';
+//  Genre := '';
+//  FileName := '';
+//  MD5 := '';
+//  SHA256 := '';
+//  FileSize := 0;
+//end;
+
 { TTAGReaderThread }
 
 constructor TTAGReaderThread.Create(
@@ -64,35 +85,51 @@ begin
 
   inherited Create(
     AThreadFactory,
-    'TTAGReaderThread',
-    Execute);
+    'TTAGReaderThread');
 end;
 
-procedure TTAGReaderThread.Execute;
+procedure TTAGReaderThread.InnerExecute;
 var
+  TAGInfo: TTAGInfo;
+  TAGInfoList: TTAGInfoList;
   MP3Info: TMP3Info;
   OGGInfo: TOGGInfo;
   FlacInfo: TFlacInfo;
   WAVInfo: TWAVInfo;
-  TAGInfo: TTAGInfo;
-  TAGInfoList: TTAGInfoList;
   FileName: String;
   i: Integer;
   PlayItemsList: TPlayItemsList;
   PlayItem: TPlayItem;
   AudioFormat: TAudioFormat;
   MediaPlayer: TMedia;
+  MD5: String;
+  SHA256: String;
+  FileSize: Int64;
 begin
   TAGInfoList := TTAGInfoList.Create;
   try
     i := 0;
     while (not Terminated) and (i < Length(FFileNames)) do
     begin
+      TAGInfo := Default(TTAGInfo);
       FileName := FFileNames[i];
+
+      TFileTools.GetFileFootPrint(
+        FileName,
+        MD5,
+        SHA256,
+        FileSize);
+
+      TAGInfo.FileName := FileName;
+      TAGInfo.MD5 := MD5;
+      TAGInfo.SHA256 := SHA256;
+      TAGInfo.FileSize := FileSize;
+
       AudioFormat := DetectAudioFormat(FileName);
       case AudioFormat of
         TAudioFormat.afMP3:
         begin
+          MP3Info := Default(TMP3Info);
           MP3Info := TMP3Reader.ReadMP3(FileName);
           TAGInfo.Title := MP3Info.Title;
           TAGInfo.Artist := MP3Info.Artist;
@@ -100,11 +137,12 @@ begin
           TAGInfo.Year := MP3Info.Year;
           TAGInfo.Comment := MP3Info.Comment;
           TAGInfo.Genre := MP3Info.Genre;
-          TAGInfo.FileName := FileName;
+//          TAGInfo.FileName := FileName;
           TAGInfoList.Add(TAGInfo);
         end;
         TAudioFormat.afOGG:
         begin
+          OGGInfo := Default(TOGGInfo);
           OGGInfo := TOGGReader.ReadOGG(FileName);
           TAGInfo.Title := OGGInfo.Title;
           TAGInfo.Artist := OGGInfo.Artist;
@@ -112,11 +150,12 @@ begin
           TAGInfo.Year := OGGInfo.Year;
           TAGInfo.Comment := OGGInfo.Comment;
           TAGInfo.Genre := OGGInfo.Genre;
-          TAGInfo.FileName := FileName;
+//          TAGInfo.FileName := FileName;
           TAGInfoList.Add(TAGInfo);
         end;
         TAudioFormat.afFLAC:
         begin
+          FlacInfo := Default(TFlacInfo);
           FlacInfo := TFlacReader.ReadFLAC(FileName);
           TAGInfo.Title := FlacInfo.Title;
           TAGInfo.Artist := FlacInfo.Artist;
@@ -124,11 +163,12 @@ begin
           TAGInfo.Year := FlacInfo.Year;
           TAGInfo.Comment := FlacInfo.Comment;
           TAGInfo.Genre := FlacInfo.Genre;
-          TAGInfo.FileName := FileName;
+//          TAGInfo.FileName := FileName;
           TAGInfoList.Add(TAGInfo);
         end;
         TAudioFormat.afWAV:
         begin
+          WAVInfo := Default(TWAVInfo);
           WAVInfo := TWAVReader.ReadWAV(FileName);
           TAGInfo.Title := WAVInfo.Title;
           TAGInfo.Artist := WAVInfo.Artist;
@@ -136,7 +176,7 @@ begin
           TAGInfo.Year := WAVInfo.Year;
           TAGInfo.Comment := WAVInfo.Comment;
           TAGInfo.Genre := WAVInfo.Genre;
-          TAGInfo.FileName := FileName;
+//          TAGInfo.FileName := FileName;
           TAGInfoList.Add(TAGInfo);
         end
         else
@@ -149,53 +189,46 @@ begin
       Inc(i);
     end;
 
-    if not Terminated then
-    begin
-      PlayItemsList := FPlayList.LockList;
-      try
-        i := 0;
-        while i < TAGInfoList.Count do
-        begin
-          PlayItem := TPlayItem.Create;
-          PlayItem.Title := TAGInfoList[i].Title;
-          PlayItem.Artist := TAGInfoList[i].Artist;
-          PlayItem.Album := TAGInfoList[i].Album;
-          PlayItem.Year := TAGInfoList[i].Year;
-          PlayItem.Path := TAGInfoList[i].FileName;
-          // Duration вычисляем через TMediaPlayer.Duration
-          // Он поднимает нужный кодак и, тот высчитывает верный Duration
-          // Считать в "ручную" - лепить химеру
-          //MediaPlayer := TMedia.Create(PlayItem.Path);
-          Synchronize(
-            procedure
-            begin
-              MediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
-              try
-                PlayItem.Duration := MediaPlayer.Duration;
-              finally
-                MediaPlayer.Free;
-              end;
-            end);
+    PlayItemsList := FPlayList.LockList;
+    try
+      i := 0;
+      while (i < TAGInfoList.Count) and not Terminated do
+      begin
+        PlayItem := TPlayItem.Create;
+        PlayItem.Title := TAGInfoList[i].Title;
+        PlayItem.Artist := TAGInfoList[i].Artist;
+        PlayItem.Album := TAGInfoList[i].Album;
+        PlayItem.Year := TAGInfoList[i].Year;
+        PlayItem.Path := TAGInfoList[i].FileName;
+        PlayItem.MD5 := TAGInfoList[i].MD5;
+        PlayItem.SHA256 := TAGInfoList[i].SHA256;
+        PlayItem.FileSize := TAGInfoList[i].FileSize;
 
-//          Synchronize(
-//            procedure
-//            begin
-//              MediaPlayer.Clear;
-//              MediaPlayer.FileName := PlayItem.Path;
-//              PlayItem.Duration := MediaPlayer.Duration;
-//            end);
+        // Duration вычисляем через TMediaPlayer.Duration
+        // Он поднимает нужный кодак и, тот высчитывает верный Duration
+        // Считать в "ручную" - лепить химеру
+        //MediaPlayer := TMedia.Create(PlayItem.Path);
+        { TODO : Избавиться от Synchronize, перейти на TEvent }
+        Synchronize(
+          procedure
+          begin
+            MediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
+            try
+              PlayItem.Duration := MediaPlayer.Duration;
+            finally
+              MediaPlayer.Free;
+            end;
+          end);
 
-          PlayItemsList.Add(PlayItem);
+        PlayItemsList.Add(PlayItem);
 
-          Inc(i);
-        end;
-      finally
-        FPlayList.UnLockList;
+        Inc(i);
       end;
+    finally
+      FPlayList.UnLockList;
     end;
   finally
     FreeAndNil(TAGInfoList);
-//    FreeAndNil(MediaPlayer);
   end;
 end;
 
