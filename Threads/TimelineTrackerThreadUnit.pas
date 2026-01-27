@@ -11,23 +11,16 @@ uses
   ;
 
 type
-  TRewindDirection = (rdNone = 0, rdForward = 1, rdBackward = 2);
-
   TTimelineTrackerThread = class(TThreadExt)
   strict private
     FCriticalSection: TCriticalSection;
-    //FSingleSound: TSingleSound;
     FTimelineCaret: TControl;
     FDurationBar: TControl;
     FCurrentTimeLabel: TControl;
-    FRewindDirection: TRewindDirection;
 
     procedure RenderCaret;
-
-    function GetRewindDirection: TRewindDirection;
-    procedure SetRewindDirection(const ARewindDirection: TRewindDirection);
   protected
-    procedure Execute(const AThread: TThreadExt); reintroduce; // override;
+    procedure InnerExecute; override;
   public
     constructor Create(
       const AThreadFactory: TThreadFactory;
@@ -39,9 +32,6 @@ type
 
     function BackwardRewind: Boolean;
     function ForwardRewind: Boolean;
-
-    property RewindDirection: TRewindDirection
-      read GetRewindDirection write SetRewindDirection;
   end;
 
 implementation
@@ -52,7 +42,6 @@ uses
   , FMX.StdCtrls
   , FMX.Media
   , MP3TAGsReaderUnit
-  , StringToolsUnit
   , PlayControllerUnit
   , ConstantsUnit
   ;
@@ -72,13 +61,10 @@ begin
   FTimelineCaret := ATimelineCaret;
   FDurationBar := ADurationBar;
   FCurrentTimeLabel := ACurrentTimeLabel;
-  FRewindDirection := rdNone;
 
   inherited Create(
     AThreadFactory,
-    'TTimelineTrackerThread',
-    Execute,
-    false);
+    'TTimelineTrackerThread');
 end;
 
 destructor TTimelineTrackerThread.Destroy;
@@ -122,27 +108,6 @@ begin
   RenderCaret;
 end;
 
-function TTimelineTrackerThread.GetRewindDirection: TRewindDirection;
-begin
-  FCriticalSection.Enter;
-  try
-    Result := FRewindDirection;
-  finally
-    FCriticalSection.Leave;
-  end;
-end;
-
-procedure TTimelineTrackerThread.SetRewindDirection(
-  const ARewindDirection: TRewindDirection);
-begin
-  FCriticalSection.Enter;
-  try
-    FRewindDirection := ARewindDirection;
-  finally
-    FCriticalSection.Leave;
-  end;
-end;
-
 procedure TTimelineTrackerThread.RenderCaret;
 var
   Duration: Single;
@@ -161,12 +126,12 @@ begin
         (CurrentTime * (FDurationBar.Width / Duration)) - (FTimelineCaret.Width / 2);
 
       TLabel(FCurrentTimeLabel).Text :=
-        TStringTools.GetHumanTime(CurrentTime, MediaTimeScale);
+        TSingleSound.GetHumanTime(CurrentTime);
     end
   );
 end;
 
-procedure TTimelineTrackerThread.Execute(const AThread: TThreadExt);
+procedure TTimelineTrackerThread.InnerExecute;
 begin
   HoldThread;
   ExecHold;
@@ -179,37 +144,21 @@ begin
       begin
         if TPlayController.SingleSound.CurrentTime >= TPlayController.SingleSound.Duration then
         begin
-          // Без Stop зависает на выполнени Stop внутри Next
-          TPlayController.SingleSound.Stop;
+          ForceQueue(nil,
+            procedure
+            begin
+              // Без Stop зависает на выполнени Stop внутри Next
+              TPlayController.SingleSound.Stop;
+            end);
+
           ForceQueue(nil,
             procedure
             begin
               TPlayController.Next;
             end);
+
           HoldThread;
           Break;
-        end
-        else
-        begin
-          if RewindDirection <> rdNone then
-          begin
-            while not Terminated and (RewindDirection <> rdNone) do
-            begin
-              if RewindDirection = rdBackward then
-              begin
-                if not BackwardRewind then
-                  Break;
-              end
-              else
-              if RewindDirection = rdForward then
-              begin
-                if not ForwardRewind then
-                  Break;
-              end;
-
-              Sleep(100);
-            end;
-          end;
         end;
 
         RenderCaret;

@@ -7,7 +7,9 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
   System.Generics.Collections,
   FMX.FormExtUnit,
-  FMX.ThemeUnit
+  FMX.ThemeUnit,
+  PlayListItemFrameUnit,
+  PlayListUnit
   ;
 
 type
@@ -17,17 +19,27 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     FPathControlDict: TDictionary<String, TControl>;
-    procedure OnPlayListItemFrameClickHandler(Sender: TObject);
+    FOnItemClick: TProc<String>;
+//    procedure OnPlayListItemFrameClickHandler(Sender: TObject);
   public
-    procedure AddFrame(
+    function AddFrame(
       const APath: String;
       const ATitle: String;
       const AArtist: String;
       const AAlbum: String;
-      const ADuration: String);
+      const ADuration: String): TPlayListItemFrame;
     procedure DeleteFrame(const APath: String);
+    procedure Clear;
     procedure Select(const APath: String);
     procedure ScrollToItem(const APath: String);
+
+    function GetPath(Sender: TObject): String;
+
+    procedure RenumerateItems;
+
+    procedure Refresh(const APlayList: TPlayList);
+
+    property OnItemClick: TProc<String> read FOnItemClick write FOnItemClick;
   end;
 
 var
@@ -38,29 +50,93 @@ implementation
 {$R *.fmx}
 
 uses
-    PlayListItemFrameUnit
-  , FMX.ControlToolsUnit
+    FMX.ControlToolsUnit
+  , StateUnit
+  , FMX.SingleSoundUnit
+  , PlayListFormMouseHandlersUnit
   ;
 
 { TPlayListForm }
 
-procedure TPlayListForm.OnPlayListItemFrameClickHandler(Sender: TObject);
+function TPlayListForm.GetPath(Sender: TObject): String;
 var
+  Control: TControl;
   PlayListItemFrame: TPlayListItemFrame;
+  Path: String;
 begin
-  if Sender is TPlayListItemFrame then
+  Result := '';
+  Control := Sender as TControl;
+  PlayListItemFrame := TControlTools.FindParentFrame(Control) as TPlayListItemFrame;
+  if Assigned(PlayListItemFrame) then
   begin
-    PlayListItemFrame := Sender as TPlayListItemFrame;
-    Select(PlayListItemFrame.PathLabel.Text);
+    Path := PlayListItemFrame.PathLabel.Text;
+    Select(Path);
+
+    Result := Path;
   end;
 end;
 
-procedure TPlayListForm.AddFrame(
+procedure TPlayListForm.RenumerateItems;
+var
+  Control: TControl;
+  PlayListItemFrame: TPlayListItemFrame;
+  i: Integer;
+begin
+  if ScrollBox.Content.ControlsCount = 0 then
+    Exit;
+
+  i := 0;
+  ScrollBox.BeginUpdate;
+  try
+    for Control in ScrollBox.Content.Controls do
+    begin
+      Inc(i);
+
+      PlayListItemFrame := Control as TPlayListItemFrame;
+      PlayListItemFrame.NumberLabel.Text := i.ToString;
+    end;
+  finally
+    ScrollBox.EndUpdate;
+  end;
+end;
+
+procedure TPlayListForm.Refresh(const APlayList: TPlayList);
+var
+  PlayList: TPlayList absolute APlayList;
+  PlayItemsList: TPlayItemsList;
+  PlayItem: TPlayItem;
+begin
+  Clear;
+
+  ScrollBox.BeginUpdate;
+  try
+    PlayItemsList := PlayList.LockList;
+    try
+      for PlayItem in PlayItemsList do
+      begin
+        AddFrame(
+          PlayItem.Path,
+          PlayItem.Title,
+          PlayItem.Artist,
+          PlayItem.Album,
+          TSingleSound.GetHumanTime(PlayItem.Duration));
+      end;
+    finally
+      PlayList.UnLockList;
+    end;
+  finally
+    ScrollBox.EndUpdate;
+  end;
+
+  PlayListForm.RenumerateItems;
+end;
+
+function TPlayListForm.AddFrame(
   const APath: String;
   const ATitle: String;
   const AArtist: String;
   const AAlbum: String;
-  const ADuration: String);
+  const ADuration: String): TPlayListItemFrame;
 var
   PlayListItemFrame: TPlayListItemFrame;
 begin
@@ -69,15 +145,20 @@ begin
   PlayListItemFrame.Align := TAlignLayout.Top;
   PlayListItemFrame.Visible := True;
 
+  PlayListItemFrame.NumberLabel.Text := '0';
   PlayListItemFrame.PathLabel.Text := APath;
   PlayListItemFrame.TitleLabel.Text := ATitle;
   PlayListItemFrame.ArtistLabel.Text := AArtist;
   PlayListItemFrame.AlbumLabel.Text := AAlbum;
   PlayListItemFrame.DurationLabel.Text := ADuration;
 
-  PlayListItemFrame.OnClick := OnPlayListItemFrameClickHandler;
+  TPlayListFormMouseHandlers.ConnectHandlers([
+    PlayListItemFrame.BaseLayout
+   ]);
 
   FPathControlDict.Add(APath, PlayListItemFrame);
+
+  Result := PlayListItemFrame;
 end;
 
 procedure TPlayListForm.DeleteFrame(const APath: String);
@@ -98,6 +179,27 @@ begin
   end;
 
   Control.Free;
+
+  RenumerateItems;
+end;
+
+procedure TPlayListForm.Clear;
+var
+  Control: TControl;
+begin
+  ScrollBox.BeginUpdate;
+  try
+    for Control in FPathControlDict.Values do
+    begin
+      ScrollBox.Content.RemoveObject(Control);
+
+      Control.Free;
+    end;
+  finally
+    ScrollBox.EndUpdate;
+  end;
+
+  FPathControlDict.Clear;
 end;
 
 procedure TPlayListForm.Select(const APath: String);
@@ -147,12 +249,13 @@ end;
 
 procedure TPlayListForm.FormCreate(Sender: TObject);
 begin
+  FOnItemClick := nil;
+  BorderFrame.BorderFrameKind := TBorderFrameKind.bfkNoCaption;
   Self.Fill.Kind := TBrushKind.Solid;
   FPathControlDict := TDictionary<String, TControl>.Create;
   Theme.OnApplyProcRef :=
     procedure
     var
-      //Control: TControl;
       PlayListItemFrame: TPlayListItemFrame;
     begin
       Self.Fill.Color := Theme.BackgroundColor;
@@ -164,18 +267,34 @@ begin
 
           PlayListItemFrame := AControl as TPlayListItemFrame;
           PlayListItemFrame.BackgroundRectangle.Fill.Color := Theme.NormalBackgroundColor;
+          PlayListItemFrame.FocusFrameRectangle.Stroke.Color := Theme.FocusFrameColor;
+
+          PlayListItemFrame.NumberLabel.StyledSettings := [];
+          PlayListItemFrame.PathLabel.StyledSettings := [];
+          PlayListItemFrame.TitleLabel.StyledSettings := [];
+          PlayListItemFrame.ArtistLabel.StyledSettings := [];
+          PlayListItemFrame.AlbumLabel.StyledSettings := [];
+          PlayListItemFrame.DurationLabel.StyledSettings := [];
+
+          Theme.TextSettings.ApplyTo(PlayListItemFrame.NumberLabel);
+          Theme.TextSettings.ApplyTo(PlayListItemFrame.PathLabel);
+          Theme.TextSettings.ApplyTo(PlayListItemFrame.TitleLabel);
+          Theme.TextSettings.ApplyTo(PlayListItemFrame.ArtistLabel);
+          Theme.TextSettings.ApplyTo(PlayListItemFrame.AlbumLabel);
+          Theme.TextSettings.ApplyTo(PlayListItemFrame.DurationLabel);
+          PlayListItemFrame.DurationLabel.TextAlign := TTextAlign.Trailing;
         end);
 
-//      for Control in ScrollBox.Content.Controls do
-//      begin
-//        PlayListItemFrame := Control as TPlayListItemFrame;
-//        PlayListItemFrame.BackgroundRectangle.Fill.Color := Theme.NormalBackgroundColor;
-//      end;
+      BorderFrame.BorderColor := Theme.FocusFrameColor;
     end;
+
+  TState.PlayListFormPos.RestorePosition(Self);
 end;
 
 procedure TPlayListForm.FormDestroy(Sender: TObject);
 begin
+  TState.PlayListFormPos.SavePosition(Self);
+
   FreeAndNil(FPathControlDict);
 end;
 

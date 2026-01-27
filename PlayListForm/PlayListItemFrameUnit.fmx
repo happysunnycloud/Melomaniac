@@ -1,11 +1,12 @@
 object PlayListItemFrame: TPlayListItemFrame
   Size.Width = 668.000000000000000000
-  Size.Height = 104.000000000000000000
+  Size.Height = 95.000000000000000000
   Size.PlatformDefault = False
   object BaseLayout: TLayout
     Align = Contents
+    HitTest = True
     Size.Width = 668.000000000000000000
-    Size.Height = 104.000000000000000000
+    Size.Height = 95.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     OnMouseEnter = BaseLayoutMouseEnter
@@ -14,14 +15,14 @@ object PlayListItemFrame: TPlayListItemFrame
       Align = Client
       HitTest = False
       Size.Width = 668.000000000000000000
-      Size.Height = 104.000000000000000000
+      Size.Height = 95.000000000000000000
       Size.PlatformDefault = False
       Stroke.Kind = None
       Stroke.Thickness = 0.000000000000000000
       object LeftLayout: TLayout
         Align = Left
         Size.Width = 50.000000000000000000
-        Size.Height = 104.000000000000000000
+        Size.Height = 95.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
         object NumberLabel: TLabel
@@ -42,7 +43,7 @@ object PlayListItemFrame: TPlayListItemFrame
       object ClientLayout: TLayout
         Align = Client
         Size.Width = 544.000000000000000000
-        Size.Height = 104.000000000000000000
+        Size.Height = 95.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
         object PathLabel: TLabel
@@ -103,7 +104,7 @@ object PlayListItemFrame: TPlayListItemFrame
         Align = Right
         Position.X = 594.000000000000000000
         Size.Width = 74.000000000000000000
-        Size.Height = 104.000000000000000000
+        Size.Height = 95.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 2
         object DurationLabel: TLabel
@@ -122,12 +123,12 @@ object PlayListItemFrame: TPlayListItemFrame
         end
       end
     end
-    object FrameRectangle: TRectangle
+    object FocusFrameRectangle: TRectangle
       Align = Contents
       Fill.Kind = None
       HitTest = False
       Size.Width = 668.000000000000000000
-      Size.Height = 104.000000000000000000
+      Size.Height = 95.000000000000000000
       Size.PlatformDefault = False
       Stroke.Thickness = 4.000000000000000000
     end

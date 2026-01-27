@@ -2,8 +2,8 @@ object PlayListForm: TPlayListForm
   Left = 0
   Top = 0
   Caption = 'PlayListForm'
-  ClientHeight = 480
-  ClientWidth = 640
+  ClientHeight = 243
+  ClientWidth = 685
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -12,11 +12,11 @@ object PlayListForm: TPlayListForm
   DesignerMasterStyle = 0
   object ScrollBox: TScrollBox
     Align = Contents
-    Size.Width = 640.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Width = 685.000000000000000000
+    Size.Height = 243.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    Viewport.Width = 640.000000000000000000
-    Viewport.Height = 480.000000000000000000
+    Viewport.Width = 685.000000000000000000
+    Viewport.Height = 243.000000000000000000
   end
 end

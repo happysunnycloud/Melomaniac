@@ -5,12 +5,39 @@ interface
 uses
     System.Generics.Collections
   , FMX.Media
+  , FMX.Forms
   ;
 
 type
   TPlayState = (psStop = -1, psPlay = 1, psPause = 0);
   TCopyMode = (cmNone = -1, cmCopy = 0, cmMove = 1);
   TLeafe = (liNone = -1, liTopLeft = 0, liTopRigth = 1, liBottomLeft = 2, liBottomRight = 3);
+
+  TPosition = class
+  strict private
+    FTop: Integer;
+    FLeft: Integer;
+    FWidth: Integer;
+    FHeight: Integer;
+
+    function GetTop: Integer;
+    function GetLeft: Integer;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+
+    procedure SetTop(const AVal: Integer);
+    procedure SetLeft(const AVal: Integer);
+    procedure SetWidth(const AVal: Integer);
+    procedure SetHeight(const AVal: Integer);
+  public
+    property Top: Integer read GetTop write SetTop;
+    property Left: Integer read GetLeft write SetLeft;
+    property Width: Integer read GetWidth write SetWidth;
+    property Height: Integer read GetHeight write SetHeight;
+
+    procedure SavePosition(const AForm: TForm);
+    procedure RestorePosition(const AForm: TForm);
+  end;
 
   TPaths = class (TList<String>)
   strict private
@@ -50,6 +77,8 @@ type
     class var FIsAppStarting: Boolean;
 
 //    class procedure SetSetOfPaths(const A)
+    class var FMainFormPos: TPosition;
+    class var FPlayListFormPos: TPosition;
   strict private
     class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
 
@@ -91,6 +120,15 @@ type
       read GetSetOfPaths;
     class property Leafe: TLeafe read FLeafe write FLeafe;
     class property IsAppStarting: Boolean read GetIsAppStarting;
+
+    class property MainFormPos: TPosition read FMainFormPos write FMainFormPos;
+    class property PlayListFormPos: TPosition read FPlayListFormPos write FPlayListFormPos;
+
+//    class property MainFormPosition: TMainFormPosition
+//      read FMainFormPosition write FMainFormPosition;
+//
+//    class property PlayListFormPosition: TPlayListFormPosition
+//      read FPlayListFormPosition write FPlayListFormPosition;
   end;
 
   TPlayStateHelper = record helper for TPlayState
@@ -119,6 +157,64 @@ uses
   , ToolsUnit
   , PlayControllerUnit
   ;
+
+{ TPosition }
+
+function TPosition.GetTop: Integer;
+begin
+  Result := FTop;
+end;
+
+function TPosition.GetLeft: Integer;
+begin
+  Result := FLeft;
+end;
+
+function TPosition.GetWidth: Integer;
+begin
+  Result := FWidth;
+end;
+
+function TPosition.GetHeight: Integer;
+begin
+  Result := FHeight;
+end;
+
+procedure TPosition.SetTop(const AVal: Integer);
+begin
+  FTop := AVal;
+end;
+
+procedure TPosition.SetLeft(const AVal: Integer);
+begin
+  FLeft := AVal;
+end;
+
+procedure TPosition.SetWidth(const AVal: Integer);
+begin
+  FWidth := AVal;
+end;
+
+procedure TPosition.SetHeight(const AVal: Integer);
+begin
+  FHeight := AVal;
+end;
+
+procedure TPosition.SavePosition(const AForm: TForm);
+begin
+  FTop := AForm.Top;
+  FLeft := AForm.Left;
+  FWidth := AForm.Width;
+  FHeight := AForm.Height;
+end;
+
+procedure TPosition.RestorePosition(const AForm: TForm);
+begin
+  AForm.Top := FTop;
+  AForm.Left := FLeft;
+  AForm.Width := FWidth;
+  AForm.Height := FHeight;
+end;
 
 { TPlayStateHelper }
 
@@ -205,6 +301,9 @@ begin
   FLeafe := liNone;
   FIsAppStarting := true;
 
+  MainFormPos := TPosition.Create;
+  PlayListFormPos := TPosition.Create;
+
   FSetOfPaths := TSetOfPaths.Create;
   LoadConfig;
 
@@ -242,6 +341,9 @@ begin
   SaveConfig;
 
   FreeAndNil(FSetOfPaths);
+
+  FreeAndNil(MainFormPos);
+  FreeAndNil(PlayListFormPos);
 end;
 
 class function TState.GetSetOfPaths(const AIndex: Integer): TPaths;
@@ -275,6 +377,8 @@ class function TState.SaveConfig: Boolean;
 var
   XMLDoc: IXMLDocument;
   RootNode: IXMLNode;
+  MainFormPositionNode: IXMLNode;
+  PlayListFormPositionNode: IXMLNode;
   CommonNode: IXMLNode;
   SetsOfPathsNode: IXMLNode;
   SetOfPathsNode: IXMLNode;
@@ -287,8 +391,28 @@ begin
   XMLDoc.Options := XMLDoc.Options + [doNodeAutoIndent] - [doAutoSave];
 
   RootNode  := XMLDoc.AddChild('Config');
-  CommonNode := RootNode.AddChild('Common');
 
+  MainFormPositionNode := RootNode.AddChild('MainFormPosition');
+  MainFormPositionNode.AddChild('Top').Text :=
+    FMainFormPos.Top.ToString;
+  MainFormPositionNode.AddChild('Left').Text :=
+    FMainFormPos.Left.ToString;
+  MainFormPositionNode.AddChild('Width').Text :=
+    FMainFormPos.Width.ToString;
+  MainFormPositionNode.AddChild('Height').Text :=
+    FMainFormPos.Height.ToString;
+
+  PlayListFormPositionNode := RootNode.AddChild('PlayListFormPosition');
+  PlayListFormPositionNode.AddChild('Top').Text :=
+    FPlayListFormPos.Top.ToString;
+  PlayListFormPositionNode.AddChild('Left').Text :=
+    FPlayListFormPos.Left.ToString;
+  PlayListFormPositionNode.AddChild('Width').Text :=
+    FPlayListFormPos.Width.ToString;
+  PlayListFormPositionNode.AddChild('Height').Text :=
+    FPlayListFormPos.Height.ToString;
+
+  CommonNode := RootNode.AddChild('Common');
   CommonNode.AddChild('MainPath').Text := FMainPath;
   CommonNode.AddChild('LastMainPath').Text := FLastMainPath;
   CommonNode.AddChild('PlayState').Text := IntToStr(FPlayState.ToInt);
@@ -328,6 +452,8 @@ class function TState.LoadConfig: Boolean;
 var
   XMLDoc: IXMLDocument;
   RootNode: IXMLNode;
+  MainFormPositionNode: IXMLNode;
+  PlayListFormPositionNode: IXMLNode;
   CommonNode: IXMLNode;
   SetsOfPathsNode: IXMLNode;
   SetOfPathsNode: IXMLNode;
@@ -363,12 +489,48 @@ begin
       CreateFmt('TState.LoadConfig -> Root node is nil in "%s"', [CongifFileName]);
   end;
 
+  MainFormPositionNode := RootNode.ChildNodes.FindNode('MainFormPosition');
+  if MainFormPositionNode = nil then
+  begin
+    raise Exception.
+      CreateFmt('TState.LoadConfig -> MainFormPosition node is nil in "%s"', [CongifFileName]);
+  end;
+
+  PlayListFormPositionNode := RootNode.ChildNodes.FindNode('PlayListFormPosition');
+  if PlayListFormPositionNode = nil then
+  begin
+    raise Exception.
+      CreateFmt('TState.LoadConfig -> PlayListFormPosition node is nil in "%s"', [CongifFileName]);
+  end;
+
   CommonNode := RootNode.ChildNodes.FindNode('Common');
   if CommonNode = nil then
   begin
     raise Exception.
       CreateFmt('TState.LoadConfig -> Common node is nil in "%s"', [CongifFileName]);
   end;
+
+  FMainFormPos.Top :=
+    StrToIntDef(MainFormPositionNode.ChildNodes['Top'].Text, 0);
+  FMainFormPos.Left :=
+    StrToIntDef(MainFormPositionNode.ChildNodes['Left'].Text, 0);
+  // 825 взято из дизайнера
+  FMainFormPos.Width :=
+    StrToIntDef(MainFormPositionNode.ChildNodes['Width'].Text, 825);
+  // 455 взято из дизайнера
+  FMainFormPos.Height :=
+    StrToIntDef(MainFormPositionNode.ChildNodes['Height'].Text, 455);
+
+  FPlayListFormPos.Top :=
+    StrToIntDef(PlayListFormPositionNode.ChildNodes['Top'].Text, 0);
+  FPlayListFormPos.Left :=
+    StrToIntDef(PlayListFormPositionNode.ChildNodes['Left'].Text, 0);
+  // 825 взято из дизайнера
+  FPlayListFormPos.Width :=
+    StrToIntDef(PlayListFormPositionNode.ChildNodes['Width'].Text, 825);
+  // 455 взято из дизайнера
+  FPlayListFormPos.Height :=
+    StrToIntDef(PlayListFormPositionNode.ChildNodes['Height'].Text, 455);
 
   FMainPath := CommonNode.ChildNodes['MainPath'].Text;
   PlayStateStrVal := CommonNode.ChildNodes['PlayState'].Text;

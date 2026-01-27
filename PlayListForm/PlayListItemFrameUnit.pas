@@ -18,7 +18,7 @@ type
     TitleLabel: TLabel;
     ArtistLabel: TLabel;
     AlbumLabel: TLabel;
-    FrameRectangle: TRectangle;
+    FocusFrameRectangle: TRectangle;
     RightLayout: TLayout;
     DurationLabel: TLabel;
     procedure BaseLayoutMouseEnter(Sender: TObject);
@@ -40,12 +40,12 @@ uses
 
 procedure TPlayListItemFrame.BaseLayoutMouseEnter(Sender: TObject);
 begin
-  FrameRectangle.Visible := true;
+  FocusFrameRectangle.Visible := true;
 end;
 
 procedure TPlayListItemFrame.BaseLayoutMouseLeave(Sender: TObject);
 begin
-  FrameRectangle.Visible := false;
+  FocusFrameRectangle.Visible := false;
 end;
 
 constructor TPlayListItemFrame.Create(AOwner: TComponent);
@@ -53,8 +53,8 @@ begin
   inherited;
 
   Name := TStringTools.GenIdent('PlayListItemFrame');
-  FrameRectangle.Stroke.Color := TAlphaColorRec.Limegreen;
-  FrameRectangle.Visible := false;
+  FocusFrameRectangle.Stroke.Color := TAlphaColorRec.Limegreen;
+  FocusFrameRectangle.Visible := false;
 end;
 
 end.

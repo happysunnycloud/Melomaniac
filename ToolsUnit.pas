@@ -41,11 +41,11 @@ type
     class procedure RenderPlayState(const APlayState: TPlayState);
     class procedure RenderTimelineCaretPosition(const AX: Single);
     class procedure RenderVolumeCaretPosition(const AX: Single);
-    class function ReadCaretPosition(const AControl: TControl): Single;
-    class function TimelineCaretPositionToTime(const AX: Single): TMediaTime;
-    class function TimeToCaretPosition(const ATime: TMediaTime): Single;
-    class function VolumeCaretPositionToVolume(const AX: Single): Single;
-    class function VolumeToVolumeCaretPosition(const AVolume: Single): Single;
+    class function ReadMousePosition(const AControl: TControl): Single;
+    class function TimelineMousePositionToTime(const AX: Single): TMediaTime;
+    class function TimeToXPosition(const ATime: TMediaTime): Single;
+    class function VolumeMousePositionToVolume(const AX: Single): Single;
+    class function VolumeToXPosition(const AVolume: Single): Single;
     class procedure DisplayCurrentComposition;
     class procedure ConnectGlowEffect(
       const AExceptControls: array of TControl);
@@ -84,7 +84,8 @@ type
       const APlayItemsList: TPlayItemsList);
     class procedure SelectPlayItemsListFromDB(
       const AMainPath: String;
-      const APlayItemsList: TPlayItemsList);
+      const APlayItemsList: TPlayItemsList;
+      const ADuplicateMode: Boolean);
 
     class procedure OnMouseEnterHook(
       const ASourceControl: TControl;
@@ -113,6 +114,9 @@ uses
   , FileToolsUnit
   , ThreadFactoryUnit
   , SQLTemplatesUnit
+  , PlayListFormUnit
+  , FMX.SingleSoundUnit
+  //StringToolsUnit
   ;
 
 { TTools }
@@ -222,20 +226,33 @@ end;
 class procedure TTools.RenderTimelineCaretPosition(const AX: Single);
 var
   X: Single;
+  HalfTimeLineControlWidth: Single;
+  CurrentTime: Int64;
 begin
+  HalfTimeLineControlWidth := MainForm.TimelineCaretControl.Width / 2;
   X := AX;
-  MainForm.TimelineCaretControl.Position.X := X;
+  if (X >= 0) and (X <= MainForm.TimeLineControl.Width) then
+  begin
+    MainForm.TimelineCaretControl.Position.X := X - HalfTimeLineControlWidth;
+
+    CurrentTime := TTools.TimelineMousePositionToTime(X);
+
+    MainForm.CurrentTimeLabel.Text :=
+      TSingleSound.GetHumanTime(CurrentTime)
+  end;
 end;
 
 class procedure TTools.RenderVolumeCaretPosition(const AX: Single);
 var
   X: Single;
+  HalfVolumeCaretControlWidth: Single;
 begin
+  HalfVolumeCaretControlWidth := MainForm.VolumeCaretControl.Width / 2;
   X := AX;
-  MainForm.VolumeCaretControl.Position.X := X;
+  MainForm.VolumeCaretControl.Position.X := X - HalfVolumeCaretControlWidth;
 end;
 
-class function TTools.ReadCaretPosition(const AControl: TControl): Single;
+class function TTools.ReadMousePosition(const AControl: TControl): Single;
 var
   ScreenPoint: TPoint;
   FormPoint: TPointF;
@@ -258,7 +275,7 @@ begin
     Result := X;
 end;
 
-class function TTools.TimelineCaretPositionToTime(const AX: Single): TMediaTime;
+class function TTools.TimelineMousePositionToTime(const AX: Single): TMediaTime;
 var
   X: Single;
   TimelineControl: TControl;
@@ -274,20 +291,19 @@ begin
     Round((TPlayController.SingleSound.Duration / TimelineControl.Width) * X);
 end;
 
-class function TTools.TimeToCaretPosition(const ATime: TMediaTime): Single;
+class function TTools.TimeToXPosition(const ATime: TMediaTime): Single;
 var
   X: Single;
 begin
-  Result := 0 - (MainForm.TimelineCaretControl.Width / 2);
+  Result := 0;
   if TPlayController.SingleSound.Duration = 0 then
     Exit;
 
-  X := (ATime * (MainForm.TimelineControl.Width / TPlayController.SingleSound.Duration)) -
-    (MainForm.TimelineCaretControl.Width / 2);
+  X := ATime * (MainForm.TimelineControl.Width / TPlayController.SingleSound.Duration);
   Result := X;
 end;
 
-class function TTools.VolumeCaretPositionToVolume(const AX: Single): Single;
+class function TTools.VolumeMousePositionToVolume(const AX: Single): Single;
 var
   X: Single;
   VolumeControl: TControl;
@@ -299,15 +315,16 @@ begin
   if (X < 0) or (X > VolumeControl.Width) then
     Exit;
 
-  Result := (1 / VolumeControl.Width) * X;
+  Result := ((1 / VolumeControl.Width) * X);
 end;
 
-class function TTools.VolumeToVolumeCaretPosition(const AVolume: Single): Single;
+class function TTools.VolumeToXPosition(const AVolume: Single): Single;
 var
   X: Single;
 begin
-  X := (AVolume * MainForm.VolumeControl.Width) -
-    (MainForm.VolumeCaretControl.Width / 2);
+//  X := (AVolume * MainForm.VolumeControl.Width) -
+//    (MainForm.VolumeCaretControl.Width / 2);
+  X := AVolume * (MainForm.VolumeControl.Width / 1);
   Result := X;
 end;
 
@@ -315,12 +332,14 @@ class procedure TTools.DisplayCurrentComposition;
 var
   Title: String;
   Path: String;
+  Duration: String;
 begin
-  TPlayController.GetCurrentCompositonInfo(Title, Path);
+  TPlayController.GetCurrentCompositonInfo(Title, Path, Duration);
   MainForm.InfoPanelTitleLabel.Text := Title;
   MainForm.InfoPanelTitleLabel.Hint := MainForm.InfoPanelTitleLabel.Text;
   MainForm.InfoPanelPathLabel.Text := Path;
   MainForm.InfoPanelPathLabel.Hint := MainForm.InfoPanelPathLabel.Text;
+  MainForm.DurationLabel.Text := Duration;
 end;
 
 class procedure TTools.ConnectGlowEffect(
@@ -721,7 +740,12 @@ begin
   FileName := ExtractFileName(APathFrom);
   PathTo := Concat(APathTo, PATH_SPLITTER, FileName);
   if TFileTools.MoveFile(APathFrom, PathTo, TCopyFileAction.caRename) = crOk then
+  begin
+    if Assigned(PlayListForm) then
+      PlayListForm.DeleteFrame(APathFrom);
+
     Result := true;
+  end;
 end;
 
 class function TTools.IsMouseOverControl(
@@ -786,9 +810,13 @@ end;
 
 class procedure TTools.SelectPlayItemsListFromDB(
   const AMainPath: String;
-  const APlayItemsList: TPlayItemsList);
+  const APlayItemsList: TPlayItemsList;
+  const ADuplicateMode: Boolean);
 begin
-  FDBAccess.SelectFromCatalogTable(AMainPath, APlayItemsList);
+  FDBAccess.SelectFromCatalogTable(
+    AMainPath,
+    APlayItemsList,
+    ADuplicateMode);
 end;
 
 class procedure TTools.OnMouseEnterHook(
