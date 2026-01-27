@@ -8,13 +8,13 @@ uses
   FMX.SingleSoundUnit, FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls,
   FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.Objects,
   FMX.FormExtUnit,
-  FMX.PopupMenuExtUnit,
+  FMX.PopupMenuExt,
   PlayListUnit, FMX.Ani, FMX.Effects
+  , FMX.HintUnit
   ;
 
 type
   TMainForm = class(TFormExt)
-    Memo1: TMemo;
     CurrentTimeLabel: TLabel;
     TopLeftControl: TRectangle;
     TopRightControl: TRectangle;
@@ -51,22 +51,21 @@ type
     BottomRightControlLabel: TLabel;
     InfoPanelPathLabel: TLabel;
     InfoPanelTitleLabel: TLabel;
-    LockerLayout: TLayout;
     DurationLabel: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
+    procedure ChangeViewControlClick(Sender: TObject);
   private
     FLeafePopupMenu: TPopupMenuExt;
     FMainPopupMenu: TPopupMenuExt;
+    FCustomHint: TCustomHint;
     procedure BuilPopupMenus;
     procedure ChooseDestinationMenuItemOnClick(Sender: TObject);
     procedure SetEmptyPathMenuItemOnClick(Sender: TObject);
     procedure OpenFolderMenuItemOnClick(Sender: TObject);
     procedure OnAfterSyncPlayList;
     procedure StartPlay;
-//    procedure StartPlayWhenAppStarted;
-//    procedure StartPlayFromBeginPlayList;
   public
     property LeafePopupMenu: TPopupMenuExt read FLeafePopupMenu;
     property MainPopupMenu: TPopupMenuExt read FMainPopupMenu;
@@ -83,14 +82,17 @@ uses
     System.Generics.Collections
   , System.UITypes
   , PlayControllerUnit
-  , MouseHandlersUnit
-  , ClickListenerThreadUnit
+  , MainFormMouseHandlersUnit
+  , PlayListFormMouseHandlersUnit
+  , PlayListItemFrameUnit
   , StateUnit
   , VisualSchemeUnit
   , ToolsUnit
   , ConstantsUnit
-  , FMX.HintUnit
+  , PlayListFormUnit
+  , PopupMenuExt.Item
   ;
+
 procedure TMainForm.CloseControlClick(Sender: TObject);
 begin
   TThread.ForceQueue(nil,
@@ -103,25 +105,9 @@ end;
 
 procedure TMainForm.StartPlay;
 var
-  PlayItemsList: TPlayItemsList;
-  PlayItem: TPlayItem;
   CurrentIndex: Integer;
   PlayState: TPlayState;
 begin
-//  if TPlayController.PlayList.Count = 0 then
-//    Exit;
-
-  PlayItemsList := TPlayController.PlayList.LockList;
-  try
-    Memo1.Lines.Clear;
-    for PlayItem in PlayItemsList do
-    begin
-      Memo1.Lines.Add(PlayItem.Path);
-    end;
-  finally
-    TPlayController.PlayList.UnlockList;
-  end;
-
   if TState.IsAppStarting then
   begin
     PlayState := TState.PlayState;
@@ -157,132 +143,134 @@ begin
   TPlayController.PlayList.SaveToDB;
 
   MainPath := TState.MainPath;
-  TPlayController.PlayList.ReloadPlayListFromDB(MainPath);
+  TPlayController.PlayList.ReloadPlayListFromDB(MainPath, TState.DuplicateMode);
 
   StartPlay;
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  ClickListenerThread: TClickListenerThread;
   MainPath: String;
-  CustomHint: TCustomHint;
 begin
   ReportMemoryLeaksOnShutdown := true;
 
-  TState.Init;
+  try
+    TState.Init;
 
-  TPlayController.Init(
-    ThreadFactory,
-    ThreadFactoryRegistry,
-    TimelineCaretControl,
-    TimelineControl,
-    CurrentTimeLabel);
+    TPlayController.Init(
+      ThreadFactory,
+      ThreadFactoryRegistry,
+      TimelineCaretControl,
+      TimelineControl,
+      CurrentTimeLabel);
 
-  TVisualScheme.Init;
-  TVisualScheme.Load(Self, 'Steampunk');
+    TVisualScheme.Init;
+    TVisualScheme.Load(Self, 'Steampunk');
 
-  MainPath := TState.MainPath;
-  TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
-  TPlayController.PlayList.SyncPlayLists(MainPath);
+    MainPath := TState.MainPath;
+    TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+    TPlayController.PlayList.SyncPlayLists(MainPath);
 
-  ClickListenerThread := TClickListenerThread.Create(ThreadFactory);
-  TMouseHandlers.Init(ClickListenerThread);
-
-  TMouseHandlers.ConnectHandlers([
-    InfoPanelTitleLabel,
-    InfoPanelPathLabel,
-    TopLeftControlLabel,
-    TopRightControlLabel,
-    BottomLeftControlLabel,
-    BottomRightControlLabel,
-    PlayControl,
-    TimelineCaretControl,
-    TopLeftControl,
-    TopRightControl,
-    BottomLeftControl,
-    BottomRightControl,
-    SoundControl,
-    PrevTrackControl,
-    NextTrackControl,
-    PrevNSecondsControl,
-    NextNSecondsControl,
-    VolumeCaretControl,
-    InfoPanelControl,
-    TimelineControl,
-    VolumeControl,
-    MarkModeControl,
-    CopyModeControl,
-    MoveModeControl,
-    SetOfPathsNumber1Control,
-    SetOfPathsNumber2Control,
-    SetOfPathsNumber3Control,
-    SetOfPathsNumber4Control
-  ]);
-
-  TTools.ConnectGlowEffect([
-    TimelineControl,
-    VolumeControl,
-    InfoPanelTitleLabel,
-    InfoPanelPathLabel,
-    TopLeftControlLabel,
-    TopRightControlLabel,
-    BottomLeftControlLabel,
-    BottomRightControlLabel
+    TMainFormMouseHandlers.ConnectHandlers([
+      InfoPanelTitleLabel,
+      InfoPanelPathLabel,
+      TopLeftControlLabel,
+      TopRightControlLabel,
+      BottomLeftControlLabel,
+      BottomRightControlLabel,
+      PlayControl,
+      TimelineCaretControl,
+      TopLeftControl,
+      TopRightControl,
+      BottomLeftControl,
+      BottomRightControl,
+      SoundControl,
+      PrevTrackControl,
+      NextTrackControl,
+      PrevNSecondsControl,
+      NextNSecondsControl,
+      VolumeCaretControl,
+      InfoPanelControl,
+      TimelineControl,
+      VolumeControl,
+      MarkModeControl,
+      CopyModeControl,
+      MoveModeControl,
+      DuplicateModeControl,
+      SetOfPathsNumber1Control,
+      SetOfPathsNumber2Control,
+      SetOfPathsNumber3Control,
+      SetOfPathsNumber4Control
     ]);
-  TTools.ConnectHeighlightGlowEffect([
-    TimelineControl,
-    VolumeControl,
-    InfoPanelTitleLabel,
-    InfoPanelPathLabel,
-    TopLeftControlLabel,
-    TopRightControlLabel,
-    BottomLeftControlLabel,
-    BottomRightControlLabel
-    ],
-    TAlphaColorRec.Limegreen,
-    HEIGHLIGTH_GLOW_EFFECT_IDENT);
-  TTools.ConnectHeighlightGlowEffect([
-    TimelineControl,
-    VolumeControl,
-    InfoPanelTitleLabel,
-    InfoPanelPathLabel,
-    TopLeftControlLabel,
-    TopRightControlLabel,
-    BottomLeftControlLabel,
-    BottomRightControlLabel
-    ],
-    TAlphaColorRec.Red,
-    FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT);
 
-  TPlayController.HeighlightMarkMode;
-  TPlayController.HeighlightCopyMode;
-  TState.SetOfPathsIndex := TState.SetOfPathsIndex;
+    TTools.ConnectGlowEffect([
+      TimelineControl,
+      VolumeControl,
+      InfoPanelTitleLabel,
+      InfoPanelPathLabel,
+      TopLeftControlLabel,
+      TopRightControlLabel,
+      BottomLeftControlLabel,
+      BottomRightControlLabel
+      ]);
+    TTools.ConnectHeighlightGlowEffect([
+      TimelineControl,
+      VolumeControl,
+      InfoPanelTitleLabel,
+      InfoPanelPathLabel,
+      TopLeftControlLabel,
+      TopRightControlLabel,
+      BottomLeftControlLabel,
+      BottomRightControlLabel
+      ],
+      TAlphaColorRec.Limegreen,
+      HEIGHLIGTH_GLOW_EFFECT_IDENT);
+    TTools.ConnectHeighlightGlowEffect([
+      TimelineControl,
+      VolumeControl,
+      InfoPanelTitleLabel,
+      InfoPanelPathLabel,
+      TopLeftControlLabel,
+      TopRightControlLabel,
+      BottomLeftControlLabel,
+      BottomRightControlLabel
+      ],
+      TAlphaColorRec.Red,
+      FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT);
 
-  PlayControl.BringToFront;
+    TPlayController.HeighlightMarkMode;
+    TPlayController.HeighlightCopyMode;
+    TPlayController.HeighlightDuplicateMode;
+    TState.SetOfPathsIndex := TState.SetOfPathsIndex;
 
-  BuilPopupMenus;
+    PlayControl.BringToFront;
 
-  TTools.OnMouseEnterHook(InfoPanelTitleLabel, InfoPanelControl);
-  TTools.OnMouseEnterHook(InfoPanelPathLabel, InfoPanelControl);
-  TTools.OnMouseEnterHook(TopLeftControlLabel, TopLeftControl);
-  TTools.OnMouseEnterHook(TopRightControlLabel, TopRightControl);
-  TTools.OnMouseEnterHook(BottomLeftControlLabel, BottomLeftControl);
-  TTools.OnMouseEnterHook(BottomRightControlLabel, BottomRightControl);
+    BuilPopupMenus;
 
-  TTools.OnMouseLeaveHook(InfoPanelTitleLabel, InfoPanelControl);
-  TTools.OnMouseLeaveHook(InfoPanelPathLabel, InfoPanelControl);
-  TTools.OnMouseLeaveHook(TopLeftControlLabel, TopLeftControl);
-  TTools.OnMouseLeaveHook(TopRightControlLabel, TopRightControl);
-  TTools.OnMouseLeaveHook(BottomLeftControlLabel, BottomLeftControl);
-  TTools.OnMouseLeaveHook(BottomRightControlLabel, BottomRightControl);
+    TTools.OnMouseEnterHook(InfoPanelTitleLabel, InfoPanelControl);
+    TTools.OnMouseEnterHook(InfoPanelPathLabel, InfoPanelControl);
+    TTools.OnMouseEnterHook(TopLeftControlLabel, TopLeftControl);
+    TTools.OnMouseEnterHook(TopRightControlLabel, TopRightControl);
+    TTools.OnMouseEnterHook(BottomLeftControlLabel, BottomLeftControl);
+    TTools.OnMouseEnterHook(BottomRightControlLabel, BottomRightControl);
 
-  CustomHint := TCustomHint.Create(Self);
-  CustomHint.HookHints(Self);
-  CustomHint.Theme.BackgroundColor := $FF994A00;
-  CustomHint.Theme.CommonTextProps.TextSettings.FontColor := TAlphaColorRec.White;
-  CustomHint.Theme.CommonTextProps.CopyFromOrigin(InfoPanelTitleLabel);
-  CustomHint.Theme.Apply;
+    TTools.OnMouseLeaveHook(InfoPanelTitleLabel, InfoPanelControl);
+    TTools.OnMouseLeaveHook(InfoPanelPathLabel, InfoPanelControl);
+    TTools.OnMouseLeaveHook(TopLeftControlLabel, TopLeftControl);
+    TTools.OnMouseLeaveHook(TopRightControlLabel, TopRightControl);
+    TTools.OnMouseLeaveHook(BottomLeftControlLabel, BottomLeftControl);
+    TTools.OnMouseLeaveHook(BottomRightControlLabel, BottomRightControl);
+
+    FCustomHint := TCustomHint.Create(Self);
+    FCustomHint.Theme.BackgroundColor := $FF994A00;
+    FCustomHint.Theme.TextSettings.CopyFrom(InfoPanelTitleLabel);
+    FCustomHint.Theme.Apply;
+
+    TState.MainFormPos.RestorePosition(Self);
+  except
+    on e: Exception do
+      raise Exception.Create(e.Message);
+  end;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -290,6 +278,10 @@ begin
   TState.CurrentTime := TPlayController.CurrentTime;
   TState.Composition := TPlayController.PlayList.CurrentComposition;
   TState.MainPath := ExtractFilePath(TState.Composition);
+
+  TState.MainFormPos.SavePosition(Self);
+
+  FreeAndNil(FCustomHint);
 
   TPlayController.UnInit;
   TVisualScheme.UnInit;
@@ -320,6 +312,49 @@ begin
   MenuItem.Text := 'Open folder';
   MenuItem.OnClick := OpenFolderMenuItemOnClick;
   FMainPopupMenu.Add(MenuItem);
+end;
+
+procedure TMainForm.ChangeViewControlClick(Sender: TObject);
+
+  function _IfThenElse(
+    const AVlue: Integer;
+    const AIfValue: Integer;
+    const AThenValue: Integer): Integer;
+  begin
+    Result := AVlue;
+    if AVlue = AIfValue then
+      Result := AThenValue;
+  end;
+
+begin
+  if not Assigned(PlayListForm) then
+  begin
+    PlayListForm := TPlayListForm.Create(nil);
+    PlayListForm.Top := _IfThenElse(
+      PlayListForm.Top,
+      0,
+      Self.Top + Self.Height + 30);
+    PlayListForm.Width := _IfThenElse(
+      PlayListForm.Width,
+      0,
+      Self.Width);
+    PlayListForm.Left := _IfThenElse(
+      PlayListForm.Left,
+      0,
+      Self.Left);
+    PlayListForm.Theme.NormalBackgroundColor := $FFC55F00;
+    PlayListForm.Theme.FocusedBackgroundColor := $FF994A00;
+    PlayListForm.Theme.FocusFrameColor := $FFFF9921;
+    PlayListForm.Theme.TextSettings.CopyFrom(InfoPanelTitleLabel);
+    PlayListForm.Show;
+
+    TPlayController.RefreshPlayListForm;
+  end
+  else
+  begin
+    PlayListForm.Close;
+    PlayListForm := nil;
+  end;
 end;
 
 procedure TMainForm.ChooseDestinationMenuItemOnClick(Sender: TObject);

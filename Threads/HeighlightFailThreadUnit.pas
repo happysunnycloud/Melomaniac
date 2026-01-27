@@ -21,7 +21,7 @@ type
     procedure SetAfterDestroyProcRef(
       const AAfterDestroyProcRef: TAfterDestroyProcRef);
   protected
-    procedure Execute(const AThread: TThreadExt); reintroduce; // override;
+    procedure InnerExecute; override;
   public
     constructor Create(
       const AThreadFactory: TThreadFactory;
@@ -59,9 +59,7 @@ begin
 
   inherited Create(
     AThreadFactory,
-    AThreadName,
-    Execute,
-    false);
+    AThreadName);
 end;
 
 destructor THeighlightFailThread.Destroy;
@@ -94,7 +92,7 @@ begin
   end;
 end;
 
-procedure THeighlightFailThread.Execute(const AThread: TThreadExt);
+procedure THeighlightFailThread.InnerExecute;
 var
   Control: TControl;
   Count: Integer;

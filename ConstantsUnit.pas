@@ -3,7 +3,7 @@
 interface
 
 const
-  REWIND_TIME = 2;
+  REWIND_TIME = 1;
   PLAY_LIST_RELOAD_THREAD_COUNT = 10;
   CONTROL_NAME_TAIL = 'Control';
   BITMAP_PLAY_IDENT = 'Play';

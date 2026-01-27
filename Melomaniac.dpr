@@ -13,7 +13,6 @@ uses
   ObjectRegistryUnit in '..\DevelopmentsCollection\ObjectRegistryUnit.pas',
   PlayListUnit in 'PlayListUnit.pas',
   LockedListExtUnit in '..\DevelopmentsCollection\LockedListExtUnit.pas',
-  MouseHandlersUnit in 'MouseHandlersUnit.pas',
   StringToolsUnit in '..\DevelopmentsCollection\StringToolsUnit.pas',
   PlayControllerUnit in 'PlayControllerUnit.pas',
   StateUnit in 'StateUnit.pas',
@@ -25,9 +24,14 @@ uses
   FMX.ControlToolsUnit in '..\DevelopmentsCollection\FMX.ControlToolsUnit.pas',
   BitmapStorageUnit in 'BitmapStorageUnit.pas',
   ToolsUnit in 'ToolsUnit.pas',
-  FMX.PopupMenuExtUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtUnit.pas',
-  FMX.PopupMenuExtFormUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtFormUnit.pas',
-  FMX.PopupMenuExtThreadUnit in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExtThreadUnit.pas',
+  FMX.PopupMenuExt in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.pas',
+  FMX.PopupMenuExt.BaseClass in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.BaseClass.pas',
+  FMX.PopupMenuExt.Constants in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.Constants.pas',
+  PopupMenuExt.Item in '..\DevelopmentsCollection\FMX.PopupMenuExt\PopupMenuExt.Item.pas',
+  FMX.PopupMenuExt.Form in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.Form.pas',
+  FMX.PopupMenuExt.Layout in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.Layout.pas',
+  FMX.PopupMenuExt.Thread in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.Thread.pas',
+  FMX.PopupMenuExt.Windows in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.Windows.pas',
   FMX.ThemeUnit in '..\DevelopmentsCollection\FMX.ThemeUnit.pas',
   DebugUnit in '..\DevelopmentsCollection\DebugUnit.pas',
   FileToolsUnit in '..\DevelopmentsCollection\FileToolsUnit.pas',
@@ -52,7 +56,11 @@ uses
   BorderFrameTypesUnit in '..\DevelopmentsCollection\BorderFrame\BorderFrameTypesUnit.pas',
   TimelineTrackerThreadUnit in 'Threads\TimelineTrackerThreadUnit.pas',
   HeighlightFailThreadUnit in 'Threads\HeighlightFailThreadUnit.pas',
-  ClickListenerThreadUnit in 'Threads\ClickListenerThreadUnit.pas';
+  PlayListFormUnit in 'PlayListForm\PlayListFormUnit.pas' {PlayListForm},
+  PlayListItemFrameUnit in 'PlayListForm\PlayListItemFrameUnit.pas' {PlayListItemFrame: TFrame},
+  BaseMouseHandlersUnit in 'MouseHandlers\BaseMouseHandlersUnit.pas',
+  MainFormMouseHandlersUnit in 'MouseHandlers\MainFormMouseHandlersUnit.pas',
+  PlayListFormMouseHandlersUnit in 'MouseHandlers\PlayListFormMouseHandlersUnit.pas';
 
 {$R *.res}
 
