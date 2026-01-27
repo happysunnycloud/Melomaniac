@@ -7,6 +7,10 @@ CREATE TABLE if not exists catalog (
     album     TEXT,
     year      INTEGER,
     duration  INTEGER,
-	UNIQUE(path, file_name)
+    md5       TEXT,
+    sha256    TEXT,    
+    file_size INTEGER,
+    UNIQUE(path, file_name)
 );
 
+CREATE INDEX if not exists idx_files_hash_size ON catalog(file_size, md5, sha256);
