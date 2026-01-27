@@ -5,7 +5,10 @@ INSERT INTO catalog (
                         artist,
                         album,
                         year,
-                        duration
+                        duration,
+                        md5,
+                        sha256,
+                        file_size
                     )
                     VALUES (
                         :path,
@@ -14,5 +17,8 @@ INSERT INTO catalog (
                         :artist,
                         :album,
                         :year,
-                        :duration
+                        :duration,
+                        :md5,
+                        :sha256,
+                        :file_size
                     );
