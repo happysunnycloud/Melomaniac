@@ -677,7 +677,7 @@ end;
 
 class procedure TTools.CreateHeighlightFailThread(const AControl: TControl);
 begin
-  MainForm.ThreadFactory.CreateFreeOnTerminateThread(
+  MainForm.ThreadFactory.CreateFreeOnTerminateInlineThread(
     'HeighlightFailThread',
     procedure (const AThread: TThreadExt)
     var
