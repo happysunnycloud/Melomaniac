@@ -7,8 +7,8 @@ uses
   FMX.SingleSoundUnit in '..\DevelopmentsCollection\FMX.SingleSoundUnit.pas',
   ThreadFactoryUnit in '..\DevelopmentsCollection\ThreadFactoryUnit.pas',
   ThreadRegistryUnit in '..\DevelopmentsCollection\ThreadRegistryUnit.pas',
-  ParamsExtUnit in '..\DevelopmentsCollection\ParamsExtUnit.pas',
   FMX.FormExtUnit in '..\DevelopmentsCollection\FMX.FormExtUnit.pas',
+//  FMX.FormExt.Types in '..\DevelopmentsCollection\FMX.FormExt.Types.pas',
   ThreadFactoryRegistryUnit in '..\DevelopmentsCollection\ThreadFactoryRegistryUnit.pas',
   ObjectRegistryUnit in '..\DevelopmentsCollection\ObjectRegistryUnit.pas',
   PlayListUnit in 'PlayListUnit.pas',
@@ -32,7 +32,8 @@ uses
   FMX.PopupMenuExt.Layout in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.Layout.pas',
   FMX.PopupMenuExt.Thread in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.Thread.pas',
   FMX.PopupMenuExt.Windows in '..\DevelopmentsCollection\FMX.PopupMenuExt\FMX.PopupMenuExt.Windows.pas',
-  FMX.ThemeUnit in '..\DevelopmentsCollection\FMX.ThemeUnit.pas',
+  FMX.Theme in '..\DevelopmentsCollection\FMX.Theme\FMX.Theme.pas',
+  FMX.Theme.Types in '..\DevelopmentsCollection\FMX.Theme\FMX.Theme.Types.pas',
   DebugUnit in '..\DevelopmentsCollection\DebugUnit.pas',
   FileToolsUnit in '..\DevelopmentsCollection\FileToolsUnit.pas',
   AudioFormatDetectorUnit in 'AudioFormatDetectorUnit.pas',
@@ -51,16 +52,18 @@ uses
   FMX.HintThreadUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintThreadUnit.pas',
   FMX.HintUnit in '..\DevelopmentsCollection\FMX.Hint\FMX.HintUnit.pas',
   FMX.TrayIcon.Win in '..\DevelopmentsCollection\FMX.TrayIcon.Win.pas',
-  BorderFrameUnit in '..\DevelopmentsCollection\BorderFrame\BorderFrameUnit.pas' {BorderFrame: TFrame},
+  BorderFrameUnit in 'FMX.BorderFrame\BorderFrameUnit.pas' {BorderFrame: TFrame},
   FMX.ImageToolsUnit in '..\DevelopmentsCollection\FMX.ImageToolsUnit.pas',
-  BorderFrameTypesUnit in '..\DevelopmentsCollection\BorderFrame\BorderFrameTypesUnit.pas',
   TimelineTrackerThreadUnit in 'Threads\TimelineTrackerThreadUnit.pas',
   HeighlightFailThreadUnit in 'Threads\HeighlightFailThreadUnit.pas',
   PlayListFormUnit in 'PlayListForm\PlayListFormUnit.pas' {PlayListForm},
   PlayListItemFrameUnit in 'PlayListForm\PlayListItemFrameUnit.pas' {PlayListItemFrame: TFrame},
   BaseMouseHandlersUnit in 'MouseHandlers\BaseMouseHandlersUnit.pas',
   MainFormMouseHandlersUnit in 'MouseHandlers\MainFormMouseHandlersUnit.pas',
-  PlayListFormMouseHandlersUnit in 'MouseHandlers\PlayListFormMouseHandlersUnit.pas';
+  PlayListFormMouseHandlersUnit in 'MouseHandlers\PlayListFormMouseHandlersUnit.pas',
+  ParamsExtUnit in '..\DevelopmentsCollection\ParamsExt\ParamsExtUnit.pas',
+  BinFileTypes in '..\DevelopmentsCollection\Types\BinFileTypes.pas',
+  StreamHandler in '..\DevelopmentsCollection\Stream\StreamHandler.pas';
 
 {$R *.res}
 

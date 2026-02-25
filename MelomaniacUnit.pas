@@ -262,9 +262,9 @@ begin
     TTools.OnMouseLeaveHook(BottomRightControlLabel, BottomRightControl);
 
     FCustomHint := TCustomHint.Create(Self);
-    FCustomHint.Theme.BackgroundColor := $FF994A00;
-    FCustomHint.Theme.TextSettings.CopyFrom(InfoPanelTitleLabel);
-    FCustomHint.Theme.Apply;
+    FCustomHint.Theme.HintSettings.BackgroundColor := $FF994A00;
+    FCustomHint.Theme.HintSettings.CustomTextSettings.FontColor :=
+      InfoPanelTitleLabel.TextSettings.FontColor;
 
     TState.MainFormPos.RestorePosition(Self);
   except
@@ -342,11 +342,17 @@ begin
       PlayListForm.Left,
       0,
       Self.Left);
-    PlayListForm.Theme.NormalBackgroundColor := $FFC55F00;
-    PlayListForm.Theme.FocusedBackgroundColor := $FF994A00;
-    PlayListForm.Theme.FocusFrameColor := $FFFF9921;
+
+    PlayListForm.Theme.FormSettings.BorderFrameColor := $FFFFB800;
+    PlayListForm.Theme.FormSettings.Container := PlayListForm;
+    PlayListForm.Theme.ItemSettings.BackgroundColor := $FFC55F00;
+    PlayListForm.Theme.ItemSettings.Container := PlayListForm.ScrollBox;
+    PlayListForm.Theme.ItemSettings.FocusedBackgroundColor := $FF994A00;
+    PlayListForm.Theme.ItemSettings.FocusFrameColor := $FFFF9921;
     PlayListForm.Theme.TextSettings.CopyFrom(InfoPanelTitleLabel);
+    PlayListForm.Theme.FormSettings.Apply;
     PlayListForm.Show;
+    PlayListForm.Theme.ItemSettings.Apply;
 
     TPlayController.RefreshPlayListForm;
   end

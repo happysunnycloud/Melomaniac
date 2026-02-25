@@ -9,6 +9,10 @@ uses
   , BitmapStorageUnit
   ;
 
+const
+  PACKED_IMAGES_FILE = 'Images.pck';
+  PACKER_SETTINGS_FILE = 'Settings.thm';
+
 type
   TVisualScheme = class
   strict private
@@ -33,9 +37,11 @@ implementation
 uses
     System.SysUtils
   , FMX.MultiResBitmapExtractorUnit
+  , ParamsExtractorUnit
   , FMX.ControlToolsUnit
   , FMX.Graphics
   , FMX.Objects
+  , ParamsExtUnit
   , ConstantsUnit
   ;
 
@@ -53,18 +59,37 @@ begin
   FreeAndNil(FBitmapStorage);
 end;
 
+//class function TVisualScheme.GetSchemeFileName(
+//  const ASchemeName: String): String;
+//var
+//  RootName: String;
+//begin
+//  RootName := 'PCKs';
+//  {$IFDEF DEBUG}
+//  Result := Format('..\..\%s', [RootName]);
+//  {$ELSE}
+//  Result := Format('%s', [RootName]);
+//  {$ENDIF}
+//  Result := Concat(Result, PATH_SPLITTER, ASchemeName, '.pck');
+//
+//  if not FileExists(Result) then
+//    raise Exception.
+//      CreateFmt('TVisualScheme.GetSchemeFileName -> File "%s" not exists',
+//      [Result]);
+//end;
+
 class function TVisualScheme.GetSchemeFileName(
   const ASchemeName: String): String;
 var
   RootName: String;
 begin
-  RootName := 'PCKs';
+  RootName := 'Themes';
   {$IFDEF DEBUG}
   Result := Format('..\..\%s', [RootName]);
   {$ELSE}
   Result := Format('%s', [RootName]);
   {$ENDIF}
-  Result := Concat(Result, PATH_SPLITTER, ASchemeName, '.pck');
+  Result := Concat(Result, PATH_SPLITTER, ASchemeName, '.mth');
 
   if not FileExists(Result) then
     raise Exception.
@@ -79,9 +104,26 @@ var
   ResBitmapList: TResBitmapList;
   BitmapExt: TBitmapExt;
   SourceBitmap: TBitmap;
+  Params: TParamsExt;
+  SchemeFileName: String;
 begin
+  SchemeFileName := GetSchemeFileName(ASchemeName);
+
+  Params := TParamsExt.Create;
+  try
+    TParamsExtractor.ExtractToParams(
+      SchemeFileName,
+      PACKER_SETTINGS_FILE,
+      Params);
+
+     AForm.Theme.ParamsToSettings(Params);
+  finally
+    FreeAndNil(Params);
+  end;
+
   TMultiResBitmapExtractor.Extract(
-    GetSchemeFileName(ASchemeName),
+    SchemeFileName,
+    PACKED_IMAGES_FILE,
     FMultiResBitmaps);
 
   ResBitmapList := FMultiResBitmaps.FindResBitmapListByIdent('');
@@ -113,6 +155,15 @@ begin
 
     BitmapExt.Assign(SourceBitmap);
   end;
+
+  AForm.Theme.CommonSettings.Container := AForm;
+  AForm.Theme.CommonSettings.OnApplyProcRef :=
+    procedure (const AControl: TControl; const ACommonSettings: TCommonSettings)
+    begin
+      ACommonSettings.CustomTextSettings.ApplyTo(AControl);
+    end;
+
+  AForm.Theme.Apply;
 end;
 
 class procedure TVisualScheme.AssignBitmap(

@@ -7,7 +7,8 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
   System.Generics.Collections,
   FMX.FormExtUnit,
-  FMX.ThemeUnit,
+//  FMX.FormExt.Types,
+  FMX.Theme,
   PlayListItemFrameUnit,
   PlayListUnit
   ;
@@ -215,7 +216,8 @@ begin
     for Control in ScrollBox.Content.Controls do
     begin
       PlayListItemFrame := Control as TPlayListItemFrame;
-      PlayListItemFrame.BackgroundRectangle.Fill.Color := Theme.NormalBackgroundColor;
+      PlayListItemFrame.BackgroundRectangle.Fill.Color :=
+        Theme.ItemSettings.BackgroundColor;
     end;
   finally
     ScrollBox.EndUpdate;
@@ -226,7 +228,8 @@ begin
     Exit;
 
   PlayListItemFrame := Control as TPlayListItemFrame;
-  PlayListItemFrame.BackgroundRectangle.Fill.Color := Theme.FocusedBackgroundColor;
+  PlayListItemFrame.BackgroundRectangle.Fill.Color :=
+    Theme.ItemSettings.FocusedBackgroundColor
 end;
 
 procedure TPlayListForm.ScrollToItem(const APath: String);
@@ -250,43 +253,74 @@ end;
 procedure TPlayListForm.FormCreate(Sender: TObject);
 begin
   FOnItemClick := nil;
-  BorderFrame.BorderFrameKind := TBorderFrameKind.bfkNoCaption;
+  BorderFrame.Kind := TBorderFrameKind.bfkNoCaption;
   Self.Fill.Kind := TBrushKind.Solid;
   FPathControlDict := TDictionary<String, TControl>.Create;
-  Theme.OnApplyProcRef :=
-    procedure
+  Theme.ItemSettings.OnApplyProcRef :=
+    procedure (const AControl: TControl; const AItemSettings: TItemSettings)
     var
       PlayListItemFrame: TPlayListItemFrame;
     begin
-      Self.Fill.Color := Theme.BackgroundColor;
-      ScrollBox.ControlsEnumerator(
-        procedure (const AControl: TControl)
-        begin
-          if not (AControl is TPlayListItemFrame) then
-            Exit;
+      Self.Fill.Color := Theme.FormSettings.BackgroundColor;
+      if not (AControl is TPlayListItemFrame) then
+        Exit;
 
-          PlayListItemFrame := AControl as TPlayListItemFrame;
-          PlayListItemFrame.BackgroundRectangle.Fill.Color := Theme.NormalBackgroundColor;
-          PlayListItemFrame.FocusFrameRectangle.Stroke.Color := Theme.FocusFrameColor;
+      PlayListItemFrame := AControl as TPlayListItemFrame;
+      PlayListItemFrame.BackgroundRectangle.Fill.Color :=
+        Theme.ItemSettings.BackgroundColor;
+      PlayListItemFrame.FocusFrameRectangle.Stroke.Color :=
+        Theme.ItemSettings.FocusFrameColor;
 
-          PlayListItemFrame.NumberLabel.StyledSettings := [];
-          PlayListItemFrame.PathLabel.StyledSettings := [];
-          PlayListItemFrame.TitleLabel.StyledSettings := [];
-          PlayListItemFrame.ArtistLabel.StyledSettings := [];
-          PlayListItemFrame.AlbumLabel.StyledSettings := [];
-          PlayListItemFrame.DurationLabel.StyledSettings := [];
+      PlayListItemFrame.NumberLabel.StyledSettings := [];
+      PlayListItemFrame.PathLabel.StyledSettings := [];
+      PlayListItemFrame.TitleLabel.StyledSettings := [];
+      PlayListItemFrame.ArtistLabel.StyledSettings := [];
+      PlayListItemFrame.AlbumLabel.StyledSettings := [];
+      PlayListItemFrame.DurationLabel.StyledSettings := [];
 
-          Theme.TextSettings.ApplyTo(PlayListItemFrame.NumberLabel);
-          Theme.TextSettings.ApplyTo(PlayListItemFrame.PathLabel);
-          Theme.TextSettings.ApplyTo(PlayListItemFrame.TitleLabel);
-          Theme.TextSettings.ApplyTo(PlayListItemFrame.ArtistLabel);
-          Theme.TextSettings.ApplyTo(PlayListItemFrame.AlbumLabel);
-          Theme.TextSettings.ApplyTo(PlayListItemFrame.DurationLabel);
-          PlayListItemFrame.DurationLabel.TextAlign := TTextAlign.Trailing;
-        end);
-
-      BorderFrame.BorderColor := Theme.FocusFrameColor;
+      Theme.TextSettings.ApplyTo(PlayListItemFrame.NumberLabel);
+      Theme.TextSettings.ApplyTo(PlayListItemFrame.PathLabel);
+      Theme.TextSettings.ApplyTo(PlayListItemFrame.TitleLabel);
+      Theme.TextSettings.ApplyTo(PlayListItemFrame.ArtistLabel);
+      Theme.TextSettings.ApplyTo(PlayListItemFrame.AlbumLabel);
+      Theme.TextSettings.ApplyTo(PlayListItemFrame.DurationLabel);
+      PlayListItemFrame.DurationLabel.TextAlign := TTextAlign.Trailing;
     end;
+
+//  Theme.OnApplyProcRef :=
+//    procedure
+//    var
+//      PlayListItemFrame: TPlayListItemFrame;
+//    begin
+//      Self.Fill.Color := Theme.FormSettings.BackgroundColor;
+//      ScrollBox.ControlsEnumerator(
+//        procedure (const AControl: TControl)
+//        begin
+//          if not (AControl is TPlayListItemFrame) then
+//            Exit;
+//
+//          PlayListItemFrame := AControl as TPlayListItemFrame;
+//          PlayListItemFrame.BackgroundRectangle.Fill.Color :=
+//            Theme.ItemSettings.ItemBackgroundColor;
+//          PlayListItemFrame.FocusFrameRectangle.Stroke.Color :=
+//            Theme.ItemSettings.FocusFrameColor;
+//
+//          PlayListItemFrame.NumberLabel.StyledSettings := [];
+//          PlayListItemFrame.PathLabel.StyledSettings := [];
+//          PlayListItemFrame.TitleLabel.StyledSettings := [];
+//          PlayListItemFrame.ArtistLabel.StyledSettings := [];
+//          PlayListItemFrame.AlbumLabel.StyledSettings := [];
+//          PlayListItemFrame.DurationLabel.StyledSettings := [];
+//
+//          Theme.TextSettings.ApplyTo(PlayListItemFrame.NumberLabel);
+//          Theme.TextSettings.ApplyTo(PlayListItemFrame.PathLabel);
+//          Theme.TextSettings.ApplyTo(PlayListItemFrame.TitleLabel);
+//          Theme.TextSettings.ApplyTo(PlayListItemFrame.ArtistLabel);
+//          Theme.TextSettings.ApplyTo(PlayListItemFrame.AlbumLabel);
+//          Theme.TextSettings.ApplyTo(PlayListItemFrame.DurationLabel);
+//          PlayListItemFrame.DurationLabel.TextAlign := TTextAlign.Trailing;
+//        end);
+//    end;
 
   TState.PlayListFormPos.RestorePosition(Self);
 end;
