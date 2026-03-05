@@ -262,9 +262,7 @@ begin
     TTools.OnMouseLeaveHook(BottomRightControlLabel, BottomRightControl);
 
     FCustomHint := TCustomHint.Create(Self);
-    FCustomHint.Theme.HintSettings.BackgroundColor := $FF994A00;
-    FCustomHint.Theme.HintSettings.CustomTextSettings.FontColor :=
-      InfoPanelTitleLabel.TextSettings.FontColor;
+    FCustomHint.Theme.CopyFrom(Theme.HintTheme);
 
     TState.MainFormPos.RestorePosition(Self);
   except
@@ -293,7 +291,7 @@ var
   MenuItem: TItem;
 begin
   FLeafePopupMenu := TPopupMenuExt.Create(Self);
-//  TState.MenuTheme.CopyTo(FSettingsPopupMenuExt.Theme);
+  FLeafePopupMenu.Theme.CopyFrom(Self.Theme.PopUpMenuTheme);
 
   MenuItem := TItem.Create;
   MenuItem.Text := 'Choose destination';
@@ -306,7 +304,7 @@ begin
   FLeafePopupMenu.Add(MenuItem);
 
   FMainPopupMenu := TPopupMenuExt.Create(Self);
-//  TState.MenuTheme.CopyTo(FSettingsPopupMenuExt.Theme);
+  FMainPopupMenu.Theme.CopyFrom(Self.Theme.PopUpMenuTheme);
 
   MenuItem := TItem.Create;
   MenuItem.Text := 'Open folder';
@@ -349,7 +347,8 @@ begin
     PlayListForm.Theme.ItemSettings.Container := PlayListForm.ScrollBox;
     PlayListForm.Theme.ItemSettings.FocusedBackgroundColor := $FF994A00;
     PlayListForm.Theme.ItemSettings.FocusFrameColor := $FFFF9921;
-    PlayListForm.Theme.TextSettings.CopyFrom(InfoPanelTitleLabel);
+    PlayListForm.Theme.ItemSettings.CustomTextSettings.Assign(
+      InfoPanelTitleLabel.TextSettings);
     PlayListForm.Theme.FormSettings.Apply;
     PlayListForm.Show;
     PlayListForm.Theme.ItemSettings.Apply;

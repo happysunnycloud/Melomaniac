@@ -278,12 +278,13 @@ begin
       PlayListItemFrame.AlbumLabel.StyledSettings := [];
       PlayListItemFrame.DurationLabel.StyledSettings := [];
 
-      Theme.TextSettings.ApplyTo(PlayListItemFrame.NumberLabel);
-      Theme.TextSettings.ApplyTo(PlayListItemFrame.PathLabel);
-      Theme.TextSettings.ApplyTo(PlayListItemFrame.TitleLabel);
-      Theme.TextSettings.ApplyTo(PlayListItemFrame.ArtistLabel);
-      Theme.TextSettings.ApplyTo(PlayListItemFrame.AlbumLabel);
-      Theme.TextSettings.ApplyTo(PlayListItemFrame.DurationLabel);
+      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.NumberLabel);
+      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.PathLabel);
+      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.TitleLabel);
+      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.ArtistLabel);
+      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.AlbumLabel);
+      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.DurationLabel);
+
       PlayListItemFrame.DurationLabel.TextAlign := TTextAlign.Trailing;
     end;
 
