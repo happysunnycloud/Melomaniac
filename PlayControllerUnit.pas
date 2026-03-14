@@ -678,6 +678,9 @@ begin
 
   PlayListForm.Refresh(PlayList);
   PlayListForm.Theme.Apply;
+  if PlayList.Count = 0 then
+    Exit;
+
   PlayListForm.Select(TPlayController.PlayList.First.Path);
 end;
 

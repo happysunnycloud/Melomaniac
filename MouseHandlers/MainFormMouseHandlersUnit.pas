@@ -300,7 +300,10 @@ begin
       TPlayController.PlayList.ReloadPlayListFromDB(
         TState.MainPath,
         TState.DuplicateMode);
+
       TPlayController.RefreshPlayListForm;
+      if TPlayController.PlayList.Count = 0 then
+        Exit;
 
       TPlayController.PlayOf(TPlayController.PlayList.FirstComposition);
     end

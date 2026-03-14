@@ -85,7 +85,8 @@ begin
 
   inherited Create(
     AThreadFactory,
-    'TTAGReaderThread');
+    '');
+//    'TTAGReaderThread');
 end;
 
 procedure TTAGReaderThread.InnerExecute;
