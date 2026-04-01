@@ -60,9 +60,10 @@ type
     FLeafePopupMenu: TPopupMenuExt;
     FMainPopupMenu: TPopupMenuExt;
     FCustomHint: TCustomHint;
-    procedure BuilPopupMenus;
+    procedure BuildPopupMenus;
     procedure ChooseDestinationMenuItemOnClick(Sender: TObject);
     procedure SetEmptyPathMenuItemOnClick(Sender: TObject);
+    procedure GotoThisPathMenuItemOnClick(Sender: TObject);
     procedure OpenFolderMenuItemOnClick(Sender: TObject);
     procedure OnAfterSyncPlayList;
     procedure StartPlay;
@@ -144,6 +145,7 @@ begin
 
   MainPath := TState.MainPath;
   TPlayController.PlayList.ReloadPlayListFromDB(MainPath, TState.DuplicateMode);
+  TPlayController.RefreshPlayListForm;
 
   StartPlay;
 end;
@@ -245,7 +247,7 @@ begin
 
     PlayControl.BringToFront;
 
-    BuilPopupMenus;
+    BuildPopupMenus;
 
     TTools.OnMouseEnterHook(InfoPanelTitleLabel, InfoPanelControl);
     TTools.OnMouseEnterHook(InfoPanelPathLabel, InfoPanelControl);
@@ -286,7 +288,7 @@ begin
   TState.UnInit;
 end;
 
-procedure TMainForm.BuilPopupMenus;
+procedure TMainForm.BuildPopupMenus;
 var
   MenuItem: TItem;
 begin
@@ -301,6 +303,11 @@ begin
   MenuItem := TItem.Create;
   MenuItem.Text := 'Set empty path';
   MenuItem.OnClick := SetEmptyPathMenuItemOnClick;
+  FLeafePopupMenu.Add(MenuItem);
+
+  MenuItem := TItem.Create;
+  MenuItem.Text := 'Go to this path';
+  MenuItem.OnClick := GotoThisPathMenuItemOnClick;
   FLeafePopupMenu.Add(MenuItem);
 
   FMainPopupMenu := TPopupMenuExt.Create(Self);
@@ -372,19 +379,42 @@ begin
   TTools.SetLeafeEmptyPath(TControl(FLeafePopupMenu.CallingObject));
 end;
 
-procedure TMainForm.OpenFolderMenuItemOnClick(Sender: TObject);
+procedure TMainForm.GotoThisPathMenuItemOnClick(Sender: TObject);
 var
   MainPath: String;
 begin
+  MainPath := TTools.LeafePath(TControl(FLeafePopupMenu.CallingObject));
+  if MainPath.IsEmpty then
+    Exit;
+
+  TState.MainPath := MainPath;
+
   TPlayController.Stop;
   TPlayController.PlayList.Clear;
 
   TState.CurrentTime := 0;
-  TTools.ChooseMainFolder;
 
-  MainPath := TState.MainPath;
   TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
-  TPlayController.PlayList.SyncPlayLists(MainPath);
+  TPlayController.PlayList.SyncPlayLists(TState.MainPath);
+end;
+
+procedure TMainForm.OpenFolderMenuItemOnClick(Sender: TObject);
+var
+  MainPath: String;
+begin
+  MainPath := TTools.ChooseMainFolder;
+  if MainPath.IsEmpty then
+    Exit;
+
+  TState.MainPath := MainPath;
+
+  TPlayController.Stop;
+  TPlayController.PlayList.Clear;
+
+  TState.CurrentTime := 0;
+
+  TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+  TPlayController.PlayList.SyncPlayLists(TState.MainPath);
 end;
 
 end.

@@ -29,6 +29,8 @@ type
     class procedure SetLeafePath(
       const AControl: TControl;
       const ADestPath: String);
+    class function GetLeafePath(
+      const AControl: TControl): String;
 
     class function PathIndexByLeafControl(const AControl: TControl): Integer;
 
@@ -54,7 +56,7 @@ type
       const AColor: TAlphaColor;
       const AName: String);
     class procedure ChooseDestinationPath(const AControl: TControl);
-    class procedure ChooseMainFolder;
+    class function ChooseMainFolder: String;
 
     class procedure DisplayLeafPath(const AControl: TControl; const APath: String);
     class function LeafeControlByPathIndex(const APathIndex: Integer): TControl;
@@ -86,6 +88,7 @@ type
       const AMainPath: String;
       const APlayItemsList: TPlayItemsList;
       const ADuplicateMode: Boolean);
+    class function LeafePath(const AControl: TControl): String;
 
     class procedure OnMouseEnterHook(
       const ASourceControl: TControl;
@@ -601,6 +604,18 @@ begin
   DisplayLeafPath(LeafeControl, ADestPath);
 end;
 
+class function TTools.GetLeafePath(const AControl: TControl): String;
+var
+  LeafeControl: TControl;
+  PathIndex: Integer;
+  Path: String;
+begin
+  LeafeControl := AControl as TControl;
+  PathIndex := PathIndexByLeafControl(LeafeControl);
+  Path := TState.SetOfPaths[TState.SetOfPathsIndex][PathIndex];
+  Result := Concat(Path, PATH_SPLITTER);
+end;
+
 class procedure TTools.ChooseDestinationPath(const AControl: TControl);
 var
   DestPath: String;
@@ -626,16 +641,18 @@ begin
   SetLeafePath(AControl, '');
 end;
 
-class procedure TTools.ChooseMainFolder;
+class function TTools.ChooseMainFolder: String;
 var
   Path: String;
 begin
+  Result := '';
+
   SelectDirectory('Choose folder:', '', Path);
 
   if Path.IsEmpty then
     Exit;
 
-  TState.MainPath := Concat(Path, PATH_SPLITTER);
+  Result := Concat(Path, PATH_SPLITTER);
 end;
 
 class procedure TTools.FillPaths(const ASetOfPathIndex: Integer);
@@ -817,6 +834,11 @@ begin
     AMainPath,
     APlayItemsList,
     ADuplicateMode);
+end;
+
+class function TTools.LeafePath(const AControl: TControl): String;
+begin
+  Result := GetLeafePath(AControl);
 end;
 
 class procedure TTools.OnMouseEnterHook(

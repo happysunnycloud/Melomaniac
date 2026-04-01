@@ -17,6 +17,7 @@ type
     FTimelineCaret: TControl;
     FDurationBar: TControl;
     FCurrentTimeLabel: TControl;
+    FRenderEvent: TEvent;
 
     procedure RenderCaret;
   protected
@@ -61,14 +62,21 @@ begin
   FTimelineCaret := ATimelineCaret;
   FDurationBar := ADurationBar;
   FCurrentTimeLabel := ACurrentTimeLabel;
+  FRenderEvent := TEvent.Create(nil, false, false, '');
 
   inherited Create(
-    AThreadFactory,
-    'TTimelineTrackerThread');
+    AThreadFactory);
+
+  OnSetTerminateProcRef := (
+    procedure
+    begin
+      FRenderEvent.SetEvent;
+    end);
 end;
 
 destructor TTimelineTrackerThread.Destroy;
 begin
+  FreeAndNil(FRenderEvent);
   FreeAndNil(FCriticalSection);
 
   inherited;
@@ -127,6 +135,8 @@ begin
 
       TLabel(FCurrentTimeLabel).Text :=
         TSingleSound.GetHumanTime(CurrentTime);
+
+      FRenderEvent.SetEvent;
     end
   );
 end;
@@ -158,10 +168,14 @@ begin
             end);
 
           HoldThread;
+
           Break;
         end;
 
+        FRenderEvent.ResetEvent;
         RenderCaret;
+        FRenderEvent.WaitFor(INFINITE);
+
         Sleep(400);
       end;
     end;
