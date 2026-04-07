@@ -154,14 +154,14 @@ begin
       begin
         if TPlayController.SingleSound.CurrentTime >= TPlayController.SingleSound.Duration then
         begin
-          ForceQueue(nil,
-            procedure
-            begin
-              // Без Stop зависает на выполнени Stop внутри Next
-              TPlayController.SingleSound.Stop;
-            end);
+//          TThread.Queue(nil,
+//            procedure
+//            begin
+//              // Без Stop зависает на выполнени Stop внутри Next
+//              TPlayController.SingleSound.Stop;
+//            end);
 
-          ForceQueue(nil,
+          TThread.ForceQueue(nil,
             procedure
             begin
               TPlayController.Next;
