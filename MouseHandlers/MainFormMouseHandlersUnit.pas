@@ -1,4 +1,4 @@
-unit MainFormMouseHandlersUnit;
+﻿unit MainFormMouseHandlersUnit;
 
 interface
 

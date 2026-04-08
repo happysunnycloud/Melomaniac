@@ -56,6 +56,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
     procedure ChangeViewControlClick(Sender: TObject);
+    procedure RolldownControlClick(Sender: TObject);
   private
     FLeafePopupMenu: TPopupMenuExt;
     FMainPopupMenu: TPopupMenuExt;
@@ -415,6 +416,11 @@ begin
 
   TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
   TPlayController.PlayList.SyncPlayLists(TState.MainPath);
+end;
+
+procedure TMainForm.RolldownControlClick(Sender: TObject);
+begin
+  Self.Rolldown;
 end;
 
 end.
