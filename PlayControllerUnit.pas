@@ -226,6 +226,7 @@ begin
 
   LastPlayState := TState.PlayState;
 
+  FSingleSound.CurrentTime := MediaTimeScale;
   FSingleSound.Play;
   FSingleSound.Volume := TState.Volume;
   FTimelineTrackerThread.UnHoldThread;
