@@ -1,0 +1,22 @@
+object PlayListForm: TPlayListForm
+  Left = 0
+  Top = 0
+  Caption = 'PlayListForm'
+  ClientHeight = 243
+  ClientWidth = 685
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object ScrollBox: TScrollBox
+    Align = Contents
+    Size.Width = 685.000000000000000000
+    Size.Height = 243.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 685.000000000000000000
+    Viewport.Height = 243.000000000000000000
+  end
+end

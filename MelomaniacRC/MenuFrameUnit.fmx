@@ -1,0 +1,94 @@
+object MenuFrame: TMenuFrame
+  Size.Width = 382.000000000000000000
+  Size.Height = 517.000000000000000000
+  Size.PlatformDefault = False
+  object ContentLayout: TLayout
+    Align = Contents
+    Size.Width = 382.000000000000000000
+    Size.Height = 517.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object BackgroundLayout: TLayout
+      Align = Contents
+      Size.Width = 382.000000000000000000
+      Size.Height = 517.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object BaseLayoutRectangle: TRectangle
+        Align = Contents
+        Size.Width = 382.000000000000000000
+        Size.Height = 517.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Thickness = 0.000000000000000000
+      end
+      object NavigationLayout: TLayout
+        Align = Bottom
+        Position.Y = 457.000000000000000000
+        Size.Width = 382.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object Layout2: TLayout
+          Align = Center
+          Size.Width = 120.000000000000000000
+          Size.Height = 60.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object CloseButton: TButton
+            Position.X = 20.000000000000000000
+            Position.Y = 8.000000000000000000
+            Size.Width = 80.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = 'Close'
+          end
+        end
+      end
+      object BaseLayout: TLayout
+        Align = Top
+        Size.Width = 382.000000000000000000
+        Size.Height = 219.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object Layout1: TLayout
+          Align = Center
+          Size.Width = 175.000000000000000000
+          Size.Height = 160.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object AddHostButton: TButton
+            Position.X = 18.000000000000000000
+            Position.Y = 11.000000000000000000
+            Size.Width = 145.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'Add host'
+            OnClick = AddHostButtonClick
+          end
+          object EditHostButton: TButton
+            Position.X = 18.000000000000000000
+            Position.Y = 59.000000000000000000
+            Size.Width = 145.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'Edit host'
+            OnClick = EditHostButtonClick
+          end
+          object DeleteHostButton: TButton
+            Position.X = 18.000000000000000000
+            Position.Y = 107.000000000000000000
+            Size.Width = 145.000000000000000000
+            Size.Height = 44.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = 'Delete host'
+            OnClick = DeleteHostButtonClick
+          end
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,7 @@
+inherited MelomaniacRemoteControlEditHostForm0_Windows: TMelomaniacRemoteControlEditHostForm0_Windows
+  ClientHeight = 305
+  DesignerMasterStyle = 3
+  inherited NavigationLayout: TLayout
+    Position.Y = 245.000000000000000000
+  end
+end
