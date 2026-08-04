@@ -743,10 +743,11 @@ begin
   if not Assigned(PlayListForm) then
     Exit;
 
-  PlayListForm.Refresh(PlayList);
-  PlayListForm.Theme.Apply;
   if PlayList.Count = 0 then
     Exit;
+
+  PlayListForm.Refresh(PlayList);
+  PlayListForm.Theme.Apply;
 
   PlayListForm.Select(TPlayController.PlayList.Current.Path);
 end;

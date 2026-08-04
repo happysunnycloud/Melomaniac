@@ -499,20 +499,36 @@ end;
 
 procedure TMainForm.ChangeViewControlClick(Sender: TObject);
 
-  function _IfThenElse(
-    const AVlue: Integer;
-    const AIfValue: Integer;
-    const AThenValue: Integer): Integer;
-  begin
-    Result := AVlue;
-    if AVlue = AIfValue then
-      Result := AThenValue;
-  end;
+//  function _IfThenElse(
+//    const AVlue: Integer;
+//    const AIfValue: Integer;
+//    const AThenValue: Integer): Integer;
+//  begin
+//    Result := AVlue;
+//    if AVlue = AIfValue then
+//      Result := AThenValue;
+//  end;
 
 begin
   if not Assigned(PlayListForm) then
   begin
+    TThread.ForceQueue(nil,
+    procedure
+
+      function _IfThenElse(
+        const AVlue: Integer;
+        const AIfValue: Integer;
+        const AThenValue: Integer): Integer;
+      begin
+        Result := AVlue;
+        if AVlue = AIfValue then
+          Result := AThenValue;
+      end;
+
+    begin
+
     PlayListForm := TPlayListForm.Create(nil);
+
     PlayListForm.Top := _IfThenElse(
       PlayListForm.Top,
       0,
@@ -540,7 +556,14 @@ begin
     PlayListForm.Show;
     PlayListForm.Theme.ItemSettings.Apply;
 
+    end);
+
+    TThread.ForceQueue(nil,
+    procedure begin
+
     TPlayController.RefreshPlayListForm;
+
+    end);
   end
   else
   begin

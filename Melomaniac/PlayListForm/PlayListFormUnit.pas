@@ -207,6 +207,9 @@ procedure TPlayListForm.Select(const APath: String);
 var
   PlayListItemFrame: TPlayListItemFrame;
   Control: TControl;
+
+  ViewportRect: TRectF;
+  ControlRect: TRectF;
 begin
   if ScrollBox.Content.ControlsCount = 0 then
     Exit;
@@ -229,7 +232,24 @@ begin
 
   PlayListItemFrame := Control as TPlayListItemFrame;
   PlayListItemFrame.BackgroundRectangle.Fill.Color :=
-    Theme.ItemSettings.FocusedBackgroundColor
+    Theme.ItemSettings.FocusedBackgroundColor;
+
+  // Визуальная парковка ScrollBox на текущий трек
+
+  ViewportRect := TRectF.Create(
+    ScrollBox.ViewportPosition,
+    ScrollBox.ViewportPosition +
+      PointF(ScrollBox.Content.Width, ScrollBox.Content.Height));
+
+  ControlRect := TRectF.Create(
+    PlayListItemFrame.Position.X,
+    PlayListItemFrame.Position.Y,
+    PlayListItemFrame.Position.X + PlayListItemFrame.Width,
+    PlayListItemFrame.Position.Y + PlayListItemFrame.Height);
+
+  if not ViewportRect.Contains(ControlRect) then
+    ScrollBox.ViewportPosition :=
+      PointF(0, PlayListItemFrame.Index * PlayListItemFrame.Height);
 end;
 
 procedure TPlayListForm.ScrollToItem(const APath: String);
