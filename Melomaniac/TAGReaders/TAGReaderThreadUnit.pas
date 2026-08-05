@@ -208,7 +208,7 @@ begin
         // Duration вычисляем через TMediaPlayer.Duration
         // Он поднимает нужный кодак и, тот высчитывает верный Duration
         // Считать в "ручную" - лепить химеру
-        //MediaPlayer := TMedia.Create(PlayItem.Path);
+        // MediaPlayer := TMedia.Create(PlayItem.Path);
         { TODO : Избавиться от Synchronize, перейти на TEvent }
         Synchronize(
           procedure

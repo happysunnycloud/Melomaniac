@@ -4,6 +4,7 @@ interface
 
 uses
     FMX.Controls
+  , FMX.Layouts
   , FMX.MultiResBitmapsUnit
   , FMX.FormExtUnit
   , BitmapStorageUnit
@@ -26,10 +27,14 @@ type
     class procedure Init;
     class procedure UnInit;
 
-    class procedure Load(
+    class procedure LoadForMainForm(
       const AForm: TFormExt;
       const ASchemeName: String;
       const APlayControl: TControl);
+    class procedure LoadForPlayList(
+      const AForm: TFormExt;
+      const ASchemeName: String;
+      const AScrollBox: TScrollBox);
     class procedure AssignBitmap(
       const AControl: TControl;
       const ABitMapIdent: String);
@@ -52,6 +57,9 @@ uses
   , ConstantsUnit
   , StateUnit
   , FileToolsUnit
+  , PlayListItemFrameUnit
+  , FMX.Types
+  , System.UITypes
   ;
 
 { TVisualScheme }
@@ -113,7 +121,7 @@ begin
       [Result]);
 end;
 
-class procedure TVisualScheme.Load(
+class procedure TVisualScheme.LoadForMainForm(
   const AForm: TFormExt;
   const ASchemeName: String;
   const APlayControl: TControl);
@@ -125,6 +133,7 @@ var
   SchemeFileName: String;
   PlayControl: TCircle;
 begin
+  при перегрузке темы не перегружаются хинты и меню
   if not (APlayControl is TCircle) then
     raise Exception.Create('TVisualScheme.Load -> ' +
       'APlayControl is not TCircle class');
@@ -193,6 +202,67 @@ begin
     TVisualScheme.AssignBitmap(PlayControl, FUNC_IDENT_PLAY)
   else
     TVisualScheme.AssignBitmap(PlayControl, FUNC_IDENT_PAUSE);
+
+  TState.VisualScheme := ASchemeName;
+end;
+
+class procedure TVisualScheme.LoadForPlayList(
+  const AForm: TFormExt;
+  const ASchemeName: String;
+  const AScrollBox: TScrollBox);
+var
+  Params: TParamsExt;
+  SchemeFileName: String;
+begin
+  SchemeFileName := GetSchemeFileName(ASchemeName);
+
+  Params := TParamsExt.Create;
+  try
+    TParamsExtractor.ExtractToParams(
+      SchemeFileName,
+      PACKER_SETTINGS_FILE,
+      Params);
+
+     AForm.Theme.ParamsToSettings(Params);
+  finally
+    FreeAndNil(Params);
+  end;
+
+  AForm.Theme.ItemSettings.Container := AScrollBox;
+  AForm.Theme.ItemSettings.OnApplyProcRef :=
+    procedure (const AControl: TControl; const AItemSettings: TItemSettings)
+    var
+      PlayListItemFrame: TPlayListItemFrame;
+    begin
+      if not (AControl is TPlayListItemFrame) then
+        Exit;
+
+      PlayListItemFrame := AControl as TPlayListItemFrame;
+      PlayListItemFrame.BackgroundRectangle.Fill.Color :=
+        AItemSettings.NormalBackgroundColor;
+      PlayListItemFrame.FocusFrameRectangle.Stroke.Color :=
+        AItemSettings.FocusFrameColor;
+
+      PlayListItemFrame.NumberLabel.StyledSettings := [];
+      PlayListItemFrame.PathLabel.StyledSettings := [];
+      PlayListItemFrame.TitleLabel.StyledSettings := [];
+      PlayListItemFrame.ArtistLabel.StyledSettings := [];
+      PlayListItemFrame.AlbumLabel.StyledSettings := [];
+      PlayListItemFrame.DurationLabel.StyledSettings := [];
+
+      AItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.NumberLabel);
+      AItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.PathLabel);
+      AItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.TitleLabel);
+      AItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.ArtistLabel);
+      AItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.AlbumLabel);
+      AItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.DurationLabel);
+
+      PlayListItemFrame.DurationLabel.TextAlign := TTextAlign.Trailing;
+    end;
+
+  AForm.Theme.FormSettings.Container := AForm;
+  AForm.Theme.Apply;
+  AForm.BorderFrame.Kind := TBorderFrameKind.bfkNoCaption;
 
   TState.VisualScheme := ASchemeName;
 end;

@@ -220,7 +220,7 @@ begin
     begin
       PlayListItemFrame := Control as TPlayListItemFrame;
       PlayListItemFrame.BackgroundRectangle.Fill.Color :=
-        Theme.ItemSettings.BackgroundColor;
+        Theme.ItemSettings.NormalBackgroundColor;
     end;
   finally
     ScrollBox.EndUpdate;
@@ -272,48 +272,16 @@ end;
 
 procedure TPlayListForm.FormCreate(Sender: TObject);
 begin
+//  BorderFrame.Kind := TBorderFrameKind.bfkNoCaption;
   Self.Fill.Kind := TBrushKind.Solid;
   FPathControlDict := TDictionary<String, TControl>.Create;
-  Theme.ItemSettings.OnApplyProcRef :=
-    procedure (const AControl: TControl; const AItemSettings: TItemSettings)
-    var
-      PlayListItemFrame: TPlayListItemFrame;
-    begin
-      Self.Fill.Color := Theme.FormSettings.BackgroundColor;
-      if not (AControl is TPlayListItemFrame) then
-        Exit;
-
-      PlayListItemFrame := AControl as TPlayListItemFrame;
-      PlayListItemFrame.BackgroundRectangle.Fill.Color :=
-        Theme.ItemSettings.BackgroundColor;
-      PlayListItemFrame.FocusFrameRectangle.Stroke.Color :=
-        Theme.ItemSettings.FocusFrameColor;
-
-      PlayListItemFrame.NumberLabel.StyledSettings := [];
-      PlayListItemFrame.PathLabel.StyledSettings := [];
-      PlayListItemFrame.TitleLabel.StyledSettings := [];
-      PlayListItemFrame.ArtistLabel.StyledSettings := [];
-      PlayListItemFrame.AlbumLabel.StyledSettings := [];
-      PlayListItemFrame.DurationLabel.StyledSettings := [];
-
-      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.NumberLabel);
-      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.PathLabel);
-      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.TitleLabel);
-      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.ArtistLabel);
-      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.AlbumLabel);
-      Theme.ItemSettings.CustomTextSettings.ApplyTo(PlayListItemFrame.DurationLabel);
-
-      PlayListItemFrame.DurationLabel.TextAlign := TTextAlign.Trailing;
-    end;
-
-//  TState.PlayListFormPos.RestorePosition(Self);
 end;
 
 procedure TPlayListForm.FormDestroy(Sender: TObject);
 begin
-//  TState.PlayListFormPos.SavePosition(Self);
-
   FreeAndNil(FPathControlDict);
+
+  PlayListForm := nil;
 end;
 
 end.

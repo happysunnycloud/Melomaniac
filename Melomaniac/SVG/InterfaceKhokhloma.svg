@@ -5,7 +5,7 @@
    viewBox="0 0 210 297"
    version="1.1"
    id="svg8"
-   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
    sodipodi:docname="InterfaceKhokhloma.svg"
    inkscape:export-filename="C:\Users\Demiurge\Desktop\LeftSide.png"
    inkscape:export-xdpi="1.4316413"
@@ -109,16 +109,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.35355339"
-     inkscape:cx="-2282.5407"
-     inkscape:cy="1988.3843"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="-2825.4219"
+     inkscape:cy="1857.0392"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:snap-page="true"
-     inkscape:window-width="1845"
-     inkscape:window-height="1058"
-     inkscape:window-x="67"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="1432"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:snap-global="true"
@@ -138,10 +138,17 @@
      inkscape:snap-object-midpoints="false"
      inkscape:snap-center="false"
      inkscape:snap-others="false"
-     inkscape:pagecheckerboard="0">
+     inkscape:pagecheckerboard="0"
+     inkscape:showpageshadow="0"
+     inkscape:deskcolor="#505050">
     <inkscape:grid
        type="xygrid"
-       id="grid815" />
+       id="grid815"
+       originx="0"
+       originy="0"
+       spacingy="1"
+       spacingx="1"
+       units="mm" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -7299,23 +7306,14 @@
        inkscape:export-ydpi="102.12645"
        rx="5.291677" />
     <path
-       style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:1;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
-       d="m -764.9493,487.04512 h 5.29167 l -2.64583,6.61458 z"
-       id="path922-8-4-9-9-3-9"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccc"
-       inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
-       inkscape:export-xdpi="88.82"
-       inkscape:export-ydpi="88.82" />
-    <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.35615;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -753.47583,492.79622 h 50.41463 v -4.31304 z"
+       d="m -746.295,491.04352 h 50.41463 v -4.1182 z"
        id="path916-8-4-5-1-5-0"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\Volume.png"
-       inkscape:export-xdpi="94.087967"
-       inkscape:export-ydpi="94.087967" />
+       inkscape:export-xdpi="88.314964"
+       inkscape:export-ydpi="88.314964" />
     <g
        id="g4079-2"
        transform="matrix(-1,0,0,1,-1143.4917,-24.343687)"
@@ -7855,12 +7853,13 @@
     </g>
     <g
        id="g5770-5-3-9-8-46-1-33-8-6"
-       transform="matrix(-0.38894033,0,0,-0.38020099,-835.48274,714.63141)"
+       transform="matrix(-0.38908547,0,0,-0.38105716,-828.57468,713.40436)"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\Volume.png"
        inkscape:export-xdpi="94.087967"
-       inkscape:export-ydpi="94.087967">
+       inkscape:export-ydpi="94.087967"
+       style="stroke-width:0.99869">
       <ellipse
-         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.099869;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1692-0-83-9-7-3-7-7-96-5-9"
          cx="-438.20294"
          cy="474.18546"
@@ -7868,7 +7867,7 @@
          ry="2.5796874"
          transform="rotate(-17.956576)" />
       <ellipse
-         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.099869;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-92-3-9-0-2-7-6-7-62-3-64-7-5"
          cx="272.22073"
          cy="-586.00281"
@@ -7876,7 +7875,7 @@
          ry="0.46626136"
          transform="scale(-1)" />
       <ellipse
-         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0999999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0998689;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-9-1-8-7-88-1-8-4-4-4-5-69-94-1"
          cx="272.35303"
          cy="-585.98621"
@@ -7886,12 +7885,13 @@
     </g>
     <g
        id="g5770-5-3-9-8-46-1-33-4-7"
-       transform="matrix(-0.48619952,0,0,-0.47548781,-855.54881,770.23701)"
+       transform="matrix(-0.48635476,0,0,-0.47631653,-848.59668,768.9876)"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\Volume.png"
        inkscape:export-xdpi="94.087967"
-       inkscape:export-ydpi="94.087967">
+       inkscape:export-ydpi="94.087967"
+       style="stroke-width:0.998971">
       <ellipse
-         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.0998971;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1692-0-83-9-7-3-7-7-96-12-8"
          cx="-438.20294"
          cy="474.18546"
@@ -7899,7 +7899,7 @@
          ry="2.5796874"
          transform="rotate(-17.956576)" />
       <ellipse
-         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.0998971;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-92-3-9-0-2-7-6-7-62-3-64-77-1"
          cx="272.22073"
          cy="-586.00281"
@@ -7907,7 +7907,7 @@
          ry="0.46626136"
          transform="scale(-1)" />
       <ellipse
-         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0999999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.099897;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-9-1-8-7-88-1-8-4-4-4-5-69-35-3"
          cx="272.35303"
          cy="-585.98621"
@@ -7917,12 +7917,13 @@
     </g>
     <g
        id="g5770-5-3-9-8-46-1-33-9-5"
-       transform="matrix(-0.5834337,0,0,-0.57262811,-875.6081,826.92424)"
+       transform="matrix(-0.58362774,0,0,-0.57153948,-868.4793,824.53965)"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\Volume.png"
        inkscape:export-xdpi="94.087967"
-       inkscape:export-ydpi="94.087967">
+       inkscape:export-ydpi="94.087967"
+       style="stroke-width:1.00079">
       <ellipse
-         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.100079;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1692-0-83-9-7-3-7-7-96-9-6"
          cx="-438.20294"
          cy="474.18546"
@@ -7930,7 +7931,7 @@
          ry="2.5796874"
          transform="rotate(-17.956576)" />
       <ellipse
-         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.100079;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-92-3-9-0-2-7-6-7-62-3-64-3-5"
          cx="272.22073"
          cy="-586.00281"
@@ -7938,7 +7939,7 @@
          ry="0.46626136"
          transform="scale(-1)" />
       <ellipse
-         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0999999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.100078;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-9-1-8-7-88-1-8-4-4-4-5-69-33-5"
          cx="272.35303"
          cy="-585.98621"
@@ -7948,12 +7949,13 @@
     </g>
     <g
        id="g5770-5-3-9-8-46-1-33-2-8"
-       transform="matrix(-0.68038263,0,0,-0.66896445,-895.5902,883.1423)"
+       transform="matrix(-0.68089953,0,0,-0.66678112,-888.54797,880.10692)"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\Volume.png"
        inkscape:export-xdpi="94.087967"
-       inkscape:export-ydpi="94.087967">
+       inkscape:export-ydpi="94.087967"
+       style="stroke-width:1.00126">
       <ellipse
-         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.100126;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1692-0-83-9-7-3-7-7-96-53-9"
          cx="-438.20294"
          cy="474.18546"
@@ -7961,7 +7963,7 @@
          ry="2.5796874"
          transform="rotate(-17.956576)" />
       <ellipse
-         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.100126;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-92-3-9-0-2-7-6-7-62-3-64-73-9"
          cx="272.22073"
          cy="-586.00281"
@@ -7969,7 +7971,7 @@
          ry="0.46626136"
          transform="scale(-1)" />
       <ellipse
-         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0999999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.100125;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-9-1-8-7-88-1-8-4-4-4-5-69-38-3"
          cx="272.35303"
          cy="-585.98621"
@@ -7979,12 +7981,13 @@
     </g>
     <g
        id="g5770-5-3-9-8-46-1-33-64-6"
-       transform="matrix(-0.777138,0,0,-0.76535936,-915.5199,939.39453)"
+       transform="matrix(-0.77805664,0,0,-0.76194784,-908.5854,935.67654)"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\Volume.png"
        inkscape:export-xdpi="94.087967"
-       inkscape:export-ydpi="94.087967">
+       inkscape:export-ydpi="94.087967"
+       style="stroke-width:1.00164">
       <ellipse
-         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.100164;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1692-0-83-9-7-3-7-7-96-32-1"
          cx="-438.20294"
          cy="474.18546"
@@ -7992,7 +7995,7 @@
          ry="2.5796874"
          transform="rotate(-17.956576)" />
       <ellipse
-         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.100164;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-92-3-9-0-2-7-6-7-62-3-64-32-2"
          cx="272.22073"
          cy="-586.00281"
@@ -8000,7 +8003,7 @@
          ry="0.46626136"
          transform="scale(-1)" />
       <ellipse
-         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0999999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.100164;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-9-1-8-7-88-1-8-4-4-4-5-69-5-2"
          cx="272.35303"
          cy="-585.98621"
@@ -8010,12 +8013,13 @@
     </g>
     <g
        id="g5770-5-3-9-8-46-1-33-8-5-1"
-       transform="matrix(-0.29165723,0,0,-0.28494495,-815.41019,659.04378)"
+       transform="matrix(-0.29181346,0,0,-0.28579741,-807.94386,657.77397)"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\Volume.png"
        inkscape:export-xdpi="94.087967"
-       inkscape:export-ydpi="94.087967">
+       inkscape:export-ydpi="94.087967"
+       style="stroke-width:0.99824">
       <ellipse
-         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.099824;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1692-0-83-9-7-3-7-7-96-5-5-3"
          cx="-438.20294"
          cy="474.18546"
@@ -8023,7 +8027,7 @@
          ry="2.5796874"
          transform="rotate(-17.956576)" />
       <ellipse
-         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.1;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.099824;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-92-3-9-0-2-7-6-7-62-3-64-7-8-0"
          cx="272.22073"
          cy="-586.00281"
@@ -8031,7 +8035,7 @@
          ry="0.46626136"
          transform="scale(-1)" />
       <ellipse
-         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0999999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.0998239;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path1320-9-1-8-7-88-1-8-4-4-4-5-69-94-4-0"
          cx="272.35303"
          cy="-585.98621"
@@ -8039,45 +8043,93 @@
          ry="0.23475094"
          transform="scale(-1)" />
     </g>
-    <circle
-       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path1834-8-2-7-6"
-       cx="-693.97888"
-       cy="581.54987"
-       r="0.25"
-       transform="rotate(7.3483033)"
+    <g
+       id="g5770-5-3-9-8-46-1-33-8-5-1-9"
+       transform="matrix(-0.19257612,0,0,-0.18740119,-786.09828,600.34276)"
+       inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\Volume.png"
+       inkscape:export-xdpi="94.087967"
+       inkscape:export-ydpi="94.087967"
+       style="stroke-width:1.5175">
+      <ellipse
+         style="fill:#ff0000;fill-opacity:1;stroke:#ff0000;stroke-width:0.15175;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path1692-0-83-9-7-3-7-7-96-5-5-3-4"
+         cx="-438.20294"
+         cy="474.18546"
+         rx="2.5135417"
+         ry="2.5796874"
+         transform="rotate(-17.956576)" />
+      <ellipse
+         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:0.15175;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path1320-92-3-9-0-2-7-6-7-62-3-64-7-8-0-8"
+         cx="272.22073"
+         cy="-586.00281"
+         rx="0.47996044"
+         ry="0.46626136"
+         transform="scale(-1)" />
+      <ellipse
+         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.15175;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path1320-9-1-8-7-88-1-8-4-4-4-5-69-94-4-0-8"
+         cx="272.35303"
+         cy="-585.98621"
+         rx="0.24845004"
+         ry="0.23475094"
+         transform="scale(-1)" />
+    </g>
+    <g
+       id="g1"
+       transform="translate(2.7625381,-0.08585328)"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
-       inkscape:export-xdpi="88.82"
-       inkscape:export-ydpi="88.82" />
-    <path
-       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m -763.77227,487.51597 c 2.64726,0.88158 2.07889,3.83488 1.49628,6.59792 0.91305,-3.47229 1.07914,-6.1364 -1.49628,-6.59792 z"
-       id="path1845-0-1-3-7-5"
-       sodipodi:nodetypes="ccc"
-       inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
-       inkscape:export-xdpi="88.82"
-       inkscape:export-ydpi="88.82" />
-    <circle
-       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.238498;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path1834-10-43-63-7-3"
-       cx="-693.38898"
-       cy="582.10156"
-       transform="rotate(7.3483033)"
-       r="0.22499999"
-       inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
-       inkscape:export-xdpi="88.82"
-       inkscape:export-ydpi="88.82" />
-    <ellipse
-       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.211999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path1834-10-1-42-6-7-9"
-       cx="-693.02869"
-       cy="582.74847"
-       transform="rotate(7.3483033)"
-       rx="0.2"
-       ry="0.19999999"
-       inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
-       inkscape:export-xdpi="88.82"
-       inkscape:export-ydpi="88.82" />
+       inkscape:export-xdpi="71.582062"
+       inkscape:export-ydpi="71.582062">
+      <path
+         style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:1;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+         d="m -768.03942,486.78197 h 5.29167 l -2.64583,6.61458 z"
+         id="path922-8-4-9-9-3-9"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cccc"
+         inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
+         inkscape:export-xdpi="71.582062"
+         inkscape:export-ydpi="71.582062" />
+      <circle
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path1834-8-2-7-6"
+         cx="-697.07727"
+         cy="581.68408"
+         r="0.25"
+         transform="rotate(7.3483033)"
+         inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
+         inkscape:export-xdpi="88.82"
+         inkscape:export-ydpi="88.82" />
+      <path
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -766.86239,487.25282 c 2.64726,0.88158 2.07889,3.83488 1.49628,6.59792 0.91305,-3.47229 1.07914,-6.1364 -1.49628,-6.59792 z"
+         id="path1845-0-1-3-7-5"
+         sodipodi:nodetypes="ccc"
+         inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
+         inkscape:export-xdpi="88.82"
+         inkscape:export-ydpi="88.82" />
+      <circle
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.238498;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path1834-10-43-63-7-3"
+         cx="-696.48737"
+         cy="582.23578"
+         transform="rotate(7.3483033)"
+         r="0.22499999"
+         inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
+         inkscape:export-xdpi="88.82"
+         inkscape:export-ydpi="88.82" />
+      <ellipse
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.211999;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path1834-10-1-42-6-7-9"
+         cx="-696.12708"
+         cy="582.88269"
+         transform="rotate(7.3483033)"
+         rx="0.2"
+         ry="0.19999999"
+         inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
+         inkscape:export-xdpi="88.82"
+         inkscape:export-ydpi="88.82" />
+    </g>
     <g
        id="g5770-5-3-9-03-7-0-8"
        transform="matrix(-0.77764015,0,0,0.76428404,-1087.8486,41.866618)"

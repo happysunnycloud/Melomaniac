@@ -193,6 +193,7 @@ begin
     TTools.Init;
     TState.Init;
 
+    // К главной форме не применяется тема формы Self.ApplyFormTheme
     BorderFrame.Kind := TBorderFrameKind.bfkNone;
 
     TPlayController.Init(
@@ -206,7 +207,7 @@ begin
     VisualScheme := TState.VisualScheme;
     if VisualScheme.IsEmpty then
       VisualScheme := 'Steampunk';
-    TVisualScheme.Load(Self, VisualScheme, PlayControl);
+    TVisualScheme.LoadForMainForm(Self, VisualScheme, PlayControl);
 
     FTrayMenuItemPlay := nil;
     FTrayMenuItemPause := nil;
@@ -315,7 +316,6 @@ begin
     FCustomHint := TCustomHint.Create(Self);
     FCustomHint.Theme.CopyFrom(Theme.HintTheme);
 
-
     FNetServer := TNetServer.Create(1081);
     FNetServer.Active := true;
   except
@@ -333,7 +333,7 @@ begin
   TThread.ForceQueue(nil,
     procedure
     begin
-      Init
+      Init;
     end);
 end;
 
@@ -499,34 +499,19 @@ end;
 
 procedure TMainForm.ChangeViewControlClick(Sender: TObject);
 
-//  function _IfThenElse(
-//    const AVlue: Integer;
-//    const AIfValue: Integer;
-//    const AThenValue: Integer): Integer;
-//  begin
-//    Result := AVlue;
-//    if AVlue = AIfValue then
-//      Result := AThenValue;
-//  end;
+  function _IfThenElse(
+    const AVlue: Integer;
+    const AIfValue: Integer;
+    const AThenValue: Integer): Integer;
+  begin
+    Result := AVlue;
+    if AVlue = AIfValue then
+      Result := AThenValue;
+  end;
 
 begin
   if not Assigned(PlayListForm) then
   begin
-    TThread.ForceQueue(nil,
-    procedure
-
-      function _IfThenElse(
-        const AVlue: Integer;
-        const AIfValue: Integer;
-        const AThenValue: Integer): Integer;
-      begin
-        Result := AVlue;
-        if AVlue = AIfValue then
-          Result := AThenValue;
-      end;
-
-    begin
-
     PlayListForm := TPlayListForm.Create(nil);
 
     PlayListForm.Top := _IfThenElse(
@@ -542,34 +527,17 @@ begin
       0,
       Self.Left + Round(Self.PrevTrackControl.Position.X));
 
-    PlayListForm.Theme.FormSettings.BorderFrameKind :=
-      TBorderFrameKind.bfkNoCaption;
-    PlayListForm.Theme.FormSettings.BorderFrameColor := $FFFFB800;
-    PlayListForm.Theme.FormSettings.Container := PlayListForm;
-    PlayListForm.Theme.ItemSettings.BackgroundColor := $FFC55F00;
-    PlayListForm.Theme.ItemSettings.Container := PlayListForm.ScrollBox;
-    PlayListForm.Theme.ItemSettings.FocusedBackgroundColor := $FF994A00;
-    PlayListForm.Theme.ItemSettings.FocusFrameColor := $FFFF9921;
-    PlayListForm.Theme.ItemSettings.CustomTextSettings.Assign(
-      InfoPanelTitleLabel.TextSettings);
-    PlayListForm.Theme.FormSettings.Apply;
+    TVisualScheme.LoadForPlayList(
+      PlayListForm,
+      TState.VisualScheme,
+      PlayListForm.ScrollBox);
+
     PlayListForm.Show;
-    PlayListForm.Theme.ItemSettings.Apply;
-
-    end);
-
-    TThread.ForceQueue(nil,
-    procedure begin
 
     TPlayController.RefreshPlayListForm;
-
-    end);
   end
   else
-  begin
     PlayListForm.Close;
-    PlayListForm := nil;
-  end;
 
   TPlayController.HeighlightChangeView;
 end;
@@ -630,9 +598,13 @@ end;
 procedure TMainForm.ThemeMenuItemOnClick(Sender: TObject);
 var
   MenuItem: TItem;
+  SchemeName: String;
 begin
   MenuItem := Sender as TItem;
-  TVisualScheme.Load(Self, MenuItem.Text, PlayControl);
+  SchemeName := MenuItem.Text;
+  TVisualScheme.LoadForMainForm(Self, SchemeName, PlayControl);
+  if Assigned(PlayListForm) then
+    TVisualScheme.LoadForPlayList(PlayListForm, SchemeName, PlayListForm.ScrollBox);
 end;
 
 procedure TMainForm.TimeLineControlMouseWheel(Sender: TObject;
@@ -666,13 +638,9 @@ procedure TMainForm.VolumeControlMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; var Handled: Boolean);
 begin
   if WheelDelta < 0 then
-  begin
-    TPlayController.VolumeUp;
-  end
+    TPlayController.VolumeDown
   else
-  begin
-    TPlayController.VolumeDown;
-  end;
+    TPlayController.VolumeUp;
 end;
 
 end.
