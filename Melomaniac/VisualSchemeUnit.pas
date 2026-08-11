@@ -7,6 +7,8 @@ uses
   , FMX.Layouts
   , FMX.MultiResBitmapsUnit
   , FMX.FormExtUnit
+  , FMX.HintUnit
+  , FMX.PopupMenuExt
   , BitmapStorageUnit
   ;
 
@@ -30,7 +32,11 @@ type
     class procedure LoadForMainForm(
       const AForm: TFormExt;
       const ASchemeName: String;
-      const APlayControl: TControl);
+      const APlayControl: TControl;
+      const ACustomHint: TCustomHint;
+      const ALeafePopupMenu: TPopupMenuExt;
+      const AMainPopupMenu: TPopupMenuExt;
+      const ATrayPopupMenuExt: TPopupMenuExt);
     class procedure LoadForPlayList(
       const AForm: TFormExt;
       const ASchemeName: String;
@@ -124,7 +130,11 @@ end;
 class procedure TVisualScheme.LoadForMainForm(
   const AForm: TFormExt;
   const ASchemeName: String;
-  const APlayControl: TControl);
+  const APlayControl: TControl;
+  const ACustomHint: TCustomHint;
+  const ALeafePopupMenu: TPopupMenuExt;
+  const AMainPopupMenu: TPopupMenuExt;
+  const ATrayPopupMenuExt: TPopupMenuExt);
 var
   ResBitmapList: TResBitmapList;
   BitmapExt: TBitmapExt;
@@ -133,7 +143,7 @@ var
   SchemeFileName: String;
   PlayControl: TCircle;
 begin
-  при перегрузке темы не перегружаются хинты и меню
+  { TODO: при перегрузке темы не перегружаются хинты и меню }
   if not (APlayControl is TCircle) then
     raise Exception.Create('TVisualScheme.Load -> ' +
       'APlayControl is not TCircle class');
@@ -195,6 +205,11 @@ begin
     begin
       ACommonSettings.CustomTextSettings.ApplyTo(AControl);
     end;
+
+  ACustomHint.Theme.CopyFrom(AForm.Theme.HintTheme);
+  ALeafePopupMenu.Theme.CopyFrom(AForm.Theme.PopUpMenuTheme);
+  AMainPopupMenu.Theme.CopyFrom(AForm.Theme.PopUpMenuTheme);
+  ATrayPopupMenuExt.Theme.CopyFrom(AForm.Theme.PopUpMenuTheme);
 
   AForm.Theme.Apply;
 

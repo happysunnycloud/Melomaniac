@@ -7,13 +7,13 @@ uses
   System.UITypes,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.SingleSoundUnit, FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls,
-  FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.Objects,
-  FMX.FormExtUnit,
-  FMX.PopupMenuExt,
-  PlayListUnit, FMX.Ani, FMX.Effects
+  FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.Objects, FMX.Ani, FMX.Effects
+  , FMX.FormExtUnit
+  , FMX.PopupMenuExt
   , PopupMenuExt.Item
   , FMX.HintUnit
   , Net.Server
+  , PlayListUnit
   ;
 
 type
@@ -204,10 +204,6 @@ begin
       CurrentTimeLabel);
 
     TVisualScheme.Init;
-    VisualScheme := TState.VisualScheme;
-    if VisualScheme.IsEmpty then
-      VisualScheme := 'Steampunk';
-    TVisualScheme.LoadForMainForm(Self, VisualScheme, PlayControl);
 
     FTrayMenuItemPlay := nil;
     FTrayMenuItemPause := nil;
@@ -309,12 +305,22 @@ begin
     TTools.OnMouseLeaveHook(BottomLeftControlLabel, BottomLeftControl);
     TTools.OnMouseLeaveHook(BottomRightControlLabel, BottomRightControl);
 
-//    TState.MainFormPos.RestorePosition(Self);
-
     TrayIconMouseRightButtonDown := TrayIconMouseRightButtonDownHandler;
 
     FCustomHint := TCustomHint.Create(Self);
-    FCustomHint.Theme.CopyFrom(Theme.HintTheme);
+
+    VisualScheme := TState.VisualScheme;
+    if VisualScheme.IsEmpty then
+      VisualScheme := 'Steampunk';
+    TVisualScheme.LoadForMainForm(
+      Self,
+      VisualScheme,
+      PlayControl,
+      FCustomHint,
+      FLeafePopupMenu,
+      FMainPopupMenu,
+      FTrayPopupMenuExt
+      );
 
     FNetServer := TNetServer.Create(1081);
     FNetServer.Active := true;
@@ -395,7 +401,7 @@ var
   ThemeName: String;
 begin
   FLeafePopupMenu := TPopupMenuExt.Create(Self);
-  FLeafePopupMenu.Theme.CopyFrom(Self.Theme.PopUpMenuTheme);
+//  FLeafePopupMenu.Theme.CopyFrom(Self.Theme.PopUpMenuTheme);
 
   MenuItem := TItem.Create;
   MenuItem.Text := 'Choose destination';
@@ -413,7 +419,7 @@ begin
   FLeafePopupMenu.Add(MenuItem);
 
   FMainPopupMenu := TPopupMenuExt.Create(Self);
-  FMainPopupMenu.Theme.CopyFrom(Self.Theme.PopUpMenuTheme);
+//  FMainPopupMenu.Theme.CopyFrom(Self.Theme.PopUpMenuTheme);
 
   MenuItem := TItem.Create;
   MenuItem.Text := 'Open folder';
@@ -602,7 +608,14 @@ var
 begin
   MenuItem := Sender as TItem;
   SchemeName := MenuItem.Text;
-  TVisualScheme.LoadForMainForm(Self, SchemeName, PlayControl);
+  TVisualScheme.LoadForMainForm(
+    Self,
+    SchemeName,
+    PlayControl,
+    FCustomHint,
+    FLeafePopupMenu,
+    FMainPopupMenu,
+    FTrayPopupMenuExt);
   if Assigned(PlayListForm) then
     TVisualScheme.LoadForPlayList(PlayListForm, SchemeName, PlayListForm.ScrollBox);
 end;
