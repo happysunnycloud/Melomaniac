@@ -109,9 +109,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8284271"
-     inkscape:cx="-2825.4219"
-     inkscape:cy="1857.0392"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="-2863.7825"
+     inkscape:cy="1591.3438"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -7297,13 +7297,13 @@
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.5;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:20;stroke-opacity:1"
        id="rect1904-2-4-3"
        width="127.1459"
-       height="14.168792"
+       height="14.469"
        x="-841.52087"
        y="329.78955"
-       ry="5.291677"
+       ry="5.2916775"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\InfoPanel.png"
-       inkscape:export-xdpi="102.12645"
-       inkscape:export-ydpi="102.12645"
+       inkscape:export-xdpi="102.66943"
+       inkscape:export-ydpi="102.66943"
        rx="5.291677" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.35615;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -8079,8 +8079,8 @@
        id="g1"
        transform="translate(2.7625381,-0.08585328)"
        inkscape:export-filename="C:\Users\AnnihilatoR\Desktop\VolumeCaret.png"
-       inkscape:export-xdpi="71.582062"
-       inkscape:export-ydpi="71.582062">
+       inkscape:export-xdpi="66.714905"
+       inkscape:export-ydpi="66.714905">
       <path
          style="fill:#ffbf00;fill-opacity:1;stroke:#ffbf00;stroke-width:1;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
          d="m -768.03942,486.78197 h 5.29167 l -2.64583,6.61458 z"
