@@ -608,9 +608,12 @@ var
   PathIndex: Integer;
   Path: String;
 begin
+  Result := '';
   LeafeControl := AControl as TControl;
   PathIndex := PathIndexByLeafControl(LeafeControl);
   Path := TState.SetOfPaths[TState.SetOfPathsIndex][PathIndex];
+  if Path.IsEmpty then
+    Exit;
   Result := Concat(Path, PATH_SPLITTER);
 end;
 
