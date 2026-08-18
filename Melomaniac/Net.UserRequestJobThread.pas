@@ -30,6 +30,9 @@ uses
   , Net.RequestHeaders
   , Net.ResponseHeaders
   , MainFormMouseHandlersUnit
+  , PlayControllerUnit
+  , CommonTypesUnit
+  , UserRequestJobsUnit
   ;
 
 { TNetUserRequestJobThread }
@@ -70,6 +73,11 @@ begin
           'Ok',
           varUString,
           TResponseHeader.rsVolumeDown.Ident);
+      end;
+      TRequestHeader.rqCurrentPlayState:
+      begin
+        Response.AddDataCode(TResponseHeader.rsCurrentPlayState.Code);
+        TUserRequestJobsUnit.GetCurrentPlayState(Response);
       end;
 
       TRequestHeader.rqGetTestString:

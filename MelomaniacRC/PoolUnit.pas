@@ -9,6 +9,7 @@ uses
   , ControlPanelFrameUnit
   , Net.Client
   , Net.RequestHeaders
+  , Net.Types
   ;
 
 type
@@ -38,6 +39,7 @@ type
     procedure DoVolumeDownButtonClick(Sender: TObject);
 
     procedure DoClientConnect;
+    procedure DoClientAuthorized(const ACredential: TCredential);
     procedure DoClientDisconnect;
     procedure DoClientRead;
 
@@ -145,12 +147,14 @@ begin
 
   FNetClient := TNetClient.Create(FHostName, FIP, FPort);
   FNetClient.OnConnected := DoClientConnect;
+  FNetClient.OnAuthorized := DoClientAuthorized;
   FNetClient.OnDisconnected := DoClientDisconnect;
   FNetClient.OnRead := DoClientRead;
 end;
 
 destructor TMRC.Destroy;
 begin
+  TRCFunctionManager.StopRequestPlayState;
   FreeAndNil(FNetClient);
 
   inherited;
@@ -198,6 +202,11 @@ end;
 procedure TMRC.DoClientConnect;
 begin
   TRCFunctionManager.ClientConnected(Self);
+end;
+
+procedure TMRC.DoClientAuthorized(const ACredential: TCredential);
+begin
+  TRCFunctionManager.ClientAuthorized(Self);
 end;
 
 procedure TMRC.DoClientDisconnect;

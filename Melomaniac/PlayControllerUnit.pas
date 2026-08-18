@@ -12,7 +12,7 @@ uses
   , TimelineTrackerThreadUnit
   , PlayListUnit
   , FMX.SingleSoundUnit
-  , StateUnit
+  , CommonTypesUnit
   ;
 
 type
@@ -118,12 +118,12 @@ implementation
 uses
     System.SysUtils
   , ToolsUnit
-//  , StringToolsUnit
   , MelomaniacUnit
   , VisualSchemeUnit
   , ConstantsUnit
   , HeighlightFailThreadUnit
   , PlayListFormUnit
+  , StateUnit
   ;
 
 { TPlayController }

@@ -13,6 +13,7 @@ uses
   , MelomaniacUnit
   , DBAccessUnit
   , PlayListUnit
+  , CommonTypesUnit
   ;
 
 type

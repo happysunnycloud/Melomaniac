@@ -7,6 +7,7 @@ type
     rsPlay = 0,
     rsVolumeUp = 1,
     rsVolumeDown = 2,
+    rsCurrentPlayState = 3,
 
     rsGetTestString = 999
   );
@@ -37,7 +38,7 @@ begin
     rsPlay: Result := 'Play';
     rsVolumeUp: Result := 'VolumeUp';
     rsVolumeDown: Result := 'VolumeDown';
-
+    rsCurrentPlayState: Result := 'CurrentPlayState';
     rsGetTestString: Result := 'GetTestString';
   end;
 end;
@@ -48,7 +49,7 @@ begin
     Integer(rsPlay): Self := rsPlay;
     Integer(rsVolumeUp): Self := rsVolumeUp;
     Integer(rsVolumeDown): Self := rsVolumeDown;
-
+    Integer(rsCurrentPlayState): Self := rsCurrentPlayState;
     Integer(rsGetTestString): Self := rsGetTestString;
   else
     raise Exception.Create('Invalid value');

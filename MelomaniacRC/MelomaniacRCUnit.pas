@@ -24,7 +24,6 @@ type
   private
     procedure DoCloseMenuFrame(Sender: TObject);
   public
-    { Public declarations }
     procedure MenuFormClose(Sender: TObject; var Action: TCloseAction);
     procedure AddHostFormClose(Sender: TObject; var Action: TCloseAction);
   end;

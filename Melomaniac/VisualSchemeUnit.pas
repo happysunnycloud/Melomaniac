@@ -66,6 +66,7 @@ uses
   , PlayListItemFrameUnit
   , FMX.Types
   , System.UITypes
+  , CommonTypesUnit
   ;
 
 { TVisualScheme }

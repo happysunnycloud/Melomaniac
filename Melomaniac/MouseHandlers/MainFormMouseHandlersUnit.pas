@@ -55,6 +55,7 @@ uses
     MelomaniacUnit
   , PlayControllerUnit
   , StateUnit
+  , CommonTypesUnit
   ;
 
 { TMainFormMouseHandlers }

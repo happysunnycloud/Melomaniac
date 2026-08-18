@@ -123,6 +123,7 @@ uses
   , PlayListFormUnit
   , FMX.ControlToolsUnit
   , FMX.Media
+  , CommonTypesUnit
   ;
 
 procedure TMainForm.CloseControlClick(Sender: TObject);

@@ -68,7 +68,9 @@ uses
   SafeQueueThreadSignal in 'SafeQueueThreadSignal.pas',
   JobSignal in 'JobSignal.pas',
   Net.RequestHeaders in '..\MelomaciacCommon\Net.RequestHeaders.pas',
-  Net.ResponseHeaders in '..\MelomaciacCommon\Net.ResponseHeaders.pas';
+  Net.ResponseHeaders in '..\MelomaciacCommon\Net.ResponseHeaders.pas',
+  UserRequestJobsUnit in 'UserRequestJobsUnit.pas',
+  CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas';
 
 {$R *.res}
 

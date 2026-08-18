@@ -3,17 +3,26 @@ unit RCFunctionManagerUnit;
 interface
 
 uses
-    PoolUnit
+    System.Classes
+  , PoolUnit
   , Net.Client
-
+  , SafeQueueThread
   ;
 
+const
+  REQUEST_PLAY_STATE_TIME_INTERVAL = 2000;
+
 type
+  TGetPlayStateThread = class;
+
   TRCFunctionManager = class
   strict private
+    class var FGetPlayStateThread: TGetPlayStateThread;
+    class var FSafeQueueThreadSignal: ISafeQueueThreadSignal;
   public
     class procedure Connect(const ARC: TMRC);
     class procedure ClientConnected(const ARC: TMRC);
+    class procedure ClientAuthorized(const ARC: TMRC);
     class procedure ClientDisconnected(const ARC: TMRC);
 
     class procedure SendRequest(
@@ -21,6 +30,21 @@ type
       const ARequestCode: Integer);
 
     class procedure ClientRead(const ARC: TMRC);
+
+    class procedure ClassInit;
+    class procedure ClassUninit;
+
+    class procedure StartRequestPlayState(const ANetClient: TNetClient);
+    class procedure StopRequestPlayState;
+  end;
+
+  TGetPlayStateThread = class(TThread)
+  strict private
+    FNetClient: TNetClient;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(const ANetClient: TNetClient);
   end;
 
 implementation
@@ -32,12 +56,27 @@ uses
   , Net.Types
   , Net.RequestHeaders
   , Net.ResponseHeaders
+  , CommonTypesUnit
+  , ParamsExtUnit
   ;
 
 { TRCFunctionManager }
 
+class procedure TRCFunctionManager.ClassInit;
+begin
+  FGetPlayStateThread := nil;
+  FSafeQueueThreadSignal := TSafeQueueThreadSignal.Create;
+end;
+
+class procedure TRCFunctionManager.ClassUninit;
+begin
+  FSafeQueueThreadSignal.Deactivate;
+end;
+
 class procedure TRCFunctionManager.Connect(const ARC: TMRC);
 begin
+  ARC.RCControlFrame.ConnectButton.Fill.Color := TAlphaColorRec.Yellow;
+
   ARC.NetClient.Connect;
 end;
 
@@ -46,9 +85,16 @@ begin
   ARC.RCControlFrame.ConnectButton.Fill.Color := TAlphaColorRec.Greenyellow;
 end;
 
+class procedure TRCFunctionManager.ClientAuthorized(const ARC: TMRC);
+begin
+  StartRequestPlayState(ARC.NetClient);
+end;
+
 class procedure TRCFunctionManager.ClientDisconnected(const ARC: TMRC);
 begin
   ARC.RCControlFrame.ConnectButton.Fill.Color := TAlphaColorRec.Lavender;
+
+  StopRequestPlayState;
 end;
 
 class procedure TRCFunctionManager.SendRequest(
@@ -66,12 +112,32 @@ begin
   end;
 end;
 
+class procedure TRCFunctionManager.StartRequestPlayState(
+  const ANetClient: TNetClient);
+begin
+  FGetPlayStateThread := TGetPlayStateThread.Create(ANetClient);
+end;
+
+class procedure TRCFunctionManager.StopRequestPlayState;
+begin
+  if not Assigned(FGetPlayStateThread) then
+    Exit;
+
+  FGetPlayStateThread.Terminate;
+  FGetPlayStateThread.WaitFor;
+  FreeAndNil(FGetPlayStateThread);
+end;
+
 class procedure TRCFunctionManager.ClientRead(const ARC: TMRC);
 var
   Response: TResponse;
   ResponseHeader: TResponseHeader;
   Str: String;
   PlayButtonText: String;
+  CurrentPlayState: TCurrentPlayState;
+  DataParams: TParamsExt;
+  Composition: String;
+  PlayState: TPlayState;
 begin
   Response := TResponse.Create;
   try
@@ -99,11 +165,70 @@ begin
       begin
 
       end;
+      rsCurrentPlayState:
+      begin
+        DataParams := TParamsExt.Create;
+        CurrentPlayState := TCurrentPlayState.Create;
+        try
+          DataParams.CopyFrom(Response, 1, Response.Length);
+          DataParams.ToObject(CurrentPlayState);
+
+          Composition := ExtractFileName(CurrentPlayState.Composition);
+          PlayState := CurrentPlayState.PlayState;
+          TSafeQueueThread.SafeForceQueue(FSafeQueueThreadSignal,
+            procedure
+            begin
+              ARC.RCControlFrame.CompositionNameLabel.Text := Composition;
+              ARC.RCControlFrame.PlayButton.Text := PlayState.ToStr;
+            end);
+        finally
+          FreeAndNil(DataParams);
+          FreeAndNil(CurrentPlayState);
+        end;
+      end;
     end;
   finally
     FreeAndNil(Response);
   end;
 end;
 
+{ TGetPlayStateThread }
 
+constructor TGetPlayStateThread.Create(const ANetClient: TNetClient);
+begin
+  if not Assigned(ANetClient) then
+    raise Exception.Create('ANetClient is nil');
+
+  FNetClient := ANetClient;
+
+  inherited Create(false);
+end;
+
+procedure TGetPlayStateThread.Execute;
+var
+  TimeOut: Integer;
+  Count: Integer;
+begin
+  TimeOut := REQUEST_PLAY_STATE_TIME_INTERVAL div 100;
+  while not Terminated do
+  begin
+    TRCFunctionManager.SendRequest(
+      FNetClient,
+      TRequestHeader.rqCurrentPlayState.Code);
+
+    Count := 0;
+    while (not Terminated) and (Count < Timeout) do
+    begin
+      Sleep(100);
+
+      Inc(Count);
+    end;
+  end;
+end;
+
+initialization
+  TRCFunctionManager.ClassInit;
+
+finalization
+  TRCFunctionManager.ClassUninit;
 end.

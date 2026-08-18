@@ -18,7 +18,8 @@ uses
   SafeQueueThread in '..\DevelopmentsCollection\SafeQueueThread\SafeQueueThread.pas',
   SafeQueueThreadSignal in '..\DevelopmentsCollection\SafeQueueThread\SafeQueueThreadSignal.pas',
   Net.RequestHeaders in '..\MelomaciacCommon\Net.RequestHeaders.pas',
-  Net.ResponseHeaders in '..\MelomaciacCommon\Net.ResponseHeaders.pas';
+  Net.ResponseHeaders in '..\MelomaciacCommon\Net.ResponseHeaders.pas',
+  CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas';
 
 {$R *.res}
 

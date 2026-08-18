@@ -6,10 +6,10 @@ uses
     System.Generics.Collections
   , FMX.Media
   , FMX.Forms
+  , CommonTypesUnit
   ;
 
 type
-  TPlayState = (psStop = -1, psPlay = 1, psPause = 0);
   TCopyMode = (cmNone = -1, cmCopy = 0, cmMove = 1);
   TLeafe = (liNone = -1, liTopLeft = 0, liTopRigth = 1, liBottomLeft = 2, liBottomRight = 3);
 
@@ -125,12 +125,6 @@ type
     class property PlayListFormPos: TPosition read FPlayListFormPos write FPlayListFormPos;
   end;
 
-  TPlayStateHelper = record helper for TPlayState
-  public
-    function ToInt: Integer;
-    procedure FromInt(const AVal: Integer);
-  end;
-
   TCopyModeHelper = record helper for TCopyMode
   public
     function ToInt: Integer;
@@ -208,25 +202,6 @@ begin
   AForm.Left := FLeft;
   AForm.Width := FWidth;
   AForm.Height := FHeight;
-end;
-
-{ TPlayStateHelper }
-
-function TPlayStateHelper.ToInt: Integer;
-begin
-  Result := Integer(Self);
-end;
-
-procedure TPlayStateHelper.FromInt(const AVal: Integer);
-begin
-  case AVal of
-    -1: Self := psStop;
-     0: Self := psPause;
-     1: Self := psPlay;
-  else
-    raise Exception.
-      CreateFmt('TPlayStateHelper.FromInt -> Unable to match value "%d"', [AVal]);
-  end;
 end;
 
 { TCopyModeHelper }
@@ -524,7 +499,7 @@ begin
 
   FMainPath := CommonNode.ChildNodes['MainPath'].Text;
   PlayStateStrVal := CommonNode.ChildNodes['PlayState'].Text;
-  FPlayState.FromInt(StrToIntDef(PlayStateStrVal, psStop.ToInt));
+  FPlayState := TPlayState(StrToIntDef(PlayStateStrVal, psStop.ToInt));
   FLastMainPath := CommonNode.ChildNodes['MainPath'].Text;
   FVolume := StrToFloat(CommonNode.ChildNodes['Volume'].Text);
   FLastVolume := StrToFloat(CommonNode.ChildNodes['LastVolume'].Text);
