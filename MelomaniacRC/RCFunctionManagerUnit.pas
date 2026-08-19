@@ -10,7 +10,7 @@ uses
   ;
 
 const
-  REQUEST_PLAY_STATE_TIME_INTERVAL = 2000;
+  REQUEST_PLAY_STATE_TIME_INTERVAL = 1000;
 
 type
   TGetPlayStateThread = class;
@@ -58,6 +58,7 @@ uses
   , Net.ResponseHeaders
   , CommonTypesUnit
   , ParamsExtUnit
+  , FMX.SingleSoundUnit
   ;
 
 { TRCFunctionManager }
@@ -137,7 +138,10 @@ var
   CurrentPlayState: TCurrentPlayState;
   DataParams: TParamsExt;
   Composition: String;
-  PlayState: TPlayState;
+  PlayState: String;
+  Duration: String;
+  CurrentTime: String;
+  VolumePercentage: String;
 begin
   Response := TResponse.Create;
   try
@@ -174,12 +178,18 @@ begin
           DataParams.ToObject(CurrentPlayState);
 
           Composition := ExtractFileName(CurrentPlayState.Composition);
-          PlayState := CurrentPlayState.PlayState;
+          PlayState := CurrentPlayState.PlayState.ToStr;
+          Duration := TSingleSound.GetHumanTime(CurrentPlayState.Duration);
+          CurrentTime := TSingleSound.GetHumanTime(CurrentPlayState.CurrentTime);
+          VolumePercentage := Round(100 * CurrentPlayState.Volume).ToString + ' %';
           TSafeQueueThread.SafeForceQueue(FSafeQueueThreadSignal,
             procedure
             begin
               ARC.RCControlFrame.CompositionNameLabel.Text := Composition;
-              ARC.RCControlFrame.PlayButton.Text := PlayState.ToStr;
+              ARC.RCControlFrame.PlayButton.Text := PlayState;
+              ARC.RCControlFrame.CompositionTimeTotalLabel.Text := Duration;
+              ARC.RCControlFrame.CompositionTimeCurrentLabel.Text := CurrentTime;
+              ARC.RCControlFrame.VolumeLabel.Text := VolumePercentage;
             end);
         finally
           FreeAndNil(DataParams);
