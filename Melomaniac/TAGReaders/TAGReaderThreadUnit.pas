@@ -125,7 +125,7 @@ begin
       TAGInfo.MD5 := MD5;
       TAGInfo.SHA256 := SHA256;
       TAGInfo.FileSize := FileSize;
-
+      //asd debug здесь смотрим падение на 'E:\Hide\Music\Universe\Music for relax\Collection\pit-bull--krasivyy-zhenskiy-vokal.mp3'
       AudioFormat := DetectAudioFormat(FileName);
       case AudioFormat of
         TAudioFormat.afMP3:

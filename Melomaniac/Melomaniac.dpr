@@ -43,7 +43,6 @@ uses
   DBExceptionContainerUnit in '..\SQL\DBExceptionContainerUnit.pas',
   DBAccessUnit in 'DBAccessUnit.pas',
   FlacTAGReaderUnit in 'TAGReaders\FlacTAGReaderUnit.pas',
-  MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas',
   OGGTAGReaderUnit in 'TAGReaders\OGGTAGReaderUnit.pas',
   TAGReaderThreadUnit in 'TAGReaders\TAGReaderThreadUnit.pas',
   WAVTAGReaderUnit in 'TAGReaders\WAVTAGReaderUnit.pas',
@@ -70,7 +69,8 @@ uses
   Net.RequestHeaders in '..\MelomaciacCommon\Net.RequestHeaders.pas',
   Net.ResponseHeaders in '..\MelomaciacCommon\Net.ResponseHeaders.pas',
   UserRequestJobsUnit in 'UserRequestJobsUnit.pas',
-  CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas';
+  CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas',
+  MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas';
 
 {$R *.res}
 
