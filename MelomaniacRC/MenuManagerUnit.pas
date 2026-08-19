@@ -1,4 +1,4 @@
-unit MenuManagerUnit;
+﻿unit MenuManagerUnit;
 
 interface
 

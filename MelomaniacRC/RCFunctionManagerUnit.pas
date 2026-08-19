@@ -1,4 +1,4 @@
-unit RCFunctionManagerUnit;
+﻿unit RCFunctionManagerUnit;
 
 interface
 
@@ -24,6 +24,7 @@ type
     class procedure ClientConnected(const ARC: TMRC);
     class procedure ClientAuthorized(const ARC: TMRC);
     class procedure ClientDisconnected(const ARC: TMRC);
+    class procedure ClientException(const ARC: TMRC);
 
     class procedure SendRequest(
       const ANetClient: TNetClient;
@@ -59,6 +60,7 @@ uses
   , CommonTypesUnit
   , ParamsExtUnit
   , FMX.SingleSoundUnit
+  , ToolsUnit
   ;
 
 { TRCFunctionManager }
@@ -96,6 +98,11 @@ begin
   ARC.RCControlFrame.ConnectButton.Fill.Color := TAlphaColorRec.Lavender;
 
   StopRequestPlayState;
+end;
+
+class procedure TRCFunctionManager.ClientException(const ARC: TMRC);
+begin
+  ARC.RCControlFrame.ConnectButton.Fill.Color := TAlphaColorRec.Lavender;
 end;
 
 class procedure TRCFunctionManager.SendRequest(
@@ -177,7 +184,7 @@ begin
           DataParams.CopyFrom(Response, 1, Response.Length);
           DataParams.ToObject(CurrentPlayState);
 
-          Composition := ExtractFileName(CurrentPlayState.Composition);
+          Composition := TTools.ExtractFileName(CurrentPlayState.Composition);
           PlayState := CurrentPlayState.PlayState.ToStr;
           Duration := TSingleSound.GetHumanTime(CurrentPlayState.Duration);
           CurrentTime := TSingleSound.GetHumanTime(CurrentPlayState.CurrentTime);

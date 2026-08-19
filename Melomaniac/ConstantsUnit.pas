@@ -25,7 +25,7 @@ const
 
   THEME_FILE_EXT = 'mth';
 
-  VOLUME_STEP = 0.05;
+  VOLUME_STEP = 0.02;
 
 implementation
 

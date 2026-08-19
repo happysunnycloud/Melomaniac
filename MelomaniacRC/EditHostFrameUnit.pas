@@ -1,4 +1,4 @@
-unit EditHostFrameUnit;
+п»їunit EditHostFrameUnit;
 
 interface
 
@@ -70,7 +70,7 @@ procedure TEditHostFrame.SaveButtonClick(Sender: TObject);
 var
   Index: Integer;
 begin
-  Index := -1; // Для случая, создания нового подключения
+  Index := -1; // Р”Р»СЏ СЃР»СѓС‡Р°СЏ, СЃРѕР·РґР°РЅРёСЏ РЅРѕРІРѕРіРѕ РїРѕРґРєР»СЋС‡РµРЅРёСЏ
   if Assigned(FRC) then
     Index := FRC._Index;
 

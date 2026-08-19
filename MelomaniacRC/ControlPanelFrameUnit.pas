@@ -1,4 +1,4 @@
-unit ControlPanelFrameUnit;
+﻿unit ControlPanelFrameUnit;
 
 interface
 

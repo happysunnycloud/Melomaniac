@@ -10,6 +10,7 @@ uses
   , Net.Client
   , Net.RequestHeaders
   , Net.Types
+  , Net.Exceptions
   ;
 
 type
@@ -42,6 +43,7 @@ type
     procedure DoClientAuthorized(const ACredential: TCredential);
     procedure DoClientDisconnect;
     procedure DoClientRead;
+    procedure DoClientException(const AExceptionCode: TNetExceptionCode);
 
 //    procedure OnNextButtonClick(Sender: TObject);
 //    procedure OnPrevButtonClick(Sender: TObject);
@@ -150,6 +152,7 @@ begin
   FNetClient.OnAuthorized := DoClientAuthorized;
   FNetClient.OnDisconnected := DoClientDisconnect;
   FNetClient.OnRead := DoClientRead;
+  FNetClient.OnException := DoClientException;
 end;
 
 destructor TMRC.Destroy;
@@ -217,6 +220,11 @@ end;
 procedure TMRC.DoClientRead;
 begin
   TRCFunctionManager.ClientRead(Self);
+end;
+
+procedure TMRC.DoClientException(const AExceptionCode: TNetExceptionCode);
+begin
+  TRCFunctionManager.ClientException(Self);
 end;
 
 { TMRCPool }

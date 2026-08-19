@@ -1,4 +1,4 @@
-unit ToolsUnit;
+﻿unit ToolsUnit;
 
 interface
 
@@ -23,6 +23,7 @@ type
     class function BuildRCControl(
       const AOwner: TControl;
       const ARCIdent: String): TControlPanelFrame;
+    class function ExtractFileName(const APath: String): String;
   end;
 
 implementation
@@ -299,6 +300,38 @@ begin
   AOwner.AddObject(RCControlFrame);
 
   Result := RCControlFrame;
+end;
+
+class function TTools.ExtractFileName(const APath: String): String;
+const
+  DelimChars: array[0..1] of Char = ('\', '/');
+var
+  i: Integer;
+  StartIndex: Integer;
+begin
+  Result := '';
+
+  i := APath.Length;
+  if i = 0 then
+    Exit;
+
+  StartIndex := 0;
+  while i > 0 do
+  begin
+    if (APath[i] = DelimChars[0]) or (APath[i] = DelimChars[1]) then
+    begin
+      StartIndex := i;
+
+      Break;
+    end;
+
+    Dec(i);
+  end;
+
+  if StartIndex <= 0 then
+    Exit;
+
+  Result := Copy(APath, StartIndex + 1, APath.Length);
 end;
 
 end.
