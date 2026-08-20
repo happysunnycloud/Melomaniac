@@ -278,26 +278,20 @@ begin
     if Control = MainForm.CopyModeControl then
     begin
       if TState.CopyMode <> cmCopy then
-      begin
-        TState.CopyMode := cmCopy;
-      end
+        TState.CopyMode := cmCopy
       else
-      begin
-        TState.CopyMode := cmNone
-      end;
+        TState.CopyMode := cmNone;
+
       TPlayController.HeighlightCopyMode;
     end
     else
     if Control = MainForm.MoveModeControl then
     begin
       if TState.CopyMode <> cmMove then
-      begin
-        TState.CopyMode := cmMove;
-      end
+        TState.CopyMode := cmMove
       else
-      begin
-        TState.CopyMode := cmNone
-      end;
+        TState.CopyMode := cmNone;
+
       TPlayController.HeighlightCopyMode;
     end
     else

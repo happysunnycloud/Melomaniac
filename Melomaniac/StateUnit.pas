@@ -85,6 +85,9 @@ type
     class procedure SetPlayState(const APlayState: TPlayState); static;
     class procedure SetSetOfPathsIndex(const ASetOfPathsIndex: Integer); static;
     class function GetIsAppStarting: Boolean; static;
+
+    class procedure SetCopyMode(const ACopyMode: TCopyMode); static;
+    class procedure SetMarkMode(const AMarkMode: Boolean); static;
   public
     class procedure Init;
     class procedure UnInit;
@@ -107,9 +110,9 @@ type
     class property Composition: String
       read FComposition write FComposition;
     class property CopyMode: TCopyMode
-      read FCopyMode write FCopyMode;
+      read FCopyMode write SetCopyMode;
     class property MarkMode: Boolean
-      read FMarkMode write FMarkMode;
+      read FMarkMode write SetMarkMode;
     class property DuplicateMode: Boolean
       read FDuplicateMode write FDuplicateMode;
     class property VisualScheme: String
@@ -340,6 +343,22 @@ class function TState.GetIsAppStarting: Boolean;
 begin
   Result := FIsAppStarting;
   FIsAppStarting := false;
+end;
+
+class procedure TState.SetCopyMode(const ACopyMode: TCopyMode);
+begin
+  FCopyMode := ACopyMode;
+
+  if FCopyMode = cmNone then
+    TPlayController.UnselectLeafe;
+end;
+
+class procedure TState.SetMarkMode(const AMarkMode: Boolean);
+begin
+  FMarkMode := AMarkMode;
+
+  if not FMarkMode then
+    TPlayController.UnselectLeafe;
 end;
 
 class function TState.SaveConfig: Boolean;

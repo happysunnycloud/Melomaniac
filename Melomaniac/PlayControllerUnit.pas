@@ -92,6 +92,7 @@ type
     class procedure HeighlightChangeView;
     class procedure LeafeClicked(Sender: TObject);
     class procedure SetOfPathClicked(Sender: TObject);
+    class procedure UnselectLeafe;
 
     class procedure CopyThenNext;
 
@@ -705,6 +706,12 @@ begin
   Control := Sender as TControl;
 
   TState.SetOfPathsIndex := TTools.ControlToSetOfPathsIndex(Control);
+end;
+
+class procedure TPlayController.UnselectLeafe;
+begin
+  TState.Leafe := liNone;
+  TPlayController.HeighlightLeafe;
 end;
 
 class procedure TPlayController.CopyThenNext;
