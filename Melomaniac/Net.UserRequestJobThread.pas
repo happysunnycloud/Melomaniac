@@ -41,6 +41,7 @@ procedure TNetUserRequestJobThread.DoJob(const ARequest: TRequest);
 var
   Response: TResponse;
   RequestHeader: TRequestHeader;
+  ResponseHeader: TResponseHeader;
 begin
   RequestHeader.FromInteger(ARequest.GetDataCode);
 
@@ -50,34 +51,58 @@ begin
       TRequestHeader.rqPlay:
       begin
         TMainFormMouseClickManager.PlayClicked;
-        Response.AddDataCode(TResponseHeader.rsPlay.Code);
+        ResponseHeader := TResponseHeader.rsPlay;
+        Response.AddDataCode(ResponseHeader.Code);
         Response.AddAsType(
           'Ok',
           varUString,
-          TResponseHeader.rsPlay.Ident);
+          ResponseHeader.Ident);
       end;
       TRequestHeader.rqVolumeUp:
       begin
         TMainFormMouseClickManager.VolumeUp;
-        Response.AddDataCode(TResponseHeader.rsVolumeUp.Code);
+        ResponseHeader := TResponseHeader.rsVolumeUp;
+        Response.AddDataCode(ResponseHeader.Code);
         Response.AddAsType(
           'Ok',
           varUString,
-          TResponseHeader.rsVolumeUp.Ident);
+          ResponseHeader.Ident);
       end;
       TRequestHeader.rqVolumeDown:
       begin
         TMainFormMouseClickManager.VolumeDown;
-        Response.AddDataCode(TResponseHeader.rsVolumeDown.Code);
+        ResponseHeader := TResponseHeader.rsVolumeDown;
+        Response.AddDataCode(ResponseHeader.Code);
         Response.AddAsType(
           'Ok',
           varUString,
-          TResponseHeader.rsVolumeDown.Ident);
+          ResponseHeader.Ident);
       end;
       TRequestHeader.rqCurrentPlayState:
       begin
-        Response.AddDataCode(TResponseHeader.rsCurrentPlayState.Code);
+        ResponseHeader := TResponseHeader.rsCurrentPlayState;
+        Response.AddDataCode(ResponseHeader.Code);
         TUserRequestJobsUnit.GetCurrentPlayState(Response);
+      end;
+      TRequestHeader.rqNext:
+      begin
+        TMainFormMouseClickManager.NextClicked;
+        ResponseHeader := TResponseHeader.rsNext;
+        Response.AddDataCode(ResponseHeader.Code);
+        Response.AddAsType(
+          'Ok',
+          varUString,
+          ResponseHeader.Ident);
+      end;
+      TRequestHeader.rqPrev:
+      begin
+        TMainFormMouseClickManager.PrevClicked;
+        ResponseHeader := TResponseHeader.rsPrev;
+        Response.AddDataCode(ResponseHeader.Code);
+        Response.AddAsType(
+          'Ok',
+          varUString,
+          ResponseHeader.Ident);
       end;
 
       TRequestHeader.rqGetTestString:

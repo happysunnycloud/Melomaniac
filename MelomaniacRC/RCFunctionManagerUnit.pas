@@ -170,11 +170,19 @@ begin
       end;
       rsVolumeUp:
       begin
-
+        // Void
       end;
       rsVolumeDown:
       begin
-
+        // Void
+      end;
+      rsNext:
+      begin
+        // Void
+      end;
+      rsPrev:
+      begin
+        // Void
       end;
       rsCurrentPlayState:
       begin

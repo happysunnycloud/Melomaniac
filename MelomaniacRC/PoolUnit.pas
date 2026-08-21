@@ -38,6 +38,8 @@ type
     procedure DoPlayButtonClick(Sender: TObject);
     procedure DoVolumeUpButtonClick(Sender: TObject);
     procedure DoVolumeDownButtonClick(Sender: TObject);
+    procedure DoNextButtonClick(Sender: TObject);
+    procedure DoPrevButtonClick(Sender: TObject);
 
     procedure DoClientConnect;
     procedure DoClientAuthorized(const ACredential: TCredential);
@@ -146,6 +148,8 @@ begin
   FRCControlFrame.PlayButton.OnClick := DoPlayButtonClick;
   FRCControlFrame.VolumeUpButton.OnClick := DoVolumeUpButtonClick;
   FRCControlFrame.VolumeDownButton.OnClick := DoVolumeDownButtonClick;
+  FRCControlFrame.NextButton.OnClick := DoNextButtonClick;
+  FRCControlFrame.PrevButton.OnClick := DoPrevButtonClick;
 
   FNetClient := TNetClient.Create(FHostName, FIP, FPort);
   FNetClient.OnConnected := DoClientConnect;
@@ -200,6 +204,16 @@ end;
 procedure TMRC.DoVolumeDownButtonClick(Sender: TObject);
 begin
   SendRequest(TRequestHeader.rqVolumeDown);
+end;
+
+procedure TMRC.DoNextButtonClick(Sender: TObject);
+begin
+  SendRequest(TRequestHeader.rqNext);
+end;
+
+procedure TMRC.DoPrevButtonClick(Sender: TObject);
+begin
+  SendRequest(TRequestHeader.rqPrev);
 end;
 
 procedure TMRC.DoClientConnect;
