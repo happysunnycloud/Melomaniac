@@ -99,7 +99,6 @@ type
     class procedure RefreshPlayListForm;
   end;
 
-  TRewindDirection = (rdNone = 0, rdForward = 1, rdBackward = 2);
   TRewinder = class
   strict private
     class var FForwardRewindThread: TThread;

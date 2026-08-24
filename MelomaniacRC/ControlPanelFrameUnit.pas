@@ -41,6 +41,8 @@ type
     CompositionTimeCurrentLabel: TLabel;
     CompotitionNameTopLayout: TLayout;
     CompositionTimeBottomLayout: TLayout;
+    NextNSecsButton: TButton;
+    PrevNSecsButton: TButton;
     procedure FrameResized(Sender: TObject);
     procedure MenuLabelClick(Sender: TObject);
   strict private
@@ -73,9 +75,13 @@ end;
 
 procedure TControlPanelFrame.FrameResized(Sender: TObject);
 begin
-  PrevButton.Width := NavigateLayout.Width / 2;
-  NextButton.Position.X := PrevButton.Position.X + PrevButton.Width;
-  NextButton.Width := NavigateLayout.Width / 2;
+  PrevButton.Width := NavigateLayout.Width / 4;
+  PrevNSecsButton.Width := NavigateLayout.Width / 4;
+  PrevNSecsButton.Position.X := PrevButton.Position.X + PrevButton.Width;
+  NextNSecsButton.Width := NavigateLayout.Width / 4;
+  NextNSecsButton.Position.X := PrevNSecsButton.Position.X + PrevButton.Width;
+  NextButton.Width := NavigateLayout.Width / 4;
+  NextButton.Position.X := NextNSecsButton.Position.X + NextNSecsButton.Width;
 
 //  VolumeDownButton.Width := NavigateLayout.Width / 2;
 //  VolumeUpButton.Position.X := VolumeDownButton.Position.X + VolumeDownButton.Width;

@@ -11,6 +11,7 @@ uses
   , Net.RequestHeaders
   , Net.Types
   , Net.Exceptions
+  , CommonTypesUnit
   ;
 
 type
@@ -28,9 +29,11 @@ type
     FRCControlFrame: TControlPanelFrame;
     FNetClient: TNetClient;
 
-//    fRefreshInfoThread: TMRCRefreshInfoThread;
+    FRewindDirection: TRewindDirection;
+    FIsRewindActivated: Boolean;
 
     function GetIndex: Integer;
+    function CheckIsRewindActivated: Boolean;
 
     procedure SendRequest(const ARequestHeader: TRequestHeader);
 
@@ -40,20 +43,14 @@ type
     procedure DoVolumeDownButtonClick(Sender: TObject);
     procedure DoNextButtonClick(Sender: TObject);
     procedure DoPrevButtonClick(Sender: TObject);
+    procedure DoNextNSecsButtonClick(Sender: TObject);
+    procedure DoPrevNSecsButtonClick(Sender: TObject);
 
     procedure DoClientConnect;
     procedure DoClientAuthorized(const ACredential: TCredential);
     procedure DoClientDisconnect;
     procedure DoClientRead;
     procedure DoClientException(const AExceptionCode: TNetExceptionCode);
-
-//    procedure OnNextButtonClick(Sender: TObject);
-//    procedure OnPrevButtonClick(Sender: TObject);
-//    procedure OnVolumeDownButtonClick(Sender: TObject);
-//    procedure OnVolumeUpButtonClick(Sender: TObject);
-
-//    procedure OnMenuClick(Sender: TObject);
-//    procedure OnClientRead(ADataMemoryStream: TMemoryStream);
   public
     constructor Create(
       const AListOwner: TMRCList;
@@ -74,24 +71,13 @@ type
     property NetClient: TNetClient read FNetClient;
 
     property _Index: Integer read GetIndex;
-
-//    property UClient:           TUClient              read fUClient         write fUClient;
   end;
 
   TMRCPool = class
   strict private
     FScrollBox: TScrollBox;
     FRCList: TMRCList;
-
-    //function GetRC(AIndex: Word): TMelomaniacRC;
-//    function GetCount: Word;
-
     procedure LoadPool;
-
-//    function BuildControl(
-//      const ARC: TMRC;
-//      const AOwner: TControl): TControlPanelFrame;
-
     function AddRC(
       const AHostName: String;
       const AIP: String;
@@ -103,12 +89,7 @@ type
     destructor Destroy; override;
 
     procedure Refresh;
-
     function TryGetRC(const ARCIdent: String; var ARC: TMRC): Boolean;
-
-    //property RC[AIndex: Word]: TMelomaniacRC read GetRC;
-//    property Count: Word read GetCount;
-//    function IndexOf(const AMelomaniacRC: TMelomaniacRC): Integer;
   end;
 
 implementation
@@ -141,6 +122,8 @@ begin
   FHostName := AHostName;
   FIP := AIP;
   FPort := APort;
+  FIsRewindActivated := false;
+  FRewindDirection := rdNone;
 
   FRCControlFrame := TTools.BuildRCControl(AScrollBox, FIdent);
   FRCControlFrame.HostNameLabel.Text := FHostName;
@@ -150,6 +133,8 @@ begin
   FRCControlFrame.VolumeDownButton.OnClick := DoVolumeDownButtonClick;
   FRCControlFrame.NextButton.OnClick := DoNextButtonClick;
   FRCControlFrame.PrevButton.OnClick := DoPrevButtonClick;
+  FRCControlFrame.NextNSecsButton.OnClick := DoNextNSecsButtonClick;
+  FRCControlFrame.PrevNSecsButton.OnClick := DoPrevNSecsButtonClick;
 
   FNetClient := TNetClient.Create(FHostName, FIP, FPort);
   FNetClient.OnConnected := DoClientConnect;
@@ -175,6 +160,18 @@ begin
     raise Exception.Create('RC instance not found in list');
 end;
 
+function TMRC.CheckIsRewindActivated: Boolean;
+begin
+  Result := FRewindDirection <> rdNone;
+
+  if Result then
+  begin
+    SendRequest(TRequestHeader.rqStopRewind);
+
+    FRewindDirection := TRewindDirection.rdNone;
+  end;
+end;
+
 procedure TMRC.SendRequest(const ARequestHeader: TRequestHeader);
 begin
   if not NetClient.IsConnected then
@@ -193,6 +190,8 @@ end;
 
 procedure TMRC.DoPlayButtonClick(Sender: TObject);
 begin
+  CheckIsRewindActivated;
+
   SendRequest(TRequestHeader.rqPlay);
 end;
 
@@ -208,16 +207,69 @@ end;
 
 procedure TMRC.DoNextButtonClick(Sender: TObject);
 begin
+  CheckIsRewindActivated;
+
   SendRequest(TRequestHeader.rqNext);
 end;
 
 procedure TMRC.DoPrevButtonClick(Sender: TObject);
 begin
+  CheckIsRewindActivated;
+
   SendRequest(TRequestHeader.rqPrev);
+end;
+
+procedure TMRC.DoNextNSecsButtonClick(Sender: TObject);
+var
+  RewindDirection: TRewindDirection;
+begin
+  RewindDirection := FRewindDirection;
+
+  if not CheckIsRewindActivated then
+  begin
+    SendRequest(TRequestHeader.rqNextNSecs);
+
+    FRewindDirection := TRewindDirection.rdForward;
+  end
+  else
+  begin
+    if RewindDirection = TRewindDirection.rdBackward then
+    begin
+      SendRequest(TRequestHeader.rqNextNSecs);
+
+      FRewindDirection := TRewindDirection.rdForward;
+    end;
+  end;
+end;
+
+procedure TMRC.DoPrevNSecsButtonClick(Sender: TObject);
+var
+  RewindDirection: TRewindDirection;
+begin
+  RewindDirection := FRewindDirection;
+
+  if not CheckIsRewindActivated then
+  begin
+    SendRequest(TRequestHeader.rqPrevNSecs);
+
+    FRewindDirection := TRewindDirection.rdBackward;
+  end
+  else
+  begin
+    if RewindDirection = TRewindDirection.rdForward then
+    begin
+      SendRequest(TRequestHeader.rqPrevNSecs);
+
+      FRewindDirection := TRewindDirection.rdBackward;
+    end;
+  end;
 end;
 
 procedure TMRC.DoClientConnect;
 begin
+  FIsRewindActivated := false;
+  FRewindDirection := rdNone;
+
   TRCFunctionManager.ClientConnected(Self);
 end;
 
@@ -263,45 +315,6 @@ begin
 
   inherited;
 end;
-
-//function TMRCPool.BuildControl(
-//  const ARC: TMRC;
-//  const AOwner: TControl): TControlPanelFrame;
-//
-//  function RCControlFrameCount: Word;
-//  var
-//    i, j: Word;
-//  begin
-//    i := 0;
-//    j := 0;
-//    while i < AOwner.ComponentCount do
-//    begin
-//      if AOwner.Components[i] is TControlPanelFrame then
-//        Inc(j);
-//
-//      Inc(i);
-//    end;
-//
-//    Result := j;
-//  end;
-//
-//var
-//  RCControlFrame: TControlPanelFrame;
-//  YPosition:      Single;
-//begin
-//  YPosition := RCControlFrameCount;
-//  RCControlFrame := TControlPanelFrame.Create(AOwner, ARC.Ident);
-//  RCControlFrame.Name := '';
-//  RCControlFrame.HostNameLabel.Text := ARC.HostName;
-//  RCControlFrame.CompositionNameLabel.Text := 'Composition';
-//  RCControlFrame.Position.Y := YPosition * RCControlFrame.Height;
-//  RCControlFrame.Align := TAlignLayout.Top;
-//
-//  ARC.RCControlFrame := RCControlFrame;
-//  AOwner.AddObject(RCControlFrame);
-//
-//  Result := RCControlFrame;
-//end;
 
 function TMRCPool.AddRC(
   const AHostName: String;
@@ -356,34 +369,6 @@ begin
     Port := Word(StrToInt(HostNode.ChildNodes['Port'].Text));
 
     RC := AddRC(HostName, IP, Port);
-//
-//    RC.RCControlFrame.PlayButton.OnClick :=
-//      RC.OnPlayButtonClick;
-//
-//    RC.RCControlFrame.NextButton.OnClick :=
-//      RC.OnNextButtonClick;
-//
-//    RC.RCControlFrame.PrevButton.OnClick :=
-//      RC.OnPrevButtonClick;
-//
-//    RC.RCControlFrame.VolumeDownButton.OnClick :=
-//      RC.OnVolumeDownButtonClick;
-//
-//    RC.RCControlFrame.VolumeUpButton.OnClick :=
-//      RC.OnVolumeUpButtonClick;
-//
-//    RC.RCControlFrame.MenuLabel.OnClick :=
-//      RC.OnMenuClick;
-//
-//    RC.UClient.OnConnected :=
-//      RC.OnClientConnect;
-//
-//    RC.UClient.OnDisconnected :=
-//      RC.OnClientDisconnect;
-//
-//    RC.UClient.OnRead :=
-//      RC.OnClientRead;
-
 
     if i < Pred(HostsNode.ChildNodes.Count) then
     begin

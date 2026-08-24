@@ -1,5 +1,5 @@
 object ControlPanelFrame: TControlPanelFrame
-  Size.Width = 358.000000000000000000
+  Size.Width = 386.000000000000000000
   Size.Height = 257.000000000000000000
   Size.PlatformDefault = False
   OnResized = FrameResized
@@ -8,19 +8,19 @@ object ControlPanelFrame: TControlPanelFrame
     Fill.Color = claWhite
     HitTest = False
     Position.Y = 12.000000000000000000
-    Size.Width = 358.000000000000000000
+    Size.Width = 386.000000000000000000
     Size.Height = 232.000000000000000000
     Size.PlatformDefault = False
     Stroke.Thickness = 0.000000000000000000
     object ConnectionLayout: TLayout
       Align = Top
-      Size.Width = 358.000000000000000000
+      Size.Width = 386.000000000000000000
       Size.Height = 31.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 3
       object HostPanel: TPanel
         Align = Top
-        Size.Width = 358.000000000000000000
+        Size.Width = 386.000000000000000000
         Size.Height = 29.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
@@ -35,9 +35,10 @@ object ControlPanelFrame: TControlPanelFrame
           TabOrder = 0
         end
         object ConnectButton: TRectangle
-          Align = Client
+          Align = Right
           Fill.Color = claLavender
-          Size.Width = 124.000000000000000000
+          Position.X = 266.000000000000000000
+          Size.Width = 120.000000000000000000
           Size.Height = 29.000000000000000000
           Size.PlatformDefault = False
           Stroke.Thickness = 0.000000000000000000
@@ -60,20 +61,20 @@ object ControlPanelFrame: TControlPanelFrame
     object CompositionNamePanel: TPanel
       Align = Top
       Position.Y = 31.000000000000000000
-      Size.Width = 358.000000000000000000
+      Size.Width = 386.000000000000000000
       Size.Height = 80.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       object CompotitionNameTopLayout: TLayout
         Align = Top
-        Size.Width = 358.000000000000000000
+        Size.Width = 386.000000000000000000
         Size.Height = 47.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 2
         object CompositionNameLabel: TLabel
           Align = Contents
           Margins.Left = 10.000000000000000000
-          Size.Width = 348.000000000000000000
+          Size.Width = 376.000000000000000000
           Size.Height = 47.000000000000000000
           Size.PlatformDefault = False
           Text = 'CompositionNameLabel'
@@ -83,7 +84,7 @@ object ControlPanelFrame: TControlPanelFrame
       object CompositionTimeBottomLayout: TLayout
         Align = Bottom
         Position.Y = 52.000000000000000000
-        Size.Width = 358.000000000000000000
+        Size.Width = 386.000000000000000000
         Size.Height = 28.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
@@ -100,7 +101,7 @@ object ControlPanelFrame: TControlPanelFrame
         object CompositionTimeCurrentLabel: TLabel
           Align = Right
           Margins.Right = 10.000000000000000000
-          Position.X = 209.000000000000000000
+          Position.X = 237.000000000000000000
           Size.Width = 139.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
@@ -113,13 +114,13 @@ object ControlPanelFrame: TControlPanelFrame
     object PlayLayout: TLayout
       Align = Top
       Position.Y = 111.000000000000000000
-      Size.Width = 358.000000000000000000
+      Size.Width = 386.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
       object PlayButton: TButton
         Align = Contents
-        Size.Width = 358.000000000000000000
+        Size.Width = 386.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
@@ -129,50 +130,69 @@ object ControlPanelFrame: TControlPanelFrame
     object NavigateLayout: TLayout
       Align = Top
       Position.Y = 151.000000000000000000
-      Size.Width = 358.000000000000000000
+      Size.Width = 386.000000000000000000
       Size.Height = 80.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 2
       object Layout1: TLayout
         Align = Top
-        Size.Width = 358.000000000000000000
+        Size.Width = 386.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
         object NextButton: TButton
-          Position.X = 181.000000000000000000
-          Size.Width = 174.000000000000000000
+          Align = Right
+          Position.X = 290.000000000000000000
+          Size.Width = 96.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
-          Text = 'Next'
+          Text = '>|'
         end
         object PrevButton: TButton
           Align = Left
-          Size.Width = 179.000000000000000000
+          Size.Width = 96.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
-          Text = 'Prev'
+          Text = '|<'
+        end
+        object NextNSecsButton: TButton
+          Align = Right
+          Position.X = 194.000000000000000000
+          Size.Width = 96.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 2
+          Text = '>>'
+        end
+        object PrevNSecsButton: TButton
+          Align = Left
+          Position.X = 96.000000000000000000
+          Size.Width = 96.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 3
+          Text = '<<'
         end
       end
       object Layout2: TLayout
         Align = Bottom
         Position.Y = 40.000000000000000000
-        Size.Width = 358.000000000000000000
+        Size.Width = 386.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 2
         object VolumeDownButton: TButton
           Align = Left
-          Size.Width = 103.000000000000000000
+          Size.Width = 96.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
           Text = '-'
         end
         object VolumeUpButton: TButton
-          Position.X = 260.000000000000000000
+          Position.X = 298.000000000000000000
           Size.Width = 96.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
@@ -181,9 +201,9 @@ object ControlPanelFrame: TControlPanelFrame
         end
       end
       object VolumePanel: TPanel
-        Position.X = 102.000000000000000000
+        Position.X = 96.000000000000000000
         Position.Y = 42.000000000000000000
-        Size.Width = 156.000000000000000000
+        Size.Width = 201.000000000000000000
         Size.Height = 37.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
@@ -310,7 +330,7 @@ object ControlPanelFrame: TControlPanelFrame
       60400700000000000080E16F409336C37067140A0000000049454E44AE426082}
     Fill.Bitmap.WrapMode = TileOriginal
     Fill.Kind = Bitmap
-    Size.Width = 358.000000000000000000
+    Size.Width = 386.000000000000000000
     Size.Height = 12.000000000000000000
     Size.PlatformDefault = False
     Stroke.Thickness = 0.000000000000000000
@@ -430,7 +450,7 @@ object ControlPanelFrame: TControlPanelFrame
     Fill.Bitmap.WrapMode = TileOriginal
     Fill.Kind = Bitmap
     Position.Y = 245.000000000000000000
-    Size.Width = 358.000000000000000000
+    Size.Width = 386.000000000000000000
     Size.Height = 12.000000000000000000
     Size.PlatformDefault = False
     Stroke.Thickness = 0.000000000000000000

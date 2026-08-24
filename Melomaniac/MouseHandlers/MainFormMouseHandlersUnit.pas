@@ -47,6 +47,10 @@ type
 
     class procedure VolumeUp;
     class procedure VolumeDown;
+
+    class procedure NextNSecs;
+    class procedure PrevNSecs;
+    class procedure StopRewind;
   end;
 
 implementation
@@ -459,6 +463,21 @@ end;
 class procedure TMainFormMouseClickManager.VolumeDown;
 begin
   TPlayController.VolumeDown;
+end;
+
+class procedure TMainFormMouseClickManager.NextNSecs;
+begin
+  TPlayController.ForwardRewind;
+end;
+
+class procedure TMainFormMouseClickManager.PrevNSecs;
+begin
+  TPlayController.BackwardRewind;
+end;
+
+class procedure TMainFormMouseClickManager.StopRewind;
+begin
+  TPlayController.StopRewind;
 end;
 
 

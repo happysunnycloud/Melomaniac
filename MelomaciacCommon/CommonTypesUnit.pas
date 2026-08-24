@@ -4,6 +4,7 @@ interface
 
 type
   TPlayState = (psStop, psPlay, psPause);
+  TRewindDirection = (rdNone = 0, rdForward = 1, rdBackward = 2);
 
   TCurrentPlayState = class
   strict private

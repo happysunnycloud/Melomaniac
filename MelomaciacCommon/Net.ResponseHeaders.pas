@@ -10,6 +10,9 @@ type
     rsCurrentPlayState = 3,
     rsNext = 4,
     rsPrev = 5,
+    rsNextNSecs = 6,
+    rsPrevNSecs = 7,
+    rsStopRewind = 8,
 
     rsGetTestString = 999
   );
@@ -43,6 +46,9 @@ begin
     rsNext: Result := 'Next';
     rsPrev: Result := 'Prev';
     rsCurrentPlayState: Result := 'CurrentPlayState';
+    rsNextNSecs: Result := 'NextNSecs';
+    rsPrevNSecs: Result := 'PrevNSecs';
+    rsStopRewind: Result := 'StopRewind';
 
     rsGetTestString: Result := 'GetTestString';
   end;
@@ -57,6 +63,9 @@ begin
     Integer(rsNext): Self := rsNext;
     Integer(rsPrev): Self := rsPrev;
     Integer(rsCurrentPlayState): Self := rsCurrentPlayState;
+    Integer(rsNextNSecs): Self := rsNextNSecs;
+    Integer(rsPrevNSecs): Self := rsPrevNSecs;
+    Integer(rsStopRewind): Self := rsStopRewind;
 
     Integer(rsGetTestString): Self := rsGetTestString;
   else

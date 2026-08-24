@@ -10,6 +10,9 @@ type
     rqCurrentPlayState = 3,
     rqNext = 4,
     rqPrev = 5,
+    rqNextNSecs = 6,
+    rqPrevNSecs = 7,
+    rqStopRewind = 8,
 
     rqGetTestString = 999
   );
@@ -41,6 +44,11 @@ begin
     rqVolumeUp: Result := 'VolumeUp';
     rqVolumeDown: Result := 'VolumeDown';
     rqCurrentPlayState: Result := 'CurrentPlayState';
+    rqNext: Result := 'Next';
+    rqPrev: Result := 'Prev';
+    rqNextNSecs: Result := 'NextNSecs';
+    rqPrevNSecs: Result := 'PrevNSecs';
+    rqStopRewind: Result := 'StopRewind';
 
     rqGetTestString: Result := 'GetTestString';
   end;
@@ -52,9 +60,12 @@ begin
     Integer(rqPlay): Self := rqPlay;
     Integer(rqVolumeUp): Self := rqVolumeUp;
     Integer(rqVolumeDown): Self := rqVolumeDown;
+    Integer(rqCurrentPlayState): Self := rqCurrentPlayState;
     Integer(rqNext): Self := rqNext;
     Integer(rqPrev): Self := rqPrev;
-    Integer(rqCurrentPlayState): Self := rqCurrentPlayState;
+    Integer(rqNextNSecs): Self := rqNextNSecs;
+    Integer(rqPrevNSecs): Self := rqPrevNSecs;
+    Integer(rqStopRewind): Self := rqStopRewind;
 
     Integer(rqGetTestString): Self := rqGetTestString;
   else

@@ -38,6 +38,23 @@ uses
 { TNetUserRequestJobThread }
 
 procedure TNetUserRequestJobThread.DoJob(const ARequest: TRequest);
+
+  procedure _ResponseOkTo(
+    const AResponse: TResponse;
+    const AResponseHeader: TResponseHeader);
+  var
+    ResponseHeader: TResponseHeader;
+    Response: TResponse;
+  begin
+    Response := AResponse;
+    ResponseHeader := AResponseHeader;
+    Response.AddDataCode(ResponseHeader.Code);
+    Response.AddAsType(
+      'Ok',
+      varUString,
+      ResponseHeader.Ident);
+  end;
+
 var
   Response: TResponse;
   RequestHeader: TRequestHeader;
@@ -51,32 +68,17 @@ begin
       TRequestHeader.rqPlay:
       begin
         TMainFormMouseClickManager.PlayClicked;
-        ResponseHeader := TResponseHeader.rsPlay;
-        Response.AddDataCode(ResponseHeader.Code);
-        Response.AddAsType(
-          'Ok',
-          varUString,
-          ResponseHeader.Ident);
+        _ResponseOkTo(Response, TResponseHeader.rsPlay);
       end;
       TRequestHeader.rqVolumeUp:
       begin
         TMainFormMouseClickManager.VolumeUp;
-        ResponseHeader := TResponseHeader.rsVolumeUp;
-        Response.AddDataCode(ResponseHeader.Code);
-        Response.AddAsType(
-          'Ok',
-          varUString,
-          ResponseHeader.Ident);
+        _ResponseOkTo(Response, TResponseHeader.rsVolumeUp);
       end;
       TRequestHeader.rqVolumeDown:
       begin
         TMainFormMouseClickManager.VolumeDown;
-        ResponseHeader := TResponseHeader.rsVolumeDown;
-        Response.AddDataCode(ResponseHeader.Code);
-        Response.AddAsType(
-          'Ok',
-          varUString,
-          ResponseHeader.Ident);
+        _ResponseOkTo(Response, TResponseHeader.rsVolumeDown);
       end;
       TRequestHeader.rqCurrentPlayState:
       begin
@@ -87,22 +89,27 @@ begin
       TRequestHeader.rqNext:
       begin
         TMainFormMouseClickManager.NextClicked;
-        ResponseHeader := TResponseHeader.rsNext;
-        Response.AddDataCode(ResponseHeader.Code);
-        Response.AddAsType(
-          'Ok',
-          varUString,
-          ResponseHeader.Ident);
+        _ResponseOkTo(Response, TResponseHeader.rsNext);
       end;
       TRequestHeader.rqPrev:
       begin
         TMainFormMouseClickManager.PrevClicked;
-        ResponseHeader := TResponseHeader.rsPrev;
-        Response.AddDataCode(ResponseHeader.Code);
-        Response.AddAsType(
-          'Ok',
-          varUString,
-          ResponseHeader.Ident);
+        _ResponseOkTo(Response, TResponseHeader.rsPrev);
+      end;
+      TRequestHeader.rqNextNSecs:
+      begin
+        TMainFormMouseClickManager.NextNSecs;
+        _ResponseOkTo(Response, TResponseHeader.rsNextNSecs);
+      end;
+      TRequestHeader.rqPrevNSecs:
+      begin
+        TMainFormMouseClickManager.PrevNSecs;
+        _ResponseOkTo(Response, TResponseHeader.rsPrevNSecs);
+      end;
+      TRequestHeader.rqStopRewind:
+      begin
+        TMainFormMouseClickManager.StopRewind;
+        _ResponseOkTo(Response, TResponseHeader.rsStopRewind);
       end;
 
       TRequestHeader.rqGetTestString:
