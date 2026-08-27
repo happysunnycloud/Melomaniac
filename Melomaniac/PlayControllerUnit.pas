@@ -13,6 +13,7 @@ uses
   , PlayListUnit
   , FMX.SingleSoundUnit
   , CommonTypesUnit
+  , SafeQueueThread
   ;
 
 type
@@ -99,11 +100,25 @@ type
     class procedure RefreshPlayListForm;
   end;
 
+  TRewinderThread = class(TSafeQueueThread)
+  strict private
+    FStepRewindDoneEvent: TEvent;
+    FSingleSound: TSingleSound;
+    FRewindDirection: TRewindDirection;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(
+      const ASingleSound: TSingleSound;
+      const ARewindDirection: TRewindDirection); reintroduce;
+    destructor Destroy; override;
+
+    procedure Kill;
+  end;
+
   TRewinder = class
   strict private
-    class var FForwardRewindThread: TThread;
-    class var FTerminateThreadEvent: TEvent;
-    class var FStepRewindDoneEvent: TEvent;
+    class var FRewinderThread: TRewinderThread;
     class var FSingleSound: TSingleSound;
   private
     class procedure StartRewind(const ARewindDirection: TRewindDirection);
@@ -758,93 +773,115 @@ begin
   PlayListForm.Select(TPlayController.PlayList.Current.Path);
 end;
 
+{ TRewinderThread }
+
+constructor TRewinderThread.Create(
+  const ASingleSound: TSingleSound;
+  const ARewindDirection: TRewindDirection);
+begin
+  FStepRewindDoneEvent := TEvent.Create(nil, true, false, '');
+
+  FSingleSound := ASingleSound;
+  FRewindDirection := ARewindDirection;
+
+  inherited Create(false);
+end;
+
+destructor TRewinderThread.Destroy;
+begin
+  FreeAndNil(FStepRewindDoneEvent);
+
+  inherited;
+end;
+
+procedure TRewinderThread.Kill;
+begin
+  Terminate;
+
+  FStepRewindDoneEvent.SetEvent;
+end;
+
+procedure TRewinderThread.Execute;
+var
+  Duration: Single;
+  NewTime: TMediaTime;
+  CurrentTime: TMediaTime;
+begin
+  try
+    while not Terminated do
+    begin
+      FStepRewindDoneEvent.ResetEvent;
+
+      SafeForceQueue(
+        procedure
+        begin
+          CurrentTime := FSingleSound.CurrentTime;
+          Duration := FSingleSound.Duration;
+
+          if Duration = 0 then
+            Duration := 1;
+
+          if FRewindDirection = rdForward then
+          begin
+            NewTime := TPlayController.CurrentTime +
+              (REWIND_TIME * MediaTimeScale);
+            if NewTime <= TPlayController.Duration then
+              TPlayController.CurrentTime := NewTime
+            else
+              Exit;
+          end
+          else
+          if FRewindDirection = rdBackward then
+          begin
+            NewTime := TPlayController.CurrentTime -
+              (REWIND_TIME * MediaTimeScale);
+            if NewTime >= 0 then
+              TPlayController.CurrentTime := NewTime
+            else
+            begin
+              TPlayController.CurrentTime := 0;
+              Exit;
+            end;
+          end;
+
+          FStepRewindDoneEvent.SetEvent;
+        end);
+
+      if not Terminated then
+        FStepRewindDoneEvent.WaitFor(INFINITE);
+
+      Sleep(10);
+    end;
+  finally
+    FStepRewindDoneEvent.SetEvent;
+  end;
+end;
+
 { TRewinder }
 
 class procedure TRewinder.Init(const ASingleSound: TSingleSound);
 begin
-  FTerminateThreadEvent := TEvent.Create(nil, true, false, '');
-  FStepRewindDoneEvent := TEvent.Create(nil, true, false, '');
-
   FSingleSound := ASingleSound;
 end;
 
 class procedure TRewinder.UnInit;
 begin
   StopRewind;
-  FreeAndNil(FTerminateThreadEvent);
-  FreeAndNil(FStepRewindDoneEvent);
 end;
 
 class procedure TRewinder.StartRewind(const ARewindDirection: TRewindDirection);
 begin
-  FTerminateThreadEvent.ResetEvent;
-//  FStepRewindDoneEvent.ResetEvent;
-
-  FForwardRewindThread := TThread.CreateAnonymousThread(
-    procedure
-    var
-      Duration: Single;
-      NewTime: TMediaTime;
-      CurrentTime: TMediaTime;
-    begin
-      try
-        while true do
-        begin
-          if FTerminateThreadEvent.WaitFor(0) = wrSignaled then
-            Break;
-
-          FStepRewindDoneEvent.ResetEvent;
-          TThread.Queue(nil,
-            procedure
-            begin
-              CurrentTime := FSingleSound.CurrentTime;
-              Duration := FSingleSound.Duration;
-
-              if Duration = 0 then
-                Duration := 1;
-
-              if ARewindDirection = rdForward then
-              begin
-                NewTime := TPlayController.CurrentTime +
-                  (REWIND_TIME * MediaTimeScale);
-                if NewTime <= TPlayController.Duration then
-                  TPlayController.CurrentTime := NewTime
-                else
-                  Exit;
-              end
-              else
-              if ARewindDirection = rdBackward then
-              begin
-                NewTime := TPlayController.CurrentTime -
-                  (REWIND_TIME * MediaTimeScale);
-                if NewTime >= 0 then
-                  TPlayController.CurrentTime := NewTime
-                else
-                begin
-                  TPlayController.CurrentTime := 0;
-                  Exit;
-                end;
-              end;
-
-              FStepRewindDoneEvent.SetEvent;
-            end);
-
-          FStepRewindDoneEvent.WaitFor(INFINITE);
-
-          Sleep(10);
-        end;
-      finally
-        FStepRewindDoneEvent.SetEvent;
-      end;
-    end);
-
-  FForwardRewindThread.Start;
+  FRewinderThread := TRewinderThread.Create(FSingleSound, ARewindDirection);
 end;
 
 class procedure TRewinder.StopRewind;
 begin
-  FTerminateThreadEvent.SetEvent;
-  FStepRewindDoneEvent.SetEvent;
+  if not Assigned(FRewinderThread) then
+    Exit;
+
+  FRewinderThread.Kill;
+  FRewinderThread.WaitFor;
+  FreeAndNil(FRewinderThread);
 end;
 
 

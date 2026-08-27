@@ -20,6 +20,8 @@ type
 
   TMRC = class
   strict private
+    procedure RunRewind(const ARewindDirection: TRewindDirection);
+  strict private
     FIdent: String;
     FListOwner: TMRCList;
 
@@ -51,6 +53,9 @@ type
     procedure DoClientDisconnect;
     procedure DoClientRead;
     procedure DoClientException(const AExceptionCode: TNetExceptionCode);
+
+    procedure ConnectButtonHandlers;
+    procedure DisconnectButtonHandlers;
   public
     constructor Create(
       const AListOwner: TMRCList;
@@ -102,6 +107,8 @@ uses
   , FMX.Types
   , StringToolsUnit
   , RCFunctionManagerUnit
+  , ConstantsUnit
+//  , DebugUnit
   ;
 
 { TMRC }
@@ -127,14 +134,13 @@ begin
 
   FRCControlFrame := TTools.BuildRCControl(AScrollBox, FIdent);
   FRCControlFrame.HostNameLabel.Text := FHostName;
+
+  // Здесь назначаем обработку только для кнопки подключения
   FRCControlFrame.ConnectButton.OnClick := DoConnectButtonClick;
-  FRCControlFrame.PlayButton.OnClick := DoPlayButtonClick;
-  FRCControlFrame.VolumeUpButton.OnClick := DoVolumeUpButtonClick;
-  FRCControlFrame.VolumeDownButton.OnClick := DoVolumeDownButtonClick;
-  FRCControlFrame.NextButton.OnClick := DoNextButtonClick;
-  FRCControlFrame.PrevButton.OnClick := DoPrevButtonClick;
-  FRCControlFrame.NextNSecsButton.OnClick := DoNextNSecsButtonClick;
-  FRCControlFrame.PrevNSecsButton.OnClick := DoPrevNSecsButtonClick;
+  // Остальные сбработчики назначаем через ConnectButtonHandlers
+  // В событии DoClientConnect
+  // Снимаем обработчики через DisconnectButtonHandlers
+  // В событии DoClientAuthorized
 
   FNetClient := TNetClient.Create(FHostName, FIP, FPort);
   FNetClient.OnConnected := DoClientConnect;
@@ -152,6 +158,28 @@ begin
   inherited;
 end;
 
+procedure TMRC.RunRewind(const ARewindDirection: TRewindDirection);
+begin
+  case ARewindDirection of
+    rdForward:
+    begin
+      SendRequest(TRequestHeader.rqNextNSecs);
+      Self.FRCControlFrame.NextNSecsButton.Text := FORWARD_REWIND_ON;
+    end;
+    rdBackward:
+    begin
+      SendRequest(TRequestHeader.rqPrevNSecs);
+      Self.FRCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_ON;
+    end;
+    rdNone:
+    begin
+      Exit;
+    end;
+  end;
+
+  FRewindDirection := ARewindDirection;
+end;
+
 function TMRC.GetIndex: Integer;
 begin
   Result := ListOwner.IndexOf(Self);
@@ -162,6 +190,10 @@ end;
 
 function TMRC.CheckIsRewindActivated: Boolean;
 begin
+
+  Self.FRCControlFrame.NextNSecsButton.Text := FORWARD_REWIND_OFF;
+  Self.FRCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_OFF;
+
   Result := FRewindDirection <> rdNone;
 
   if Result then
@@ -227,17 +259,13 @@ begin
 
   if not CheckIsRewindActivated then
   begin
-    SendRequest(TRequestHeader.rqNextNSecs);
-
-    FRewindDirection := TRewindDirection.rdForward;
+    RunRewind(rdForward);
   end
   else
   begin
     if RewindDirection = TRewindDirection.rdBackward then
     begin
-      SendRequest(TRequestHeader.rqNextNSecs);
-
-      FRewindDirection := TRewindDirection.rdForward;
+      RunRewind(rdForward);
     end;
   end;
 end;
@@ -250,17 +278,13 @@ begin
 
   if not CheckIsRewindActivated then
   begin
-    SendRequest(TRequestHeader.rqPrevNSecs);
-
-    FRewindDirection := TRewindDirection.rdBackward;
+    RunRewind(rdBackward);
   end
   else
   begin
     if RewindDirection = TRewindDirection.rdForward then
     begin
-      SendRequest(TRequestHeader.rqPrevNSecs);
-
-      FRewindDirection := TRewindDirection.rdBackward;
+      RunRewind(rdBackward);
     end;
   end;
 end;
@@ -269,18 +293,21 @@ procedure TMRC.DoClientConnect;
 begin
   FIsRewindActivated := false;
   FRewindDirection := rdNone;
-
-  TRCFunctionManager.ClientConnected(Self);
 end;
 
 procedure TMRC.DoClientAuthorized(const ACredential: TCredential);
 begin
+  TRCFunctionManager.ClientConnected(Self);
   TRCFunctionManager.ClientAuthorized(Self);
+
+  ConnectButtonHandlers;
 end;
 
 procedure TMRC.DoClientDisconnect;
 begin
   TRCFunctionManager.ClientDisconnected(Self);
+
+  DisconnectButtonHandlers;
 end;
 
 procedure TMRC.DoClientRead;
@@ -291,6 +318,31 @@ end;
 procedure TMRC.DoClientException(const AExceptionCode: TNetExceptionCode);
 begin
   TRCFunctionManager.ClientException(Self);
+end;
+
+procedure TMRC.ConnectButtonHandlers;
+begin
+  FRCControlFrame.PlayButton.OnClick := DoPlayButtonClick;
+  FRCControlFrame.VolumeUpButton.OnClick := DoVolumeUpButtonClick;
+  FRCControlFrame.VolumeDownButton.OnClick := DoVolumeDownButtonClick;
+  FRCControlFrame.NextButton.OnClick := DoNextButtonClick;
+  FRCControlFrame.PrevButton.OnClick := DoPrevButtonClick;
+  FRCControlFrame.NextNSecsButton.OnClick := DoNextNSecsButtonClick;
+  FRCControlFrame.PrevNSecsButton.OnClick := DoPrevNSecsButtonClick;
+end;
+
+procedure TMRC.DisconnectButtonHandlers;
+begin
+  FRCControlFrame.PlayButton.OnClick := nil;
+  FRCControlFrame.VolumeUpButton.OnClick := nil;
+  FRCControlFrame.VolumeDownButton.OnClick := nil;
+  FRCControlFrame.NextButton.OnClick := nil;
+  FRCControlFrame.PrevButton.OnClick := nil;
+  FRCControlFrame.NextNSecsButton.OnClick := nil;
+  FRCControlFrame.PrevNSecsButton.OnClick := nil;
+
+  FRCControlFrame.NextNSecsButton.Text := FORWARD_REWIND_OFF;
+  FRCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_OFF;
 end;
 
 { TMRCPool }

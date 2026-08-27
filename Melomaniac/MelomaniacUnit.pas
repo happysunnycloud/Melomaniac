@@ -86,6 +86,9 @@ type
     procedure OpenFolderMenuItemOnClick(Sender: TObject);
     procedure ThemeMenuItemOnClick(Sender: TObject);
     procedure OnAfterSyncPlayList;
+    procedure DoNetClientDisconnected(
+      const AIP: String;
+      const APort: Word);
     procedure StartPlay;
     procedure TrayMenuItemPlayOnClickHandler(Sender: TObject);
     procedure TrayMenuItemPauseOnClickHandler(Sender: TObject);
@@ -183,6 +186,13 @@ begin
   TPlayController.RefreshPlayListForm;
 
   StartPlay;
+end;
+
+procedure TMainForm.DoNetClientDisconnected(
+  const AIP: String;
+  const APort: Word);
+begin
+  TPlayController.StopRewind;
 end;
 
 procedure TMainForm.Init;
@@ -325,6 +335,7 @@ begin
 
     FNetServer := TNetServer.Create(1081);
     FNetServer.Active := true;
+    FNetServer.OnClientDiconnected := DoNetClientDisconnected;
   except
     on e: Exception do
     begin

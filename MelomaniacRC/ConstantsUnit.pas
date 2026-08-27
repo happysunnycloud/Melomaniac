@@ -11,6 +11,11 @@ const
 
   ConfigFileName = 'MelomaniacRemoteControl.conf';
 
+  FORWARD_REWIND_OFF = '>>';
+  FORWARD_REWIND_ON = '>>>>';
+  BACKWARD_REWIND_OFF = '<<';
+  BACKWARD_REWIND_ON = '<<<<';
+
 implementation
 
 end.
