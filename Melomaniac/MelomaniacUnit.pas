@@ -55,6 +55,7 @@ type
     InfoPanelPathLabel: TLabel;
     InfoPanelTitleLabel: TLabel;
     DurationLabel: TLabel;
+    RCCircle: TCircle;
     procedure FormCreate(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
     procedure ChangeViewControlClick(Sender: TObject);
@@ -74,6 +75,9 @@ type
     FTrayMenuItemMute: TItem;
     FTrayMenuItemUnMute: TItem;
 
+    FRCEnabledMenuItem: TItem;
+    FRCDisabledMenuItem: TItem;
+
     FNetServer: TNetServer;
 
     procedure Init;
@@ -85,7 +89,12 @@ type
     procedure GotoThisPathMenuItemOnClick(Sender: TObject);
     procedure OpenFolderMenuItemOnClick(Sender: TObject);
     procedure ThemeMenuItemOnClick(Sender: TObject);
+    procedure RCEnabledItemOnClick(Sender: TObject);
+    procedure RCDisabledItemOnClick(Sender: TObject);
     procedure OnAfterSyncPlayList;
+    procedure DoNetClientConnected(
+        const AIP: String;
+        const APort: Word);
     procedure DoNetClientDisconnected(
       const AIP: String;
       const APort: Word);
@@ -188,11 +197,20 @@ begin
   StartPlay;
 end;
 
+procedure TMainForm.DoNetClientConnected(
+    const AIP: String;
+    const APort: Word);
+begin
+  TPlayController.StopRewind;
+  RCCircle.Fill.Color := TAlphaColorRec.Green;
+end;
+
 procedure TMainForm.DoNetClientDisconnected(
   const AIP: String;
   const APort: Word);
 begin
   TPlayController.StopRewind;
+  RCCircle.Fill.Color := TAlphaColorRec.Red;
 end;
 
 procedure TMainForm.Init;
@@ -334,8 +352,9 @@ begin
       );
 
     FNetServer := TNetServer.Create(1081);
-    FNetServer.Active := true;
+    FNetServer.OnClientConnected := DoNetClientConnected;
     FNetServer.OnClientDiconnected := DoNetClientDisconnected;
+    RCCircle.Visible := FNetServer.Active;
   except
     on e: Exception do
     begin
@@ -410,6 +429,7 @@ procedure TMainForm.BuildPopupMenus;
 var
   MenuItem: TItem;
   MenuItemTheme: TItem;
+  RCItem: TItem;
   ThemeName: String;
 begin
   FLeafePopupMenu := TPopupMenuExt.Create(Self);
@@ -438,6 +458,10 @@ begin
   MenuItem.OnClick := OpenFolderMenuItemOnClick;
   FMainPopupMenu.Add(MenuItem);
 
+  MenuItem := TItem.Create;
+  MenuItem.Text := '-';
+  FMainPopupMenu.Add(MenuItem);
+
   MenuItemTheme := TItem.Create;
   MenuItemTheme.Text := 'Theme';
   FMainPopupMenu.Add(MenuItemTheme);
@@ -450,6 +474,26 @@ begin
     MenuItem.OnClick := ThemeMenuItemOnClick;
     FMainPopupMenu.Add(MenuItem);
   end;
+
+  MenuItem := TItem.Create;
+  MenuItem.Text := '-';
+  FMainPopupMenu.Add(MenuItem);
+
+  RCItem := TItem.Create;
+  RCItem.Text := 'Remote control';
+  FMainPopupMenu.Add(RCItem);
+
+  FRCEnabledMenuItem := TItem.Create;
+  FRCEnabledMenuItem.Parent := RCItem;
+  FRCEnabledMenuItem.Text := 'Enable';
+  FRCEnabledMenuItem.OnClick := RCEnabledItemOnClick;
+  FMainPopupMenu.Add(FRCEnabledMenuItem);
+
+  FRCDisabledMenuItem := TItem.Create;
+  FRCDisabledMenuItem.Parent := RCItem;
+  FRCDisabledMenuItem.Text := 'Disable';
+  FRCDisabledMenuItem.OnClick := RCDisabledItemOnClick;
+  FMainPopupMenu.Add(FRCDisabledMenuItem);
 end;
 
 procedure TMainForm.BuildTrayPopupMenu;
@@ -630,6 +674,18 @@ begin
     FTrayPopupMenuExt);
   if Assigned(PlayListForm) then
     TVisualScheme.LoadForPlayList(PlayListForm, SchemeName, PlayListForm.ScrollBox);
+end;
+
+procedure TMainForm.RCEnabledItemOnClick(Sender: TObject);
+begin
+  FNetServer.Active := true;
+  RCCircle.Visible := true;
+end;
+
+procedure TMainForm.RCDisabledItemOnClick(Sender: TObject);
+begin
+  FNetServer.Active := false;
+  RCCircle.Visible := false;;
 end;
 
 procedure TMainForm.TimeLineControlMouseWheel(Sender: TObject;
