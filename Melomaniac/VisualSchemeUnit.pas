@@ -37,10 +37,12 @@ type
       const ALeafePopupMenu: TPopupMenuExt;
       const AMainPopupMenu: TPopupMenuExt;
       const ATrayPopupMenuExt: TPopupMenuExt);
-    class procedure LoadForPlayList(
+    class procedure LoadForPlayListForm(
       const AForm: TFormExt;
       const ASchemeName: String;
       const AScrollBox: TScrollBox);
+    class procedure LoadForSetPasswordForm(
+      const ASchemeName: String);
     class procedure AssignBitmap(
       const AControl: TControl;
       const ABitMapIdent: String);
@@ -64,6 +66,7 @@ uses
   , StateUnit
   , FileToolsUnit
   , PlayListItemFrameUnit
+  , SetPasswordFormUnit
   , FMX.Types
   , System.UITypes
   , CommonTypesUnit
@@ -144,7 +147,6 @@ var
   SchemeFileName: String;
   PlayControl: TCircle;
 begin
-  { TODO: при перегрузке темы не перегружаются хинты и меню }
   if not (APlayControl is TCircle) then
     raise Exception.Create('TVisualScheme.Load -> ' +
       'APlayControl is not TCircle class');
@@ -222,7 +224,7 @@ begin
   TState.VisualScheme := ASchemeName;
 end;
 
-class procedure TVisualScheme.LoadForPlayList(
+class procedure TVisualScheme.LoadForPlayListForm(
   const AForm: TFormExt;
   const ASchemeName: String;
   const AScrollBox: TScrollBox);
@@ -280,7 +282,45 @@ begin
   AForm.Theme.Apply;
   AForm.BorderFrame.Kind := TBorderFrameKind.bfkNoCaption;
 
-  TState.VisualScheme := ASchemeName;
+//  TState.VisualScheme := ASchemeName;
+end;
+
+class procedure TVisualScheme.LoadForSetPasswordForm(
+  const ASchemeName: String);
+var
+  Params: TParamsExt;
+  SchemeFileName: String;
+begin
+  SchemeFileName := GetSchemeFileName(ASchemeName);
+
+  Params := TParamsExt.Create;
+  try
+    TParamsExtractor.ExtractToParams(
+      SchemeFileName,
+      PACKER_SETTINGS_FILE,
+      Params);
+
+    SetPasswordForm.Theme.ParamsToSettings(Params);
+  finally
+    FreeAndNil(Params);
+  end;
+
+  SetPasswordForm.PasswordLabel.StyledSettings := [];
+  SetPasswordForm.RetryPasswordLabel.StyledSettings := [];
+
+  SetPasswordForm.Theme.CommonSettings.CustomTextSettings.ApplyTo(
+    SetPasswordForm.PasswordLabel);
+  SetPasswordForm.Theme.CommonSettings.CustomTextSettings.ApplyTo(
+    SetPasswordForm.RetryPasswordLabel);
+
+  SetPasswordForm.Theme.FormSettings.Container := SetPasswordForm;
+  SetPasswordForm.Theme.Apply;
+
+  SetPasswordForm.OnFormStateLoaded := (
+    procedure(ATFormExt: TFormExt)
+    begin
+      SetPasswordForm.BorderFrame.Kind := TBorderFrameKind.bfkNone;
+    end);
 end;
 
 class procedure TVisualScheme.AssignBitmap(

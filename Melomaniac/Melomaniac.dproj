@@ -349,6 +349,10 @@
         <DCCReference Include="UserRequestJobsUnit.pas"/>
         <DCCReference Include="..\MelomaciacCommon\CommonTypesUnit.pas"/>
         <DCCReference Include="TAGReaders\MP3TAGsReaderUnit.pas"/>
+        <DCCReference Include="SetPasswordForm\SetPasswordFormUnit.pas">
+            <Form>SetPasswordForm</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

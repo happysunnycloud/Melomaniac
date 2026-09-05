@@ -65,6 +65,10 @@ type
     procedure TimeLineControlMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
     procedure FormDestroy(Sender: TObject);
+  strict private
+    function CheckRCLogin(
+      const ALogin: String;
+      const APassword: String): Boolean;
   private
     FLeafePopupMenu: TPopupMenuExt;
     FMainPopupMenu: TPopupMenuExt;
@@ -91,6 +95,7 @@ type
     procedure ThemeMenuItemOnClick(Sender: TObject);
     procedure RCEnabledItemOnClick(Sender: TObject);
     procedure RCDisabledItemOnClick(Sender: TObject);
+    procedure ShowSetPasswordFormItemOnClick(Sender: TObject);
     procedure OnAfterSyncPlayList;
     procedure DoNetClientConnected(
         const AIP: String;
@@ -136,6 +141,7 @@ uses
   , FMX.ControlToolsUnit
   , FMX.Media
   , CommonTypesUnit
+  , SetPasswordFormUnit
   ;
 
 procedure TMainForm.CloseControlClick(Sender: TObject);
@@ -211,6 +217,13 @@ procedure TMainForm.DoNetClientDisconnected(
 begin
   TPlayController.StopRewind;
   RCCircle.Fill.Color := TAlphaColorRec.Red;
+end;
+
+function TMainForm.CheckRCLogin(
+  const ALogin: String;
+  const APassword: String): Boolean;
+begin
+  Result := true;
 end;
 
 procedure TMainForm.Init;
@@ -339,8 +352,6 @@ begin
     FCustomHint := TCustomHint.Create(Self);
 
     VisualScheme := TState.VisualScheme;
-    if VisualScheme.IsEmpty then
-      VisualScheme := 'Steampunk';
     TVisualScheme.LoadForMainForm(
       Self,
       VisualScheme,
@@ -352,9 +363,14 @@ begin
       );
 
     FNetServer := TNetServer.Create(1081);
+    FNetServer.AllowedConnectionCount := 1;
     FNetServer.OnClientConnected := DoNetClientConnected;
     FNetServer.OnClientDiconnected := DoNetClientDisconnected;
-    RCCircle.Visible := FNetServer.Active;
+    FNetServer.CheckLoginFuncRef := CheckRCLogin;
+    if TState.RCEnabled then
+      RCEnabledItemOnClick(nil)
+    else
+      RCDisabledItemOnClick(nil);
   except
     on e: Exception do
     begin
@@ -494,6 +510,17 @@ begin
   FRCDisabledMenuItem.Text := 'Disable';
   FRCDisabledMenuItem.OnClick := RCDisabledItemOnClick;
   FMainPopupMenu.Add(FRCDisabledMenuItem);
+
+  MenuItem := TItem.Create;
+  MenuItem.Parent := RCItem;
+  MenuItem.Text := '-';
+  FMainPopupMenu.Add(MenuItem);
+
+  MenuItem := TItem.Create;
+  MenuItem.Parent := RCItem;
+  MenuItem.Text := 'Set password';
+  MenuItem.OnClick := ShowSetPasswordFormItemOnClick;
+  FMainPopupMenu.Add(MenuItem);
 end;
 
 procedure TMainForm.BuildTrayPopupMenu;
@@ -589,7 +616,7 @@ begin
       0,
       Self.Left + Round(Self.PrevTrackControl.Position.X));
 
-    TVisualScheme.LoadForPlayList(
+    TVisualScheme.LoadForPlayListForm(
       PlayListForm,
       TState.VisualScheme,
       PlayListForm.ScrollBox);
@@ -673,19 +700,46 @@ begin
     FMainPopupMenu,
     FTrayPopupMenuExt);
   if Assigned(PlayListForm) then
-    TVisualScheme.LoadForPlayList(PlayListForm, SchemeName, PlayListForm.ScrollBox);
+    TVisualScheme.LoadForPlayListForm(
+      PlayListForm, SchemeName, PlayListForm.ScrollBox);
 end;
 
 procedure TMainForm.RCEnabledItemOnClick(Sender: TObject);
 begin
   FNetServer.Active := true;
   RCCircle.Visible := true;
+  TState.RCEnabled := FNetServer.Active;
+  FRCEnabledMenuItem.Visible := false;
+  FRCDisabledMenuItem.Visible := true;
 end;
 
 procedure TMainForm.RCDisabledItemOnClick(Sender: TObject);
 begin
   FNetServer.Active := false;
-  RCCircle.Visible := false;;
+  RCCircle.Visible := false;
+  TState.RCEnabled := FNetServer.Active;
+  FRCEnabledMenuItem.Visible := true;
+  FRCDisabledMenuItem.Visible := false;
+end;
+
+procedure TMainForm.ShowSetPasswordFormItemOnClick(Sender: TObject);
+var
+  ModalResult: TModalResult;
+  Password: String;
+  RetryPassword: String;
+begin
+  SetPasswordForm := TSetPasswordForm.Create(nil);
+  TVisualScheme.LoadForSetPasswordForm(TState.VisualScheme);
+  ModalResult := SetPasswordForm.ShowModal;
+  if ModalResult <> mrOk then
+    Exit;
+
+  Password := SetPasswordForm.PasswordEdit.Text;
+  RetryPassword := SetPasswordForm.RetryPasswordEdit.Text;
+  if Password.IsEmpty and RetryPassword.IsEmpty then
+    ShowMessage('The password cannot be empty');
+  if Password <> RetryPassword then
+    ShowMessage('The passwords do not match');
 end;
 
 procedure TMainForm.TimeLineControlMouseWheel(Sender: TObject;

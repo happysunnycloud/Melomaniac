@@ -7,7 +7,6 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
   System.Generics.Collections,
   FMX.FormExtUnit,
-//  FMX.FormExt.Types,
   FMX.Theme,
   PlayListItemFrameUnit,
   PlayListUnit

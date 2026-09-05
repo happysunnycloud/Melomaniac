@@ -75,6 +75,7 @@ type
     // Если true, то с момента последнего останова
     // Если false, то с первого трека в плейлисте
     class var FIsAppStarting: Boolean;
+    class var FRCEnabled: Boolean;
 
 //    class procedure SetSetOfPaths(const A)
     class var FMainFormPos: TPosition;
@@ -125,7 +126,11 @@ type
     class property IsAppStarting: Boolean read GetIsAppStarting;
 
     class property MainFormPos: TPosition read FMainFormPos write FMainFormPos;
-    class property PlayListFormPos: TPosition read FPlayListFormPos write FPlayListFormPos;
+    class property PlayListFormPos: TPosition
+      read FPlayListFormPos write FPlayListFormPos;
+
+    class property RCEnabled: Boolean
+      read FRCEnabled write FRCEnabled;
   end;
 
   TCopyModeHelper = record helper for TCopyMode
@@ -272,6 +277,7 @@ begin
   FSetOfPathsIndex := 0;
   FLeafe := liNone;
   FIsAppStarting := true;
+  FRCEnabled := false;
 
   MainFormPos := TPosition.Create;
   PlayListFormPos := TPosition.Create;
@@ -410,6 +416,7 @@ begin
   CommonNode.AddChild('MarkMode').Text := BoolToStr(FMarkMode, true);;
   CommonNode.AddChild('DuplicateMode').Text := BoolToStr(FDuplicateMode, true);
   CommonNode.AddChild('VisualScheme').Text := FVisualScheme;
+  CommonNode.AddChild('RCEnableed').Text := BoolToStr(FRCEnabled, true);
   CommonNode.AddChild('SetOfPathsIndex').Text := IntToStr(FSetOfPathsIndex);
 
   SetsOfPathsNode := RootNode.AddChild('SetsOfPaths');
@@ -529,7 +536,11 @@ begin
   FMarkMode := StrToBool(CommonNode.ChildNodes['MarkMode'].Text);
   FDuplicateMode := StrToBool(CommonNode.ChildNodes['DuplicateMode'].Text);
   FVisualScheme := CommonNode.ChildNodes['VisualScheme'].Text;
+  FRCEnabled := StrToBoolDef(CommonNode.ChildNodes['RCEnableed'].Text, false);
   FSetOfPathsIndex := StrToInt(CommonNode.ChildNodes['SetOfPathsIndex'].Text);
+
+  if FVisualScheme.IsEmpty then
+    FVisualScheme := 'Steampunk';
 
   SetsOfPathsNode := RootNode.ChildNodes.FindNode('SetsOfPaths');
   for i := 0 to Pred(SetsOfPathsNode.ChildNodes.Count) do

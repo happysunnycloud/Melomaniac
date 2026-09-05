@@ -70,7 +70,8 @@ uses
   Net.ResponseHeaders in '..\MelomaciacCommon\Net.ResponseHeaders.pas',
   UserRequestJobsUnit in 'UserRequestJobsUnit.pas',
   CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas',
-  MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas';
+  MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas',
+  SetPasswordFormUnit in 'SetPasswordForm\SetPasswordFormUnit.pas' {SetPasswordForm};
 
 {$R *.res}
 
