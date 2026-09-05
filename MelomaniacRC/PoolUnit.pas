@@ -3,7 +3,8 @@
 interface
 
 uses
-    System.Generics.Collections
+    System.Classes
+  , System.Generics.Collections
   , FMX.Controls
   , FMX.Layouts
   , ControlPanelFrameUnit
@@ -17,6 +18,8 @@ uses
 type
   TMRC = class;
   TMRCList = TList<TMRC>;
+
+  TGetPlayStateThread = class;
 
   TMRC = class
   strict private
@@ -56,6 +59,11 @@ type
 
     procedure ConnectButtonHandlers;
     procedure DisconnectButtonHandlers;
+  strict private
+    FGetPlayStateThread: TGetPlayStateThread;
+
+    procedure StartRequestPlayState(const ANetClient: TNetClient);
+    procedure StopRequestPlayState;
   public
     constructor Create(
       const AListOwner: TMRCList;
@@ -72,7 +80,7 @@ type
     property Port: Word read FPort write FPort;
 
     property RCControlFrame: TControlPanelFrame
-      read FRCControlFrame write fRCControlFrame;
+      read FRCControlFrame write FRCControlFrame;
     property NetClient: TNetClient read FNetClient;
 
     property _Index: Integer read GetIndex;
@@ -97,11 +105,19 @@ type
     function TryGetRC(const ARCIdent: String; var ARC: TMRC): Boolean;
   end;
 
+  TGetPlayStateThread = class(TThread)
+  strict private
+    FNetClient: TNetClient;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(const ANetClient: TNetClient);
+  end;
+
 implementation
 
 uses
-    System.Classes
-  , System.SysUtils
+    System.SysUtils
   , Xml.XMLIntf
   , ToolsUnit
   , FMX.Types
@@ -132,6 +148,8 @@ begin
   FIsRewindActivated := false;
   FRewindDirection := rdNone;
 
+  FGetPlayStateThread := nil;
+
   FRCControlFrame := TTools.BuildRCControl(AScrollBox, FIdent);
   FRCControlFrame.HostNameLabel.Text := FHostName;
 
@@ -152,7 +170,7 @@ end;
 
 destructor TMRC.Destroy;
 begin
-  TRCFunctionManager.StopRequestPlayState;
+  StopRequestPlayState;
   FreeAndNil(FNetClient);
 
   inherited;
@@ -206,16 +224,19 @@ end;
 
 procedure TMRC.SendRequest(const ARequestHeader: TRequestHeader);
 begin
-  if not NetClient.IsConnected then
+  if not FNetClient.IsConnected then
     Exit;
 
-  TRCFunctionManager.SendRequest(NetClient, ARequestHeader.Code);
+  TRCFunctionManager.SendRequest(FNetClient, ARequestHeader.Code);
 end;
 
 procedure TMRC.DoConnectButtonClick(Sender: TObject);
 begin
   if not FNetClient.IsConnected then
-    TRCFunctionManager.Connect(Self)
+  begin
+    FNetClient.Connect;
+    TRCFunctionManager.Connect(Self);
+  end
   else
     FNetClient.Disconnect;
 end;
@@ -298,13 +319,14 @@ end;
 procedure TMRC.DoClientAuthorized(const ACredential: TCredential);
 begin
   TRCFunctionManager.ClientConnected(Self);
-  TRCFunctionManager.ClientAuthorized(Self);
+  StartRequestPlayState(FNetClient);
 
   ConnectButtonHandlers;
 end;
 
 procedure TMRC.DoClientDisconnect;
 begin
+  StopRequestPlayState;
   TRCFunctionManager.ClientDisconnected(Self);
 
   DisconnectButtonHandlers;
@@ -343,6 +365,22 @@ begin
 
   FRCControlFrame.NextNSecsButton.Text := FORWARD_REWIND_OFF;
   FRCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_OFF;
+end;
+
+procedure TMRC.StartRequestPlayState(
+  const ANetClient: TNetClient);
+begin
+  FGetPlayStateThread := TGetPlayStateThread.Create(ANetClient);
+end;
+
+procedure TMRC.StopRequestPlayState;
+begin
+  if not Assigned(FGetPlayStateThread) then
+    Exit;
+
+  FGetPlayStateThread.Terminate;
+  FGetPlayStateThread.WaitFor;
+  FreeAndNil(FGetPlayStateThread);
 end;
 
 { TMRCPool }
@@ -470,6 +508,40 @@ begin
       ARC := RC;
 
       Exit(true);
+    end;
+  end;
+end;
+
+{ TGetPlayStateThread }
+
+constructor TGetPlayStateThread.Create(const ANetClient: TNetClient);
+begin
+  if not Assigned(ANetClient) then
+    raise Exception.Create('ANetClient is nil');
+
+  FNetClient := ANetClient;
+
+  inherited Create(false);
+end;
+
+procedure TGetPlayStateThread.Execute;
+var
+  TimeOut: Integer;
+  Count: Integer;
+begin
+  TimeOut := REQUEST_PLAY_STATE_TIME_INTERVAL div 100;
+  while not Terminated do
+  begin
+    TRCFunctionManager.SendRequest(
+      FNetClient,
+      TRequestHeader.rqCurrentPlayState.Code);
+
+    Count := 0;
+    while (not Terminated) and (Count < Timeout) do
+    begin
+      Sleep(100);
+
+      Inc(Count);
     end;
   end;
 end;
