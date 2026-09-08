@@ -60,6 +60,7 @@ uses
   , PlayControllerUnit
   , StateUnit
   , CommonTypesUnit
+  , AddLogUnit
   ;
 
 { TMainFormMouseHandlers }
@@ -424,6 +425,8 @@ end;
 
 class procedure TMainFormMouseClickManager.PlayClicked;
 begin
+  TLogger.AddLog('*** TMainFormMouseClickManager.PlayClicked Enter');
+
   if (TState.PlayState = psPause) or
      (TState.PlayState = psStop)
   then
@@ -435,6 +438,8 @@ begin
   begin
     TPlayController.Pause;
   end;
+
+  TLogger.AddLog('*** TMainFormMouseClickManager.PlayClicked Leave');
 end;
 
 class procedure TMainFormMouseClickManager.PrevClicked;

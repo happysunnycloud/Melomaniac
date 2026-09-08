@@ -19,6 +19,8 @@ type
     OkButton: TButton;
     ButtonsLayout: TLayout;
     CancelButton: TButton;
+    CaptionLayout: TLayout;
+    CaptionLabel: TLabel;
     procedure CancelButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);

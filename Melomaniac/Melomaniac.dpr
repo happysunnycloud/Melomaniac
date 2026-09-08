@@ -71,7 +71,8 @@ uses
   UserRequestJobsUnit in 'UserRequestJobsUnit.pas',
   CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas',
   MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas',
-  SetPasswordFormUnit in 'SetPasswordForm\SetPasswordFormUnit.pas' {SetPasswordForm};
+  SetPasswordFormUnit in 'SetPasswordForm\SetPasswordFormUnit.pas' {SetPasswordForm},
+  AddLogUnit in '..\..\DevelopmentsCollection\AddLogUnit.pas';
 
 {$R *.res}
 

@@ -142,6 +142,7 @@ uses
   , FMX.Media
   , CommonTypesUnit
   , SetPasswordFormUnit
+  , AddLogUnit
   ;
 
 procedure TMainForm.CloseControlClick(Sender: TObject);
@@ -194,6 +195,8 @@ procedure TMainForm.OnAfterSyncPlayList;
 var
   MainPath: String;
 begin
+  TLogger.AddLog('*** TMainForm.OnAfterSyncPlayList Enter');
+
   TPlayController.PlayList.SaveToDB;
 
   MainPath := TState.MainPath;
@@ -201,6 +204,8 @@ begin
   TPlayController.RefreshPlayListForm;
 
   StartPlay;
+
+  TLogger.AddLog('*** TMainForm.OnAfterSyncPlayList Leave');
 end;
 
 procedure TMainForm.DoNetClientConnected(
@@ -232,6 +237,8 @@ var
   VisualScheme: String;
 begin
   try
+    TLogger.Init('Log', 1000, true, true);
+
     TTools.Init;
     TState.Init;
 
@@ -406,6 +413,8 @@ begin
   TPlayController.UnInit;
   TVisualScheme.UnInit;
   TState.UnInit;
+
+  TLogger.UnInit;
 end;
 
 procedure TMainForm.TrayMenuItemPlayOnClickHandler(Sender: TObject);

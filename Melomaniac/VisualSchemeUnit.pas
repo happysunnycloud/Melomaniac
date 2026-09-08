@@ -305,13 +305,20 @@ begin
     FreeAndNil(Params);
   end;
 
+  SetPasswordForm.CaptionLabel.StyledSettings := [];
   SetPasswordForm.PasswordLabel.StyledSettings := [];
   SetPasswordForm.RetryPasswordLabel.StyledSettings := [];
 
   SetPasswordForm.Theme.CommonSettings.CustomTextSettings.ApplyTo(
+    SetPasswordForm.CaptionLabel);
+  SetPasswordForm.Theme.CommonSettings.CustomTextSettings.ApplyTo(
     SetPasswordForm.PasswordLabel);
   SetPasswordForm.Theme.CommonSettings.CustomTextSettings.ApplyTo(
     SetPasswordForm.RetryPasswordLabel);
+
+  SetPasswordForm.Theme.DecorateButton(SetPasswordForm.OkButton);
+  SetPasswordForm.Theme.DecorateButton(SetPasswordForm.CancelButton);
+  SetPasswordForm.Theme.ButtonSettings.Container := SetPasswordForm;
 
   SetPasswordForm.Theme.FormSettings.Container := SetPasswordForm;
   SetPasswordForm.Theme.Apply;
