@@ -40,11 +40,6 @@ implementation
 procedure TSetPasswordForm.CancelButtonClick(Sender: TObject);
 begin
   ModalResult := mrCancel;
-//  TThread.ForceQueue(nil,
-//    procedure
-//    begin
-//      Close;
-//    end);
 end;
 
 procedure TSetPasswordForm.FormCreate(Sender: TObject);
@@ -58,7 +53,27 @@ begin
 end;
 
 procedure TSetPasswordForm.OkButtonClick(Sender: TObject);
+var
+  Password: String;
+  RetryPassword: String;
 begin
+  Password := SetPasswordForm.PasswordEdit.Text;
+  RetryPassword := SetPasswordForm.RetryPasswordEdit.Text;
+
+  if Password.IsEmpty and RetryPassword.IsEmpty then
+  begin
+    ShowMessage('The password cannot be empty');
+
+    Exit;
+  end;
+
+  if Password <> RetryPassword then
+  begin
+    ShowMessage('The passwords do not match');
+
+    Exit;
+  end;
+
   ModalResult := mrOk;
 end;
 

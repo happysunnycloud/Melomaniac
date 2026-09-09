@@ -72,7 +72,9 @@ uses
   CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas',
   MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas',
   SetPasswordFormUnit in 'SetPasswordForm\SetPasswordFormUnit.pas' {SetPasswordForm},
-  AddLogUnit in '..\..\DevelopmentsCollection\AddLogUnit.pas';
+  AddLogUnit in '..\..\DevelopmentsCollection\AddLogUnit.pas',
+  CryptoUtils in '..\MelomaciacCommon\CryptoUtils.pas',
+  CommonConstantsUnit in '..\MelomaciacCommon\CommonConstantsUnit.pas';
 
 {$R *.res}
 

@@ -11,10 +11,13 @@ uses
 
 type
   TTools = class
-    class function  OpenXML(const AConfigFileName: String): IXMLDocument;
+  strict private
+  public
+    class function OpenXML(const AConfigFileName: String): IXMLDocument;
     class procedure DeleteHost(const AIndex: Integer);
+    class function GetConfigFileName: String;
+    class function GetCryptoKey: String;
     class procedure CreateConfigFile;
-    class function  GetConfigFileName: String;
     class procedure SaveHost(
       const AHostName: String;
       const AIP: String;
@@ -35,6 +38,7 @@ uses
   , StringToolsUnit
   , FMX.Dialogs
   , FMX.Types
+  , CommonConstantsUnit
   ;
 
 { TTools }
@@ -131,6 +135,49 @@ begin
   Result :=
     ExtractFilePath(ParamStr(0)) + FILE_PATH_SPLITTER + ConfigFileName;
   {$ENDIF}
+end;
+
+class function TTools.GetCryptoKey: String;
+var
+  TF: TextFile;
+  Key: String;
+  FileName: String;
+begin
+  {$IFDEF ANDROID}
+  FileName :=
+    System.IOUtils.TPath.GetDocumentsPath +
+    FILE_PATH_SPLITTER +
+    CRYPTO_KEY_FILE_NAME;
+  {$ELSE IF MSWINDOWS}
+  FileName :=
+    ExtractFilePath(ParamStr(0)) +
+    FILE_PATH_SPLITTER +
+    CRYPTO_KEY_FILE_NAME;
+  {$ENDIF}
+
+  if not FileExists(FileName) then
+  begin
+    ShowMessage('"CryptoKey" file not found');
+    ShowMessage('The default key will be used');
+
+    Exit;
+  end;
+
+  AssignFile(TF, FileName);
+  {$I+}
+  try
+    Reset(TF);
+    try
+      Readln(TF, Key);
+    finally
+      CloseFile(TF);
+    end;
+  except
+    raise Exception.CreateFmt('Error reading file "%s"', [FileName]);
+  end;
+  {$I-}
+
+  Result := Trim(Key);
 end;
 
 class procedure TTools.SaveHost(

@@ -19,7 +19,9 @@ uses
   SafeQueueThreadSignal in '..\DevelopmentsCollection\SafeQueueThread\SafeQueueThreadSignal.pas',
   Net.RequestHeaders in '..\MelomaciacCommon\Net.RequestHeaders.pas',
   Net.ResponseHeaders in '..\MelomaciacCommon\Net.ResponseHeaders.pas',
-  CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas';
+  CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas',
+  CommonConstantsUnit in '..\MelomaciacCommon\CommonConstantsUnit.pas',
+  CryptoUtils in '..\MelomaciacCommon\CryptoUtils.pas';
 
 {$R *.res}
 

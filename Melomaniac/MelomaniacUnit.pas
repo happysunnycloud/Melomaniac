@@ -228,7 +228,7 @@ function TMainForm.CheckRCLogin(
   const ALogin: String;
   const APassword: String): Boolean;
 begin
-  Result := true;
+  Result := TTools.CheckRCLogin(ALogin) and TTools.CheckRCPassword(APassword);
 end;
 
 procedure TMainForm.Init;
@@ -735,7 +735,6 @@ procedure TMainForm.ShowSetPasswordFormItemOnClick(Sender: TObject);
 var
   ModalResult: TModalResult;
   Password: String;
-  RetryPassword: String;
 begin
   SetPasswordForm := TSetPasswordForm.Create(nil);
   TVisualScheme.LoadForSetPasswordForm(TState.VisualScheme);
@@ -744,11 +743,7 @@ begin
     Exit;
 
   Password := SetPasswordForm.PasswordEdit.Text;
-  RetryPassword := SetPasswordForm.RetryPasswordEdit.Text;
-  if Password.IsEmpty and RetryPassword.IsEmpty then
-    ShowMessage('The password cannot be empty');
-  if Password <> RetryPassword then
-    ShowMessage('The passwords do not match');
+  TTools.PasswordToCryptHash(Password);
 end;
 
 procedure TMainForm.TimeLineControlMouseWheel(Sender: TObject;

@@ -4,6 +4,7 @@ interface
 
 uses
     System.Classes
+  , System.SyncObjs
   , System.Generics.Collections
   , ThreadFactoryUnit
   , PlayListUnit
@@ -30,6 +31,7 @@ type
 
   TTAGReaderThread = class(TThreadExt)
   strict private
+    FDone: TEvent;
     FFileNames: TFileNames;
     FPlayList: TPlayList;
   protected
@@ -41,6 +43,7 @@ type
       const AFileNames: TFileNames;
       const AStartIndex: Integer;
       const AFinishIndex: Integer); reintroduce;
+    destructor Destroy; override;
   end;
 
 implementation
@@ -53,6 +56,7 @@ uses
   , OGGTAGReaderUnit
   , WavTAGReaderUnit
   , FMX.Media
+  , AddLogUnit
   ;
 
 //{ TTAGInfo }
@@ -80,6 +84,8 @@ constructor TTAGReaderThread.Create(
   const AStartIndex: Integer;
   const AFinishIndex: Integer);
 begin
+  FDone := TEvent.Create(nil, true, false, '');
+
   FPlayList := APlayList;
   FFileNames.CopyRangeFrom(AFileNames, AStartIndex, AFinishIndex);
 
@@ -87,6 +93,19 @@ begin
     AThreadFactory,
     '');
 //    'TTAGReaderThread');
+
+  OnSetTerminateProcRef :=
+    procedure
+    begin
+      FDone.SetEvent;
+    end;
+end;
+
+destructor TTAGReaderThread.Destroy;
+begin
+  FreeAndNil(FDone);
+
+  inherited;
 end;
 
 procedure TTAGReaderThread.InnerExecute;
@@ -100,6 +119,7 @@ var
   FileName: String;
   i: Integer;
   PlayItemsList: TPlayItemsList;
+  DestPlayItemsList: TPlayItemsList;
   PlayItem: TPlayItem;
   AudioFormat: TAudioFormat;
   MediaPlayer: TMedia;
@@ -190,7 +210,7 @@ begin
       Inc(i);
     end;
 
-    PlayItemsList := FPlayList.LockList;
+    PlayItemsList := TPlayItemsList.Create;
     try
       i := 0;
       while (i < TAGInfoList.Count) and not Terminated do
@@ -209,8 +229,9 @@ begin
         // Он поднимает нужный кодак и, тот высчитывает верный Duration
         // Считать в "ручную" - лепить химеру
         // MediaPlayer := TMedia.Create(PlayItem.Path);
-        { TODO : Избавиться от Synchronize, перейти на TEvent }
-        Synchronize(
+
+        FDone.ResetEvent;
+        Queue(nil,
           procedure
           begin
             MediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
@@ -219,14 +240,27 @@ begin
             finally
               MediaPlayer.Free;
             end;
+
+            FDone.SetEvent;
           end);
+
+        FDone.WaitFor(INFINITE);
 
         PlayItemsList.Add(PlayItem);
 
+        TLogger.AddLog('*** PlayItem.Path = ' + PlayItem.Path);
+
         Inc(i);
       end;
+
+      DestPlayItemsList := FPlayList.LockList;
+      try
+        DestPlayItemsList.AddRange(PlayItemsList);
+      finally
+        FPlayList.UnLockList;
+      end;
     finally
-      FPlayList.UnLockList;
+      FreeAndNil(PlayItemsList);
     end;
   finally
     FreeAndNil(TAGInfoList);

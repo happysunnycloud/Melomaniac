@@ -97,6 +97,11 @@ type
     class procedure OnMouseDownkHook(
       const ASourceControl: TControl;
       const ADestControl: TControl);
+
+    class function PasswordToCryptHash(const APassword: String): String;
+    class function CheckRCLogin(const ALogin: String): Boolean;
+    class function CheckRCPassword(const APassword: String): Boolean;
+    class function GetCryptoKey: String;
   end;
 
 implementation
@@ -117,7 +122,8 @@ uses
   , SQLTemplatesUnit
   , PlayListFormUnit
   , FMX.SingleSoundUnit
-  //StringToolsUnit
+  , CryptoUtils
+  , CommonConstantsUnit
   ;
 
 { TTools }
@@ -518,6 +524,40 @@ begin
       false);
 end;
 
+class function TTools.GetCryptoKey: String;
+var
+  TF: TextFile;
+  FileName: String;
+  Key: String;
+begin
+  Result := INSECURE_DEFAULT_CRYPTO_KEY;
+  FileName := CRYPTO_KEY_FILE_NAME;
+
+  if not FileExists(FileName) then
+  begin
+    ShowMessage('"CryptoKey" file not found');
+    ShowMessage('The default key will be used');
+
+    Exit;
+  end;
+
+  AssignFile(TF, FileName);
+  {$I+}
+  try
+    Reset(TF);
+    try
+      Readln(TF, Key);
+    finally
+      CloseFile(TF);
+    end;
+  except
+    raise Exception.CreateFmt('Error reading file "%s"', [FileName]);
+  end;
+  {$I-}
+
+  Result := Trim(Key);
+end;
+
 class function TTools.LeafeToControl(const ALeafe: TLeafe): TControl;
 begin
   Result := nil;
@@ -866,6 +906,25 @@ class procedure TTools.OnMouseDownkHook(
   const ADestControl: TControl);
 begin
   ASourceControl.OnMouseDown := ADestControl.OnMouseDown;
+end;
+
+class function TTools.PasswordToCryptHash(const APassword: String): String;
+begin
+  TState.RCPasswordHash :=
+    TCryptoUtils.GetStringHash(
+      TCryptoUtils.EncryptString(APassword, GetCryptoKey)
+    );
+  TState.SaveConfig;
+end;
+
+class function TTools.CheckRCLogin(const ALogin: String): Boolean;
+begin
+  Result := ALogin = TCryptoUtils.EncryptString('Melomaniac', TTools.GetCryptoKey);
+end;
+
+class function TTools.CheckRCPassword(const APassword: String): Boolean;
+begin
+  Result := TState.RCPasswordHash = TCryptoUtils.GetStringHash(APassword);
 end;
 
 end.

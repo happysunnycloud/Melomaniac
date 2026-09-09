@@ -124,6 +124,7 @@ uses
   , StringToolsUnit
   , RCFunctionManagerUnit
   , ConstantsUnit
+  , CryptoUtils
 //  , DebugUnit
   ;
 
@@ -234,6 +235,10 @@ procedure TMRC.DoConnectButtonClick(Sender: TObject);
 begin
   if not FNetClient.IsConnected then
   begin
+    FNetClient.Login :=
+      TCryptoUtils.EncryptString('Melomaniac', TTools.GetCryptoKey);
+    FNetClient.Password :=
+      TCryptoUtils.EncryptString('Password', TTools.GetCryptoKey);
     FNetClient.Connect;
     TRCFunctionManager.Connect(Self);
   end

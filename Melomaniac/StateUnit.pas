@@ -80,6 +80,8 @@ type
 //    class procedure SetSetOfPaths(const A)
     class var FMainFormPos: TPosition;
     class var FPlayListFormPos: TPosition;
+
+    class var FRCPasswordHash: String;
   strict private
     class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
 
@@ -131,6 +133,8 @@ type
 
     class property RCEnabled: Boolean
       read FRCEnabled write FRCEnabled;
+    class property RCPasswordHash: String
+      read FRCPasswordHash write FRCPasswordHash;
   end;
 
   TCopyModeHelper = record helper for TCopyMode
@@ -278,6 +282,7 @@ begin
   FLeafe := liNone;
   FIsAppStarting := true;
   FRCEnabled := false;
+  FRCPasswordHash := '';
 
   MainFormPos := TPosition.Create;
   PlayListFormPos := TPosition.Create;
@@ -416,7 +421,8 @@ begin
   CommonNode.AddChild('MarkMode').Text := BoolToStr(FMarkMode, true);;
   CommonNode.AddChild('DuplicateMode').Text := BoolToStr(FDuplicateMode, true);
   CommonNode.AddChild('VisualScheme').Text := FVisualScheme;
-  CommonNode.AddChild('RCEnableed').Text := BoolToStr(FRCEnabled, true);
+  CommonNode.AddChild('RCEnabled').Text := BoolToStr(FRCEnabled, true);
+  CommonNode.AddChild('RCPasswordHash').Text := FRCPasswordHash;
   CommonNode.AddChild('SetOfPathsIndex').Text := IntToStr(FSetOfPathsIndex);
 
   SetsOfPathsNode := RootNode.AddChild('SetsOfPaths');
@@ -536,7 +542,8 @@ begin
   FMarkMode := StrToBool(CommonNode.ChildNodes['MarkMode'].Text);
   FDuplicateMode := StrToBool(CommonNode.ChildNodes['DuplicateMode'].Text);
   FVisualScheme := CommonNode.ChildNodes['VisualScheme'].Text;
-  FRCEnabled := StrToBoolDef(CommonNode.ChildNodes['RCEnableed'].Text, false);
+  FRCEnabled := StrToBoolDef(CommonNode.ChildNodes['RCEnabled'].Text, false);
+  FRCPasswordHash := CommonNode.ChildNodes['RCPasswordHash'].Text;
   FSetOfPathsIndex := StrToInt(CommonNode.ChildNodes['SetOfPathsIndex'].Text);
 
   if FVisualScheme.IsEmpty then
