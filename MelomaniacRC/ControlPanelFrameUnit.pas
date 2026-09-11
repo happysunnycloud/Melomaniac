@@ -52,6 +52,8 @@ type
     constructor Create(
       AOwner: TComponent;
       const ARCIdent: String); reintroduce;
+    procedure UpdateInfo(
+      const AHostName: String);
   end;
 
 implementation
@@ -94,6 +96,12 @@ begin
   VolumeUpButton.Width := NavigateLayout.Width / 3;
 
   Repaint;
+end;
+
+procedure TControlPanelFrame.UpdateInfo(
+  const AHostName: String);
+begin
+  HostNameLabel.Text := AHostName;
 end;
 
 procedure TControlPanelFrame.MenuLabelClick(Sender: TObject);

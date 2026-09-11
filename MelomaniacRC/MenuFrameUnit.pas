@@ -7,6 +7,7 @@ uses
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Controls.Presentation, FMX.Objects, FMX.Layouts
   , EditHostFrameUnit
+  , TypesUnit
   ;
 
 type
@@ -30,7 +31,9 @@ type
     FRCIdent: String;
 
     procedure DoCloseEditHostFrame(Sender: TObject);
-    procedure CreateEditHostFrame(const ARCIdent: String);
+    procedure CreateEditHostFrame(
+      const ARCIdent: String;
+      const AEditFrameMode: TEditFrameMode);
   public
     constructor Create(const ARCIdent: String); reintroduce;
   end;
@@ -55,31 +58,36 @@ begin
   inherited Create(nil);
 end;
 
-procedure TMenuFrame.CreateEditHostFrame(const ARCIdent: String);
+procedure TMenuFrame.CreateEditHostFrame(
+  const ARCIdent: String;
+  const AEditFrameMode: TEditFrameMode);
 var
   RC: TMRC;
 begin
   AppManager.RCPool.TryGetRC(ARCIdent, RC);
 
-  FEditHostFrame := TEditHostFrame.Create(RC);
+  FEditHostFrame := TEditHostFrame.Create(RC, AEditFrameMode);
   FEditHostFrame.Parent := ContentLayout;
   FEditHostFrame.Align := TAlignLayout.Contents;
   FEditHostFrame.CloseButton.OnClick := DoCloseEditHostFrame;
 end;
 
 procedure TMenuFrame.DoCloseEditHostFrame(Sender: TObject);
+var
+  RCIdent: String;
 begin
+  RCIdent := FRCIdent;
   FreeAndNil(FEditHostFrame);
 end;
 
 procedure TMenuFrame.AddHostButtonClick(Sender: TObject);
 begin
-  CreateEditHostFrame(FRCIdent);
+  CreateEditHostFrame(FRCIdent, efmAdd);
 end;
 
 procedure TMenuFrame.EditHostButtonClick(Sender: TObject);
 begin
-  CreateEditHostFrame(FRCIdent);
+  CreateEditHostFrame(FRCIdent, efmEdit);
 end;
 
 procedure TMenuFrame.DeleteHostButtonClick(Sender: TObject);
@@ -89,7 +97,9 @@ begin
   if not AppManager.RCPool.TryGetRC(FRCIdent, RC) then
     raise Exception.Create('RC instance not found');
 
-  TTools.DeleteHost(rc._Index);
+  AppManager.RCPool.FreeRC(RC);
+  TTools.SaveHosts;
+
   ShowMessage('Host deleted');
 end;
 

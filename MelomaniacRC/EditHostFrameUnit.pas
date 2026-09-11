@@ -3,10 +3,11 @@
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Edit, FMX.Controls.Presentation, FMX.Objects, FMX.Layouts
   , PoolUnit
+  , TypesUnit
   ;
 
 type
@@ -34,12 +35,20 @@ type
     NavigationLayout: TLayout;
     Layout2: TLayout;
     CloseButton: TButton;
+    PasswordLayout: TLayout;
+    RetryPasswordLayout: TLayout;
+    PasswordLabel: TLabel;
+    RetryPasswordLabel: TLabel;
+    PasswordEdit: TEdit;
+    RetryPasswordEdit: TEdit;
     procedure SaveButtonClick(Sender: TObject);
   strict private
     FRC: TMRC;
-  private
+    FEditFrameMode: TEditFrameMode;
   public
-    constructor Create(const ARC: TMRC); reintroduce;
+    constructor Create(
+      const ARC: TMRC;
+      const AEditFrameMode: TEditFrameMode); reintroduce;
   end;
 
 implementation
@@ -48,13 +57,19 @@ implementation
 
 uses
     ToolsUnit
+  , CryptoUtils
+  , AppManagerUnit
+  , StringToolsUnit
   ;
 
 { TEditHostFrame }
 
-constructor TEditHostFrame.Create(const ARC: TMRC);
+constructor TEditHostFrame.Create(
+  const ARC: TMRC;
+  const AEditFrameMode: TEditFrameMode);
 begin
   FRC := ARC;
+  FEditFrameMode := AEditFrameMode;
 
   inherited Create(nil);
 
@@ -68,17 +83,132 @@ end;
 
 procedure TEditHostFrame.SaveButtonClick(Sender: TObject);
 var
-  Index: Integer;
+  HostName: String;
+  IP: String;
+  Port: String;
+  WPort: Word;
+  Password: String;
+  RetryPassword: String;
+  RC: TMRC;
 begin
-  Index := -1; // Для случая, создания нового подключения
-  if Assigned(FRC) then
-    Index := FRC._Index;
+  HostName := Trim(HostNameEdit.Text);
+  IP := Trim(IPEdit.Text);
+  Port := Trim(PortEdit.Text);
 
-  TTools.SaveHost(
-    HostNameEdit.Text,
-    IPEdit.Text,
-    PortEdit.Text,
-    Index);
+  Password := Trim(PasswordEdit.Text);
+  RetryPassword := Trim(RetryPasswordEdit.Text);
+  if Password.IsEmpty or RetryPassword.IsEmpty then
+  begin
+    ShowMessage('The password cannot be empty');
+
+    Exit;
+  end;
+
+  if Password <> RetryPassword then
+  begin
+    ShowMessage('Passwords do not match');
+
+    Exit;
+  end;
+
+  Password := TCryptoUtils.EncryptString(Password, TTools.GetCryptoKey);
+
+  if (Length(Trim(HostName)) = 0) and (Length(Trim(IP)) = 0) then
+  begin
+    ShowMessage('The "Host name" or "IP" field can not be empty' );
+
+    Exit;
+  end;
+
+  if Assigned(FRC) then
+  begin
+    AppManager.RCPool.TryGetRC(FRC.Ident, RC);
+    if FRC <> RC then
+      if AppManager.RCPool.IsHostNameExists(HostName) then
+      begin
+        ShowMessage(Format('Then host name "%s" exists', [HostName]));
+
+        Exit;
+      end;
+
+    if FRC <> RC then
+      if AppManager.RCPool.IsIPExists(IP) then
+      begin
+        ShowMessage(Format('Then IP "%s" exists', [IP]));
+
+        Exit;
+      end;
+  end
+  else
+  begin
+    if AppManager.RCPool.IsHostNameExists(HostName) then
+    begin
+      ShowMessage(Format('Then host name "%s" exists', [HostName]));
+
+      Exit;
+    end;
+
+    if AppManager.RCPool.IsIPExists(IP) then
+    begin
+      ShowMessage(Format('Then IP "%s" exists', [IP]));
+
+      Exit;
+    end;
+  end;
+
+  if (Length(Trim(IP)) > 0)
+      and
+      { TODO: TStringTools.IsIP4 Плохо проверяет IP адрес на корректность, нужно отладить}
+      not TStringTools.IsIP4(Trim(IP))
+  then
+  begin
+    ShowMessage('The "IP" is incorrect' );
+
+    Exit;
+  end;
+
+  if Length(Trim(Port)) = 0 then
+  begin
+    ShowMessage('The "Port" field can not be empty' );
+
+    Exit;
+  end;
+
+  if not TStringTools.IsContainsOnlyDigits(Port) then
+  begin
+    ShowMessage('The "Port" field can only contain numbers' );
+
+    Exit;
+  end;
+
+  WPort := Word(Trim(PortEdit.Text).ToInteger);
+
+  if not ((WPort > 0) and (WPort < 65000)) then
+  begin
+    ShowMessage('The "Port" value out of range. Must be between 1 and 65K' );
+
+    Exit;
+  end;
+
+  if FEditFrameMode = efmAdd then
+  begin
+    AppManager.RCPool.AddRC(
+      HostName,
+      IP,
+      WPort,
+      Password);
+  end
+  else
+  if FEditFrameMode = efmEdit then
+  begin
+    FRC.HostName := HostName;
+    FRC.IP := IP;
+    FRC.Port := WPort;
+    FRC.Password := Password;
+    FRC.RCControlFrame.UpdateInfo(FRC.HostName);
+  end;
+
+  TTools.SaveHosts;
 end;
 
 end.

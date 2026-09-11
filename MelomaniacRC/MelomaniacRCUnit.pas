@@ -38,6 +38,7 @@ implementation
 uses
     MenuManagerUnit
   , AppManagerUnit
+  , FMX.ControlToolsUnit
   ;
 
 procedure TMainForm.FormCreate(Sender: TObject);
@@ -73,7 +74,7 @@ end;
 
 procedure TMainForm.DoCloseMenuFrame(Sender: TObject);
 begin
-  AppManager.RCPool.Refresh;
+  ScrollBox.Rebuild;
 end;
 
 procedure TMainForm.MenuButtonClick(Sender: TObject);

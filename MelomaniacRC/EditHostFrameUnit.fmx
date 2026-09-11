@@ -1,35 +1,35 @@
 object EditHostFrame: TEditHostFrame
   Size.Width = 397.000000000000000000
-  Size.Height = 560.000000000000000000
+  Size.Height = 497.000000000000000000
   Size.PlatformDefault = False
   object ContentLayout: TLayout
     Align = Contents
     Size.Width = 397.000000000000000000
-    Size.Height = 560.000000000000000000
+    Size.Height = 497.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 3
     object BackgroundLayout: TLayout
       Align = Contents
       Size.Width = 397.000000000000000000
-      Size.Height = 560.000000000000000000
+      Size.Height = 497.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
       object BaseLayoutRectangle: TRectangle
         Align = Contents
         Size.Width = 397.000000000000000000
-        Size.Height = 560.000000000000000000
+        Size.Height = 497.000000000000000000
         Size.PlatformDefault = False
         Stroke.Thickness = 0.000000000000000000
       end
       object BaseLayout: TLayout
         Align = Top
         Size.Width = 397.000000000000000000
-        Size.Height = 335.000000000000000000
+        Size.Height = 273.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
         object SaveLayout: TLayout
           Align = Top
-          Position.Y = 203.000000000000000000
+          Position.Y = 285.000000000000000000
           Size.Width = 397.000000000000000000
           Size.Height = 135.000000000000000000
           Size.PlatformDefault = False
@@ -46,7 +46,7 @@ object EditHostFrame: TEditHostFrame
               Size.Width = 135.000000000000000000
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
-              TabOrder = 4
+              TabOrder = 5
               Text = 'Save'
               OnClick = SaveButtonClick
             end
@@ -56,7 +56,7 @@ object EditHostFrame: TEditHostFrame
               Size.Width = 226.000000000000000000
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
-              TabOrder = 3
+              TabOrder = 7
               Text = 'Try to resolve host name'
             end
           end
@@ -64,71 +64,80 @@ object EditHostFrame: TEditHostFrame
         object BaseTopLayout: TLayout
           Align = Top
           Size.Width = 397.000000000000000000
-          Size.Height = 203.000000000000000000
+          Size.Height = 285.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 2
           object BaseTopCenterLayout: TLayout
-            Align = Center
-            Size.Width = 374.000000000000000000
-            Size.Height = 160.000000000000000000
+            Align = Top
+            Size.Width = 397.000000000000000000
+            Size.Height = 261.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 0
             object PortLayout: TLayout
               Align = Top
               Position.Y = 100.000000000000000000
-              Size.Width = 374.000000000000000000
+              Size.Width = 397.000000000000000000
               Size.Height = 50.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 0
               object HostPortLabel: TLabel
-                Position.X = 14.000000000000000000
-                Position.Y = 18.000000000000000000
+                Align = Left
+                Margins.Left = 10.000000000000000000
+                Position.X = 10.000000000000000000
                 Size.Width = 109.000000000000000000
-                Size.Height = 17.000000000000000000
+                Size.Height = 50.000000000000000000
                 Size.PlatformDefault = False
                 Text = 'Host port:'
                 TabOrder = 0
               end
               object PortEdit: TEdit
                 Touch.InteractiveGestures = [LongTap, DoubleTap]
-                Anchors = [akLeft, akTop, akRight]
+                Align = Right
                 TabOrder = 2
-                Position.X = 128.000000000000000000
+                Text = '1081'
+                Position.X = 158.000000000000000000
                 Position.Y = 10.000000000000000000
+                Margins.Top = 10.000000000000000000
+                Margins.Right = 10.000000000000000000
+                Margins.Bottom = 10.000000000000000000
                 Size.Width = 229.000000000000000000
-                Size.Height = 32.000000000000000000
+                Size.Height = 30.000000000000000000
                 Size.PlatformDefault = False
               end
             end
             object HostNameLayout: TLayout
               Align = Top
-              Size.Width = 374.000000000000000000
+              Size.Width = 397.000000000000000000
               Size.Height = 50.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 2
               object HostNameLabel: TLabel
-                Position.X = 14.000000000000000000
-                Position.Y = 18.000000000000000000
+                Align = Left
+                Margins.Left = 10.000000000000000000
+                Position.X = 10.000000000000000000
                 Size.Width = 111.000000000000000000
-                Size.Height = 17.000000000000000000
+                Size.Height = 50.000000000000000000
                 Size.PlatformDefault = False
                 Text = 'Host name: '
-                TabOrder = 1
               end
               object HostNameEdit: TEdit
                 Touch.InteractiveGestures = [LongTap, DoubleTap]
-                Anchors = [akLeft, akTop, akRight]
+                Align = Right
                 TabOrder = 0
-                Position.X = 128.000000000000000000
-                Position.Y = 12.000000000000000000
+                Position.X = 158.000000000000000000
+                Position.Y = 10.000000000000000000
+                Margins.Left = 10.000000000000000000
+                Margins.Top = 10.000000000000000000
+                Margins.Right = 10.000000000000000000
+                Margins.Bottom = 10.000000000000000000
                 Size.Width = 229.000000000000000000
-                Size.Height = 32.000000000000000000
+                Size.Height = 30.000000000000000000
                 Size.PlatformDefault = False
               end
               object Rectangle1: TRectangle
                 Align = Top
                 Fill.Color = xFF3EFCC1
-                Size.Width = 374.000000000000000000
+                Size.Width = 397.000000000000000000
                 Size.Height = 0.000000000000000000
                 Size.PlatformDefault = False
               end
@@ -136,27 +145,97 @@ object EditHostFrame: TEditHostFrame
             object HostIPLayout: TLayout
               Align = Top
               Position.Y = 50.000000000000000000
-              Size.Width = 374.000000000000000000
+              Size.Width = 397.000000000000000000
               Size.Height = 50.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 1
               object HostIPLabel: TLabel
-                Position.X = 14.000000000000000000
-                Position.Y = 18.000000000000000000
+                Align = Left
+                Margins.Left = 10.000000000000000000
+                Position.X = 10.000000000000000000
                 Size.Width = 107.000000000000000000
-                Size.Height = 17.000000000000000000
+                Size.Height = 50.000000000000000000
                 Size.PlatformDefault = False
                 Text = 'Host IP:'
                 TabOrder = 0
               end
               object IPEdit: TEdit
                 Touch.InteractiveGestures = [LongTap, DoubleTap]
-                Anchors = [akLeft, akTop, akRight]
+                Align = Right
                 TabOrder = 1
-                Position.X = 128.000000000000000000
+                Position.X = 158.000000000000000000
                 Position.Y = 10.000000000000000000
+                Margins.Top = 10.000000000000000000
+                Margins.Right = 10.000000000000000000
+                Margins.Bottom = 10.000000000000000000
                 Size.Width = 229.000000000000000000
-                Size.Height = 32.000000000000000000
+                Size.Height = 30.000000000000000000
+                Size.PlatformDefault = False
+              end
+            end
+            object PasswordLayout: TLayout
+              Align = Top
+              Position.Y = 150.000000000000000000
+              Size.Width = 397.000000000000000000
+              Size.Height = 50.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 3
+              object PasswordLabel: TLabel
+                Align = Left
+                Margins.Left = 10.000000000000000000
+                Position.X = 10.000000000000000000
+                Size.Width = 89.000000000000000000
+                Size.Height = 50.000000000000000000
+                Size.PlatformDefault = False
+                Text = 'Password:'
+                TabOrder = 0
+              end
+              object PasswordEdit: TEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                Align = Right
+                TabOrder = 3
+                Password = True
+                Position.X = 158.000000000000000000
+                Position.Y = 10.000000000000000000
+                Margins.Left = 10.000000000000000000
+                Margins.Top = 10.000000000000000000
+                Margins.Right = 10.000000000000000000
+                Margins.Bottom = 10.000000000000000000
+                Size.Width = 229.000000000000000000
+                Size.Height = 30.000000000000000000
+                Size.PlatformDefault = False
+              end
+            end
+            object RetryPasswordLayout: TLayout
+              Align = Top
+              Position.Y = 200.000000000000000000
+              Size.Width = 397.000000000000000000
+              Size.Height = 50.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 4
+              object RetryPasswordLabel: TLabel
+                Align = Left
+                Margins.Left = 10.000000000000000000
+                Position.X = 10.000000000000000000
+                Size.Width = 99.000000000000000000
+                Size.Height = 50.000000000000000000
+                Size.PlatformDefault = False
+                Text = 'Retry password:'
+                TabOrder = 0
+              end
+              object RetryPasswordEdit: TEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                Align = Right
+                TabOrder = 4
+                Password = True
+                Position.X = 158.000000000000000000
+                Position.Y = 10.000000000000000000
+                Margins.Left = 10.000000000000000000
+                Margins.Top = 10.000000000000000000
+                Margins.Right = 10.000000000000000000
+                Margins.Bottom = 10.000000000000000000
+                Size.Width = 229.000000000000000000
+                Size.Height = 30.000000000000000000
                 Size.PlatformDefault = False
               end
             end
@@ -165,7 +244,7 @@ object EditHostFrame: TEditHostFrame
       end
       object NavigationLayout: TLayout
         Align = Bottom
-        Position.Y = 500.000000000000000000
+        Position.Y = 437.000000000000000000
         Size.Width = 397.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -182,7 +261,7 @@ object EditHostFrame: TEditHostFrame
             Size.Width = 80.000000000000000000
             Size.Height = 44.000000000000000000
             Size.PlatformDefault = False
-            TabOrder = 5
+            TabOrder = 6
             Text = 'Close'
           end
         end

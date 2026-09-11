@@ -21,7 +21,8 @@ uses
   Net.ResponseHeaders in '..\MelomaciacCommon\Net.ResponseHeaders.pas',
   CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas',
   CommonConstantsUnit in '..\MelomaciacCommon\CommonConstantsUnit.pas',
-  CryptoUtils in '..\MelomaciacCommon\CryptoUtils.pas';
+  CryptoUtils in '..\MelomaciacCommon\CryptoUtils.pas',
+  HostsFrameUnit in 'HostsFrameUnit.pas' {Scrol: TFrame};
 
 {$R *.res}
 

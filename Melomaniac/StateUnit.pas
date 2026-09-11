@@ -384,7 +384,7 @@ var
 begin
   XMLDoc    := TXMLDocument.Create(nil);
   XMLDoc.Active := true;
-  XmlDoc.Encoding := 'utf-8';
+  XMLDoc.Encoding := 'utf-8';
   XMLDoc.Options := XMLDoc.Options + [doNodeAutoIndent] - [doAutoSave];
 
   RootNode  := XMLDoc.AddChild('Config');

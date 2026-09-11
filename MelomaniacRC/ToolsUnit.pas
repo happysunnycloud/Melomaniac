@@ -7,6 +7,7 @@ uses
   , Xml.XMLIntf
   , FMX.Controls
   , ControlPanelFrameUnit
+  , TypesUnit
   ;
 
 type
@@ -14,15 +15,11 @@ type
   strict private
   public
     class function OpenXML(const AConfigFileName: String): IXMLDocument;
-    class procedure DeleteHost(const AIndex: Integer);
     class function GetConfigFileName: String;
     class function GetCryptoKey: String;
     class procedure CreateConfigFile;
-    class procedure SaveHost(
-      const AHostName: String;
-      const AIP: String;
-      const APort: String;
-      const AIndex: Integer);
+    class procedure LoadHosts(const AHostCallbackProc: THostCallbackProc);
+    class procedure SaveHosts;
     class function BuildRCControl(
       const AOwner: TControl;
       const ARCIdent: String): TControlPanelFrame;
@@ -35,10 +32,10 @@ uses
     System.SysUtils
   , System.IOUtils
   , ConstantsUnit
-  , StringToolsUnit
   , FMX.Dialogs
   , FMX.Types
   , CommonConstantsUnit
+  , AppManagerUnit
   ;
 
 { TTools }
@@ -78,7 +75,7 @@ begin
     raise Exception.CreateFmt(
       'Node "General" not found in file "%s"', [ConfigFileName]);
 
-  HostsNode := RootNode.ChildNodes.FindNode('Hosts');
+  HostsNode := GeneralSettingsNode.ChildNodes.FindNode('Hosts');
   if not Assigned(HostsNode) then
     raise Exception.CreateFmt(
       'Node "Hosts" not found in file "%s"', [ConfigFileName]);
@@ -86,26 +83,6 @@ begin
   XMLDoc.Active := true;
 
   Result := XMLDoc;
-end;
-
-class procedure TTools.DeleteHost(const AIndex: Integer);
-var
-  XMLDoc:               IXMLDocument;
-  RootNode:             IXMLNode;
-  GeneralSettingsNode:  IXMLNode;
-  HostsNode:            IXMLNode;
-begin
-  XMLDoc := OpenXML(GetConfigFileName);
-
-  if not Assigned(XMLDoc) then
-    Exit;
-
-  RootNode := XMLDoc.ChildNodes.FindNode('Config');
-  GeneralSettingsNode := RootNode.ChildNodes.FindNode('General');
-  HostsNode := RootNode.ChildNodes.FindNode('Hosts');
-
-  HostsNode.ChildNodes.Delete(AIndex);
-  XMLDoc.SaveToFile(GetConfigFileName);
 end;
 
 class procedure TTools.CreateConfigFile;
@@ -180,171 +157,100 @@ begin
   Result := Trim(Key);
 end;
 
-class procedure TTools.SaveHost(
-  const AHostName: String;
-  const AIP: String;
-  const APort: String;
-  const AIndex: Integer);
-
-  function _ValueExists(
-    const AHostsNode: IXMLNode;
-    const ANodeName: String;
-    const AValue: String): Boolean;
-  var
-    HostsNode: IXMLNode absolute AHostsNode;
-    Node: IXMLNode;
-    ChildNode: IXMLNode;
-    i: Word;
-    Value: String;
-  begin
-    Result := false;
-
-    Value := AValue;
-    if Length(Value) = 0 then
-      Exit;
-
-    i := 0;
-    while i < HostsNode.ChildNodes.Count do
-    begin
-      ChildNode := HostsNode.ChildNodes[i];
-      Node := ChildNode.ChildNodes[ANodeName];
-      if not Assigned(Node) then
-        raise Exception.CreateFmt('Node "%s" not found', [ANodeName]);
-
-      if Trim(Node.Text).ToUpper = Trim(Value).ToUpper then
-        Exit(true);
-
-      Inc(i);
-    end;
-  end;
-
+class procedure TTools.SaveHosts;
 var
   XMLDoc:               IXMLDocument;
   RootNode:             IXMLNode;
   GeneralSettingsNode:  IXMLNode;
   HostsNode:            IXMLNode;
   ChildNode:            IXMLNode;
-  HostName:             String;
-  IP:                   String;
-  Port:                 Word;
 begin
-  XMLDoc := OpenXML(GetConfigFileName);
+  XMLDoc    := TXMLDocument.Create(nil);
+  XMLDoc.Active := true;
+  XMLDoc.Encoding := 'utf-8';
+  XMLDoc.Options := XMLDoc.Options + [doNodeAutoIndent] - [doAutoSave];
+
   if not Assigned(XMLDoc) then
     Exit;
 
-  if (Length(Trim(AHostName)) = 0) and (Length(Trim(AIP)) = 0) then
-  begin
-    ShowMessage('The "Host name" or "IP" field can not be empty' );
+  RootNode  := XMLDoc.AddChild('Config');
+  GeneralSettingsNode := RootNode.AddChild('General');
+  HostsNode := GeneralSettingsNode.AddChild('Hosts');
 
-    Exit;
-  end;
-
-  if Length(Trim(APort)) = 0 then
-  begin
-    ShowMessage('The "Port" field can not be empty' );
-
-    Exit;
-  end;
-
-  if not TStringTools.IsContainsOnlyDigits(Trim(APort)) then
-  begin
-    ShowMessage('The "Port" field can only contain numbers' );
-
-    Exit;
-  end;
-
-  if (Length(Trim(AIP)) > 0)
-      and
-      not TStringTools.IsIP4(Trim(AIP))
-  then
-  begin
-    ShowMessage('The "IP" is incorrect' );
-
-    Exit;
-  end;
-
-  HostName := Trim(AHostName);
-  IP       := Trim(AIP);
-  Port     := StrToInt(Trim(APort));
-
-  if not ((Port > 0) and (Port < 65000)) then
-  begin
-    ShowMessage('The "Port" value out of range. Must be between 1 and 65K' );
-
-    Exit;
-  end;
-
-  RootNode := XMLDoc.ChildNodes.FindNode('Config');
-  GeneralSettingsNode := RootNode.ChildNodes.FindNode('General');
-  HostsNode := RootNode.ChildNodes.FindNode('Hosts');
-
-  if AIndex < 0 then
-  begin
-    if _ValueExists(HostsNode, 'HostName', HostName) then
+  AppManager.RCPool.EnumerateRCHosts(
+    procedure (
+      const AHostName: String;
+      const AIP: String;
+      const APort: Word;
+      const APassword: String)
     begin
-      ShowMessage(Format('Then host name "%s" exists', [HostName]));
-
-      Exit;
-    end;
-
-    if _ValueExists(HostsNode, 'IP', IP) then
-    begin
-      ShowMessage(Format('Then IP "%s" exists', [IP]));
-
-      Exit;
-    end;
-
-    ChildNode := HostsNode.AddChild('Host');
-    ChildNode.AddChild('HostName').   Text := HostName;
-    ChildNode.AddChild('IP').         Text := IP;
-    ChildNode.AddChild('Port').       Text := IntToStr(Port);
-  end
-  else
-  begin
-    ChildNode := HostsNode.ChildNodes[AIndex];
-    ChildNode.ChildNodes.FindNode('HostName').Text := HostName;
-    ChildNode.ChildNodes.FindNode('IP').      Text := IP;
-    ChildNode.ChildNodes.FindNode('Port').    Text := IntToStr(Port);
-  end;
+      ChildNode := HostsNode.AddChild('Host');
+      ChildNode.AddChild('HostName').   Text := AHostName;
+      ChildNode.AddChild('IP').         Text := AIP;
+      ChildNode.AddChild('Port').       Text := IntToStr(APort);
+      ChildNode.AddChild('Password').   Text := APassword;
+    end);
 
   XMLDoc.SaveToFile(GetConfigFileName);
   ShowMessage('Config saved');
 end;
 
+class procedure TTools.LoadHosts(const AHostCallbackProc: THostCallbackProc);
+var
+  XMLDoc:                 IXMLDocument;
+  RootNode:               IXMLNode;
+  GeneralSettingsNode:    IXMLNode;
+  HostsNode:              IXMLNode;
+  HostNode:               IXMLNode;
+  i:                      Word;
+  HostName:               String;
+  IP:                     String;
+  Port:                   Word;
+  Password:               String;
+begin
+  if not FileExists(TTools.GetConfigFileName) then
+  begin
+    // при самом первом запуске приложения, файл может не существовать
+    // это совершенно нормальная ситуация
+
+    TTools.CreateConfigFile;
+
+    Exit;
+  end;
+
+  XMLDoc := TTools.OpenXML(TTools.GetConfigFileName);
+
+  RootNode := IXMLDocument(XMLDoc).ChildNodes.FindNode('Config');
+  GeneralSettingsNode := RootNode.ChildNodes.FindNode('General');
+  HostsNode := GeneralSettingsNode.ChildNodes.FindNode('Hosts');
+
+  i := 0;
+  while i < HostsNode.ChildNodes.Count do
+  begin
+    HostNode := HostsNode.ChildNodes[i];
+    HostName := HostNode.ChildNodes['HostName'].Text;
+    IP := HostNode.ChildNodes['IP'].Text;
+    Port := Word(StrToInt(HostNode.ChildNodes['Port'].Text));
+    Password := HostNode.ChildNodes['Password'].Text;
+
+    AHostCallbackProc(HostName, IP, Port, Password);
+
+    Inc(i);
+  end;
+end;
+
 class function TTools.BuildRCControl(
   const AOwner: TControl;
   const ARCIdent: String): TControlPanelFrame;
-
-  function RCControlFrameCount: Word;
-  var
-    i, j: Word;
-  begin
-    i := 0;
-    j := 0;
-    while i < AOwner.ComponentCount do
-    begin
-      if AOwner.Components[i] is TControlPanelFrame then
-        Inc(j);
-
-      Inc(i);
-    end;
-
-    Result := j;
-  end;
-
 var
   RCControlFrame: TControlPanelFrame;
-  YPosition:      Single;
 begin
-  YPosition := RCControlFrameCount;
   RCControlFrame := TControlPanelFrame.Create(AOwner, ARCIdent);
+  RCControlFrame.Parent := AOwner;
   RCControlFrame.Name := '';
   RCControlFrame.HostNameLabel.Text := 'Host name';
   RCControlFrame.CompositionNameLabel.Text := 'Composition';
-  RCControlFrame.Position.Y := YPosition * RCControlFrame.Height;
   RCControlFrame.Align := TAlignLayout.Top;
-
-  AOwner.AddObject(RCControlFrame);
 
   Result := RCControlFrame;
 end;

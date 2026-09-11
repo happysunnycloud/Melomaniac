@@ -13,6 +13,7 @@ uses
   , Net.Types
   , Net.Exceptions
   , CommonTypesUnit
+  , TypesUnit
   ;
 
 type
@@ -31,6 +32,7 @@ type
     FHostName: String;
     FIP: String;
     FPort: Word;
+    FPassword: String;
     FRCControlFrame: TControlPanelFrame;
     FNetClient: TNetClient;
 
@@ -70,6 +72,7 @@ type
       const AHostName: String;
       const AIP: String;
       const APort: Word;
+      const APassword: String;
       const AScrollBox: TScrollBox);
     destructor Destroy; override;
 
@@ -78,6 +81,7 @@ type
     property HostName: String read FHostName write FHostName;
     property IP: String read FIP write FIP;
     property Port: Word read FPort write FPort;
+    property Password: String read FPassword write FPassword;
 
     property RCControlFrame: TControlPanelFrame
       read FRCControlFrame write FRCControlFrame;
@@ -91,18 +95,24 @@ type
     FScrollBox: TScrollBox;
     FRCList: TMRCList;
     procedure LoadPool;
-    function AddRC(
-      const AHostName: String;
-      const AIP: String;
-      const APort: Word): TMRC;
-
     procedure Clear;
   public
     constructor Create(const AScrollBox: TScrollBox);
     destructor Destroy; override;
 
+    function AddRC(
+      const AHostName: String;
+      const AIP: String;
+      const APort: Word;
+      const APassword: String): TMRC;
+    procedure FreeRC(var ARC: TMRC);
+
     procedure Refresh;
     function TryGetRC(const ARCIdent: String; var ARC: TMRC): Boolean;
+    function IsHostNameExists(const AHostName: String): Boolean;
+    function IsIPExists(const AIP: String): Boolean;
+
+    procedure EnumerateRCHosts(const AHostCallbackProc: THostCallbackProc);
   end;
 
   TGetPlayStateThread = class(TThread)
@@ -125,7 +135,7 @@ uses
   , RCFunctionManagerUnit
   , ConstantsUnit
   , CryptoUtils
-//  , DebugUnit
+  , FMX.ControlToolsUnit
   ;
 
 { TMRC }
@@ -135,23 +145,26 @@ constructor TMRC.Create(
   const AHostName: String;
   const AIP: String;
   const APort: Word;
+  const APassword: String;
   const AScrollBox: TScrollBox);
 begin
   if not Assigned(AListOwner) then
     raise Exception.Create('List owner is nil');
 
-  FIdent := TStringTools.GenIdent('RCIdent','::');
+  FIdent := TStringTools.GenIdent('RCIdent', '::');
 
   FListOwner := AListOwner;
   FHostName := AHostName;
   FIP := AIP;
   FPort := APort;
+  FPassword := APassword;
   FIsRewindActivated := false;
   FRewindDirection := rdNone;
 
   FGetPlayStateThread := nil;
 
   FRCControlFrame := TTools.BuildRCControl(AScrollBox, FIdent);
+//  AScrollBox.Rebuild(0);
   FRCControlFrame.HostNameLabel.Text := FHostName;
 
   // Здесь назначаем обработку только для кнопки подключения
@@ -237,8 +250,7 @@ begin
   begin
     FNetClient.Login :=
       TCryptoUtils.EncryptString('Melomaniac', TTools.GetCryptoKey);
-    FNetClient.Password :=
-      TCryptoUtils.EncryptString('Password', TTools.GetCryptoKey);
+    FNetClient.Password := FPassword;
     FNetClient.Connect;
     TRCFunctionManager.Connect(Self);
   end
@@ -414,81 +426,91 @@ end;
 function TMRCPool.AddRC(
   const AHostName: String;
   const AIP: String;
-  const APort: Word): TMRC;
+  const APort: Word;
+  const APassword: String): TMRC;
 var
   RC: TMRC;
 begin
-  RC := TMRC.Create(FRCList, AHostName, AIP, APort, FScrollBox);
-//  RC.RCControlFrame := BuildControl(RC, FScrollBox);
+  RC := TMRC.Create(FRCList, AHostName, AIP, APort, APassword, FScrollBox);
+
   FRCList.Add(RC);
+
   Result := RC;
+end;
+
+procedure TMRCPool.FreeRC(var ARC: TMRC);
+begin
+  FScrollBox.BeginUpdate;
+  try
+    FScrollBox.Content.RemoveObject(ARC.RCControlFrame);
+  finally
+    FScrollBox.EndUpdate;
+  end;
+
+  FRCList.Remove(ARC);
+  FreeAndNil(ARC);
 end;
 
 procedure TMRCPool.LoadPool;
 var
-  XMLDoc:                 IXMLDocument;
-  RootNode:               IXMLNode;
-  GeneralSettingsNode:    IXMLNode;
-  HostsNode:              IXMLNode;
-  HostNode:               IXMLNode;
   i:                      Word;
   HostName:               String;
   IP:                     String;
   Port:                   Word;
+  Password:               String;
   RC:                     TMRC;
 begin
-  if not FileExists(TTools.GetConfigFileName) then
-  begin
-    // при самом первом запуске приложения, файл может не существовать
-    // это совершенно нормальная ситуация
-
-    TTools.CreateConfigFile;
-
-    Exit;
-  end;
-
-  XMLDoc := TTools.OpenXML(TTools.GetConfigFileName);
-
-  RootNode := IXMLDocument(XMLDoc).ChildNodes.FindNode('Config');
-  GeneralSettingsNode := RootNode.ChildNodes.FindNode('General');
-  HostsNode := RootNode.ChildNodes.FindNode('Hosts');
-
   FScrollBox.BeginUpdate;
-  RC := nil;
-  i := 0;
-  while i < HostsNode.ChildNodes.Count do
-  begin
-    HostNode := HostsNode.ChildNodes[i];
-    HostName := HostNode.ChildNodes['HostName'].Text;
-    IP := HostNode.ChildNodes['IP'].Text;
-    Port := Word(StrToInt(HostNode.ChildNodes['Port'].Text));
+  try
+    RC := nil;
+    i := 0;
+    TTools.LoadHosts(
+      procedure (
+        const AHostName: String;
+        const AIP: String;
+        const APort: Word;
+        const APassword: String)
+      begin
+        HostName := AHostName;
+        IP := AIP;
+        Port := Word(APort);
+        Password := APassword;
 
-    RC := AddRC(HostName, IP, Port);
+        RC := AddRC(HostName, IP, Port, Password);
+        RC.RCControlFrame.ButtonSplitterRectangle.Visible := false;
 
-    if i < Pred(HostsNode.ChildNodes.Count) then
+        Inc(i);
+      end);
+
+    if Assigned(RC) then
     begin
-      RC.RCControlFrame.Height :=
-        RC.RCControlFrame.Height - RC.RCControlFrame.ButtonSplitterRectangle.Height;
-      RC.RCControlFrame.ButtonSplitterRectangle.Visible := false;
+      RC.RCControlFrame.ButtonSplitterRectangle.Visible := true;
+
+      FScrollBox.Height := 0;
+      if Assigned(RC) then
+        FScrollBox.Height := RC.RCControlFrame.Height * i;
     end;
-
-    Inc(i);
+  finally
+    FScrollBox.EndUpdate;
   end;
-
-  FScrollBox.Height := 0;
-  if Assigned(RC) then
-    FScrollBox.Height := RC.RCControlFrame.Height * i;
-
-  FScrollBox.EndUpdate;
 end;
 
 procedure TMRCPool.Clear;
+var
+  Obj: TFmxObject;
 begin
-  while FRCList.Count > 0 do
-  begin
-    FRCList[0].RCControlFrame.Free;
-    FRCList[0].Free;
-    FRCList.Delete(0);
+  FScrollBox.BeginUpdate;
+  try
+    while FRCList.Count > 0 do
+    begin
+      Obj := FRCList[0].RCControlFrame;
+      FScrollBox.RemoveObject(Obj);
+      Obj.Free;
+      FRCList[0].Free;
+      FRCList.Delete(0);
+    end;
+  finally
+    FScrollBox.EndUpdate;
   end;
 end;
 
@@ -514,6 +536,48 @@ begin
 
       Exit(true);
     end;
+  end;
+end;
+
+function TMRCPool.IsHostNameExists(const AHostName: String): Boolean;
+var
+  RC: TMRC;
+begin
+  Result := false;
+
+  for RC in FRCList do
+  begin
+    if RC.HostName = AHostName then
+      Exit(true);
+  end;
+end;
+
+function TMRCPool.IsIPExists(const AIP: String): Boolean;
+var
+  RC: TMRC;
+begin
+  Result := false;
+
+  for RC in FRCList do
+  begin
+    if RC.IP = AIP then
+      Exit(true);
+  end;
+end;
+
+procedure TMRCPool.EnumerateRCHosts(
+  const AHostCallbackProc: THostCallbackProc);
+var
+  RC: TMRC;
+begin
+
+  for RC in FRCList do
+  begin
+    AHostCallbackProc(
+      RC.HostName,
+      RC.IP,
+      RC.Port,
+      RC.Password);
   end;
 end;
 

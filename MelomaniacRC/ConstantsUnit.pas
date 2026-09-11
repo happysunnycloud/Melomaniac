@@ -9,7 +9,7 @@ const
   FILE_PATH_SPLITTER = '\';
   {$ENDIF}
 
-  ConfigFileName = 'MelomaniacRemoteControl.conf';
+  ConfigFileName = 'MelomaniacRC.conf';
 
   FORWARD_REWIND_OFF = '>>';
   FORWARD_REWIND_ON = '>>>>';

@@ -20,8 +20,6 @@ type
     class procedure Init(const AParent: TFmxObject);
 
     class procedure OpenMenu(const ARCIdent: String);
-//    class procedure OpenMenuForAdd;
-//    class procedure OpenMenuForEdit(const AControlPanelFrameIndex: Integer);
 
     class property OnClose: TCloseMenuEvent read FOnClose write FOnClose;
   end;
@@ -78,40 +76,5 @@ begin
   FMenuFrame.EditHostButton.Enabled := not ARCIdent.IsEmpty;
   FMenuFrame.DeleteHostButton.Enabled := not ARCIdent.IsEmpty;
 end;
-
-//class procedure TMenuManager.OpenMenuForAdd;
-//begin
-//  if not Assigned(FParent) then
-//    raise Exception.Create('Parent is nil');
-//
-//  if not Assigned(FOnClose) then
-//    raise Exception.Create('OnClose is nil');
-//
-//  FMenuFrame := TMenuFrame.Create(nil);
-//  FMenuFrame.Parent := FParent;
-//  FMenuFrame.Align := TAlignLayout.Contents;
-//  FMenuFrame.CloseButton.OnClick := DoClose;
-//  FMenuFrame.AddHostButton.Enabled := true;
-//  FMenuFrame.EditHostButton.Enabled := false;
-//  FMenuFrame.DeleteHostButton.Enabled := false;
-//end;
-//
-//class procedure TMenuManager.OpenMenuForEdit(
-//  const AControlPanelFrameIndex: Integer);
-//begin
-//  if not Assigned(FParent) then
-//    raise Exception.Create('Parent is nil');
-//
-//  if not Assigned(FOnClose) then
-//    raise Exception.Create('OnClose is nil');
-//
-//  FMenuFrame := TMenuFrame.Create(AControlPanelFrameIndex);
-//  FMenuFrame.Parent := FParent;
-//  FMenuFrame.Align := TAlignLayout.Contents;
-//  FMenuFrame.CloseButton.OnClick := DoClose;
-//  FMenuFrame.AddHostButton.Enabled := false;
-//  FMenuFrame.EditHostButton.Enabled := true;
-//  FMenuFrame.DeleteHostButton.Enabled := true;
-//end;
 
 end.

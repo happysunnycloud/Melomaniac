@@ -324,6 +324,11 @@
         <DCCReference Include="..\MelomaciacCommon\CommonTypesUnit.pas"/>
         <DCCReference Include="..\MelomaciacCommon\CommonConstantsUnit.pas"/>
         <DCCReference Include="..\MelomaciacCommon\CryptoUtils.pas"/>
+        <DCCReference Include="HostsFrameUnit.pas">
+            <Form>Scrol</Form>
+            <FormType>fmx</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -460,14 +465,14 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="SVG\MRC24X24.png" Configuration="Debug" Class="Android_NotificationIcon24">
+                <DeployFile LocalName="Android\Debug\strings.xml" Configuration="Debug" Class="Android_Strings">
                     <Platform Name="Android">
-                        <RemoteName>ic_notification.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Android\Debug\strings.xml" Configuration="Debug" Class="Android_Strings">
+                <DeployFile LocalName="SVG\MRC24X24.png" Configuration="Debug" Class="Android_NotificationIcon24">
                     <Platform Name="Android">
+                        <RemoteName>ic_notification.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
