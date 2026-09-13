@@ -302,16 +302,6 @@
         <DCCReference Include="PoolUnit.pas"/>
         <DCCReference Include="ToolsUnit.pas"/>
         <DCCReference Include="ConstantsUnit.pas"/>
-        <DCCReference Include="MenuFrameUnit.pas">
-            <Form>MenuFrame</Form>
-            <FormType>fmx</FormType>
-            <DesignClass>TFrame</DesignClass>
-        </DCCReference>
-        <DCCReference Include="EditHostFrameUnit.pas">
-            <Form>EditHostFrame</Form>
-            <FormType>fmx</FormType>
-            <DesignClass>TFrame</DesignClass>
-        </DCCReference>
         <DCCReference Include="TypesUnit.pas"/>
         <DCCReference Include="MenuManagerUnit.pas"/>
         <DCCReference Include="AppManagerUnit.pas"/>
@@ -324,11 +314,33 @@
         <DCCReference Include="..\MelomaciacCommon\CommonTypesUnit.pas"/>
         <DCCReference Include="..\MelomaciacCommon\CommonConstantsUnit.pas"/>
         <DCCReference Include="..\MelomaciacCommon\CryptoUtils.pas"/>
-        <DCCReference Include="HostsFrameUnit.pas">
-            <Form>Scrol</Form>
+        <DCCReference Include="Frames\HostsFrameUnit.pas">
+            <Form>HostsFrame</Form>
             <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
+        <DCCReference Include="Frames\MenuFrameUnit.pas">
+            <Form>MenuFrame</Form>
+            <FormType>fmx</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
+        <DCCReference Include="Frames\EditHostFrameUnit.pas">
+            <Form>EditHostFrame</Form>
+            <FormType>fmx</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
+        <DCCReference Include="Frames\ControlPanelFrameUnit.pas">
+            <Form>ControlPanelFrame</Form>
+            <FormType>fmx</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
+        <DCCReference Include="..\..\DevelopmentsCollection\HostScanner\HostScanner.pas">
+            <Form>$IFDEF MSWINDOWS</Form>
+        </DCCReference>
+        <DCCReference Include="..\MelomaciacCommon\CommonToolsUnit.pas">
+            <Form>$IFDEF MSWINDOWS</Form>
+        </DCCReference>
+        <DCCReference Include="..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -465,14 +477,14 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Android\Debug\strings.xml" Configuration="Debug" Class="Android_Strings">
-                    <Platform Name="Android">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="SVG\MRC24X24.png" Configuration="Debug" Class="Android_NotificationIcon24">
                     <Platform Name="Android">
                         <RemoteName>ic_notification.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Android\Debug\strings.xml" Configuration="Debug" Class="Android_Strings">
+                    <Platform Name="Android">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

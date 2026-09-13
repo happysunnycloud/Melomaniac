@@ -50,14 +50,15 @@ object EditHostFrame: TEditHostFrame
               Text = 'Save'
               OnClick = SaveButtonClick
             end
-            object TryToResolveButton: TButton
+            object ScanHostsButton: TButton
               Position.X = 48.000000000000000000
               Position.Y = 6.000000000000000000
               Size.Width = 226.000000000000000000
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 7
-              Text = 'Try to resolve host name'
+              Text = 'Scan hosts'
+              OnClick = ScanHostsButtonClick
             end
           end
         end
@@ -156,7 +157,7 @@ object EditHostFrame: TEditHostFrame
                 Size.Width = 107.000000000000000000
                 Size.Height = 50.000000000000000000
                 Size.PlatformDefault = False
-                Text = 'Host IP:'
+                Text = 'Host IP4:'
                 TabOrder = 0
               end
               object IPEdit: TEdit

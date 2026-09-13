@@ -8,6 +8,8 @@ uses
   FMX.Edit, FMX.Controls.Presentation, FMX.Objects, FMX.Layouts
   , PoolUnit
   , TypesUnit
+  , HostsFrameUnit
+  , HostScanner
   ;
 
 type
@@ -19,7 +21,7 @@ type
     SaveLayout: TLayout;
     Layout1: TLayout;
     SaveButton: TButton;
-    TryToResolveButton: TButton;
+    ScanHostsButton: TButton;
     BaseTopLayout: TLayout;
     BaseTopCenterLayout: TLayout;
     PortLayout: TLayout;
@@ -42,13 +44,20 @@ type
     PasswordEdit: TEdit;
     RetryPasswordEdit: TEdit;
     procedure SaveButtonClick(Sender: TObject);
+    procedure ScanHostsButtonClick(Sender: TObject);
   strict private
     FRC: TMRC;
     FEditFrameMode: TEditFrameMode;
+    FHostsFrame: THostsFrame;
+    FHostScanner: THostScanner;
+
+    procedure DoCloseHostsFrame(Sender: TObject);
+    procedure DoHostNameButtonClick(Sender: TObject);
   public
     constructor Create(
       const ARC: TMRC;
       const AEditFrameMode: TEditFrameMode); reintroduce;
+    destructor Destroy; override;
   end;
 
 implementation
@@ -60,6 +69,7 @@ uses
   , CryptoUtils
   , AppManagerUnit
   , StringToolsUnit
+  , CommonToolsUnit
   ;
 
 { TEditHostFrame }
@@ -70,6 +80,8 @@ constructor TEditHostFrame.Create(
 begin
   FRC := ARC;
   FEditFrameMode := AEditFrameMode;
+  FHostsFrame := nil;
+  FHostScanner := nil;
 
   inherited Create(nil);
 
@@ -81,12 +93,18 @@ begin
   PortEdit.Text := FRC.Port.ToString;
 end;
 
+destructor TEditHostFrame.Destroy;
+begin
+  DoCloseHostsFrame(nil);
+
+  inherited;
+end;
+
 procedure TEditHostFrame.SaveButtonClick(Sender: TObject);
 var
   HostName: String;
   IP: String;
   Port: String;
-  WPort: Word;
   Password: String;
   RetryPassword: String;
   RC: TMRC;
@@ -131,13 +149,14 @@ begin
         Exit;
       end;
 
-    if FRC <> RC then
-      if AppManager.RCPool.IsIPExists(IP) then
-      begin
-        ShowMessage(Format('Then IP "%s" exists', [IP]));
+    if not IP.IsEmpty then
+      if FRC <> RC then
+        if AppManager.RCPool.IsIPExists(IP) then
+        begin
+          ShowMessage(Format('Then IP "%s" exists', [IP]));
 
-        Exit;
-      end;
+          Exit;
+        end;
   end
   else
   begin
@@ -148,17 +167,17 @@ begin
       Exit;
     end;
 
-    if AppManager.RCPool.IsIPExists(IP) then
-    begin
-      ShowMessage(Format('Then IP "%s" exists', [IP]));
+    if not IP.IsEmpty then
+      if AppManager.RCPool.IsIPExists(IP) then
+      begin
+        ShowMessage(Format('Then IP "%s" exists', [IP]));
 
-      Exit;
-    end;
+        Exit;
+      end;
   end;
 
   if (Length(Trim(IP)) > 0)
       and
-      { TODO: TStringTools.IsIP4 Плохо проверяет IP адрес на корректность, нужно отладить}
       not TStringTools.IsIP4(Trim(IP))
   then
   begin
@@ -167,48 +186,67 @@ begin
     Exit;
   end;
 
-  if Length(Trim(Port)) = 0 then
-  begin
-    ShowMessage('The "Port" field can not be empty' );
-
+  if not TCommonTools.CheckCorrectPort(Port) then
     Exit;
-  end;
-
-  if not TStringTools.IsContainsOnlyDigits(Port) then
-  begin
-    ShowMessage('The "Port" field can only contain numbers' );
-
-    Exit;
-  end;
-
-  WPort := Word(Trim(PortEdit.Text).ToInteger);
-
-  if not ((WPort > 0) and (WPort < 65000)) then
-  begin
-    ShowMessage('The "Port" value out of range. Must be between 1 and 65K' );
-
-    Exit;
-  end;
 
   if FEditFrameMode = efmAdd then
   begin
-    AppManager.RCPool.AddRC(
+    RC := AppManager.RCPool.AddRC(
       HostName,
       IP,
-      WPort,
+      Word(Port.ToInteger),
       Password);
+    RC.RCControlFrame.TopSplitterRectangle.Height := 0;
   end
   else
   if FEditFrameMode = efmEdit then
   begin
     FRC.HostName := HostName;
     FRC.IP := IP;
-    FRC.Port := WPort;
+    FRC.Port := Word(Port.ToInteger);
     FRC.Password := Password;
     FRC.RCControlFrame.UpdateInfo(FRC.HostName);
+    FRC.NetClient.Disconnect;
   end;
 
   TTools.SaveHosts;
+end;
+
+procedure TEditHostFrame.DoCloseHostsFrame(Sender: TObject);
+begin
+  FreeAndNil(FHostScanner);
+  FreeAndNil(FHostsFrame);
+end;
+
+procedure TEditHostFrame.DoHostNameButtonClick(Sender: TObject);
+begin
+  HostNameEdit.Text := TButton(Sender).Text;
+
+  DoCloseHostsFrame(nil);
+end;
+
+procedure TEditHostFrame.ScanHostsButtonClick(Sender: TObject);
+var
+  Port: String;
+begin
+  Port := Trim(PortEdit.Text);
+  if not TCommonTools.CheckCorrectPort(Port) then
+    Exit;
+
+  FHostsFrame := THostsFrame.Create(Self);
+  FHostsFrame.Parent := ContentLayout;
+  FHostsFrame.Align := TAlignLayout.Contents;
+  FHostsFrame.Visible := true;
+  FHostsFrame.CloseButton.OnClick := DoCloseHostsFrame;
+  FHostsFrame.OnHostNameButtonClick := DoHostNameButtonClick;
+
+  FHostScanner := THostScanner.Create(Word(Port.ToInteger));
+  FHostScanner.OnResponse :=
+    procedure (const AHostName: String)
+    begin
+      FHostsFrame.AddHost(AHostName);
+    end;
+  FHostScanner.Request;
 end;
 
 end.

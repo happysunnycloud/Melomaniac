@@ -336,7 +336,7 @@ object ControlPanelFrame: TControlPanelFrame
     Stroke.Thickness = 0.000000000000000000
   end
   object ButtonSplitterRectangle: TRectangle
-    Align = MostBottom
+    Align = Top
     Fill.Bitmap.Bitmap.PNG = {
       89504E470D0A1A0A0000000D49484452000007D0000000890806000000741EA3
       C8000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
@@ -449,7 +449,7 @@ object ControlPanelFrame: TControlPanelFrame
       60400700000000000080E16F409336C37067140A0000000049454E44AE426082}
     Fill.Bitmap.WrapMode = TileOriginal
     Fill.Kind = Bitmap
-    Position.Y = 245.000000000000000000
+    Position.Y = 244.000000000000000000
     Size.Width = 386.000000000000000000
     Size.Height = 12.000000000000000000
     Size.PlatformDefault = False

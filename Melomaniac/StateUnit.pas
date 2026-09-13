@@ -82,6 +82,7 @@ type
     class var FPlayListFormPos: TPosition;
 
     class var FRCPasswordHash: String;
+    class var FRCPort: Word;
   strict private
     class function GetSetOfPaths(const AIndex: Integer): TPaths; static;
 
@@ -135,6 +136,8 @@ type
       read FRCEnabled write FRCEnabled;
     class property RCPasswordHash: String
       read FRCPasswordHash write FRCPasswordHash;
+    class property RCPort: Word
+      read FRCPort write FRCPort;
   end;
 
   TCopyModeHelper = record helper for TCopyMode
@@ -156,6 +159,7 @@ uses
   , Xml.XMLDoc
   , ToolsUnit
   , PlayControllerUnit
+  , CommonConstantsUnit
   ;
 
 { TPosition }
@@ -423,6 +427,7 @@ begin
   CommonNode.AddChild('VisualScheme').Text := FVisualScheme;
   CommonNode.AddChild('RCEnabled').Text := BoolToStr(FRCEnabled, true);
   CommonNode.AddChild('RCPasswordHash').Text := FRCPasswordHash;
+  CommonNode.AddChild('RCPort').Text := FRCPort.ToString;
   CommonNode.AddChild('SetOfPathsIndex').Text := IntToStr(FSetOfPathsIndex);
 
   SetsOfPathsNode := RootNode.AddChild('SetsOfPaths');
@@ -544,6 +549,7 @@ begin
   FVisualScheme := CommonNode.ChildNodes['VisualScheme'].Text;
   FRCEnabled := StrToBoolDef(CommonNode.ChildNodes['RCEnabled'].Text, false);
   FRCPasswordHash := CommonNode.ChildNodes['RCPasswordHash'].Text;
+  FRCPort := StrToIntDef(CommonNode.ChildNodes['RCPort'].Text, DEFAULT_RC_PORT);
   FSetOfPathsIndex := StrToInt(CommonNode.ChildNodes['SetOfPathsIndex'].Text);
 
   if FVisualScheme.IsEmpty then

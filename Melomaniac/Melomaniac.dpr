@@ -71,15 +71,17 @@ uses
   UserRequestJobsUnit in 'UserRequestJobsUnit.pas',
   CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas',
   MP3TAGsReaderUnit in 'TAGReaders\MP3TAGsReaderUnit.pas',
-  SetPasswordFormUnit in 'SetPasswordForm\SetPasswordFormUnit.pas' {SetPasswordForm},
   AddLogUnit in '..\..\DevelopmentsCollection\AddLogUnit.pas',
   CryptoUtils in '..\MelomaciacCommon\CryptoUtils.pas',
-  CommonConstantsUnit in '..\MelomaciacCommon\CommonConstantsUnit.pas';
+  CommonConstantsUnit in '..\MelomaciacCommon\CommonConstantsUnit.pas',
+  RCSettingsFormUnit in 'Forms\RCSettingsFormUnit.pas' {RCSettingsForm},
+  CommonToolsUnit in '..\MelomaciacCommon\CommonToolsUnit.pas';
 
 {$R *.res}
 
 begin
   Application.Initialize;
   Application.CreateForm(TMainForm, MainForm);
+  Application.CreateForm(TRCSettingsForm, RCSettingsForm);
   Application.Run;
 end.

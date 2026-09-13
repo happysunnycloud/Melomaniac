@@ -1,4 +1,4 @@
-unit SetPasswordFormUnit;
+unit RCSettingsFormUnit;
 
 interface
 
@@ -9,7 +9,7 @@ uses
   FMX.Theme, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Edit, FMX.Layouts;
 
 type
-  TSetPasswordForm = class(TFormExt)
+  TRCSettingsForm = class(TFormExt)
     PasswordLabel: TLabel;
     PasswordLayout: TLayout;
     PasswordEdit: TEdit;
@@ -31,18 +31,18 @@ type
   end;
 
 var
-  SetPasswordForm: TSetPasswordForm;
+  RCSettingsForm: TRCSettingsForm;
 
 implementation
 
 {$R *.fmx}
 
-procedure TSetPasswordForm.CancelButtonClick(Sender: TObject);
+procedure TRCSettingsForm.CancelButtonClick(Sender: TObject);
 begin
   ModalResult := mrCancel;
 end;
 
-procedure TSetPasswordForm.FormCreate(Sender: TObject);
+procedure TRCSettingsForm.FormCreate(Sender: TObject);
 begin
   TThread.ForceQueue(nil,
     procedure
@@ -52,7 +52,7 @@ begin
     end);
 end;
 
-procedure TSetPasswordForm.OkButtonClick(Sender: TObject);
+procedure TRCSettingsForm.OkButtonClick(Sender: TObject);
 var
   Password: String;
   RetryPassword: String;

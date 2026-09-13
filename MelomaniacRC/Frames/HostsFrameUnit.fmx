@@ -1,0 +1,51 @@
+object HostsFrame: THostsFrame
+  Size.Width = 320.000000000000000000
+  Size.Height = 449.000000000000000000
+  Size.PlatformDefault = False
+  object BackgroundRectangle: TRectangle
+    Align = Contents
+    Size.Width = 320.000000000000000000
+    Size.Height = 449.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object ScrollBoxLayout: TLayout
+    Align = Client
+    Size.Width = 320.000000000000000000
+    Size.Height = 387.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object HostsScrollBox: TScrollBox
+      Align = Contents
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 5.000000000000000000
+      Margins.Right = 5.000000000000000000
+      Margins.Bottom = 5.000000000000000000
+      Size.Width = 310.000000000000000000
+      Size.Height = 377.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Viewport.Width = 310.000000000000000000
+      Viewport.Height = 377.000000000000000000
+    end
+  end
+  object ButtonsLayout: TLayout
+    Align = Bottom
+    Position.Y = 387.000000000000000000
+    Size.Width = 320.000000000000000000
+    Size.Height = 62.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object CloseButton: TButton
+      Align = Center
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 5.000000000000000000
+      Margins.Right = 5.000000000000000000
+      Margins.Bottom = 5.000000000000000000
+      Size.Width = 80.000000000000000000
+      Size.Height = 44.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Close'
+    end
+  end
+end

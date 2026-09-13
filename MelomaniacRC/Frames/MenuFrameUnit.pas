@@ -101,6 +101,10 @@ begin
   TTools.SaveHosts;
 
   ShowMessage('Host deleted');
+
+  DeleteHostButton.Enabled := false;
+  EditHostButton.Enabled := false;
+  AddHostButton.Enabled := true;
 end;
 
 end.

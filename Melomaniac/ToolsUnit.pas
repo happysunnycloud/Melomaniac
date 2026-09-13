@@ -99,6 +99,7 @@ type
       const ADestControl: TControl);
 
     class function PasswordToCryptHash(const APassword: String): String;
+    class function SetRCPort(const ARCPort: String): String;
     class function CheckRCLogin(const ALogin: String): Boolean;
     class function CheckRCPassword(const APassword: String): Boolean;
     class function GetCryptoKey: String;
@@ -124,6 +125,7 @@ uses
   , FMX.SingleSoundUnit
   , CryptoUtils
   , CommonConstantsUnit
+  , CommonToolsUnit
   ;
 
 { TTools }
@@ -914,6 +916,18 @@ begin
     TCryptoUtils.GetStringHash(
       TCryptoUtils.EncryptString(APassword, GetCryptoKey)
     );
+
+  TState.SaveConfig;
+end;
+
+class function TTools.SetRCPort(const ARCPort: String): String;
+begin
+  if not TCommonTools.CheckCorrectPort(ARCPort) then
+    Exit;
+
+  TState.RCPort := Word(ARCPort.ToInteger);
+  MainForm.UpdateRCPort(TState.RCPort);
+
   TState.SaveConfig;
 end;
 
@@ -928,3 +942,4 @@ begin
 end;
 
 end.
+

@@ -8,8 +8,6 @@ uses
   PoolUnit in 'PoolUnit.pas',
   ToolsUnit in 'ToolsUnit.pas',
   ConstantsUnit in 'ConstantsUnit.pas',
-  MenuFrameUnit in 'MenuFrameUnit.pas' {MenuFrame: TFrame},
-  EditHostFrameUnit in 'EditHostFrameUnit.pas' {EditHostFrame: TFrame},
   TypesUnit in 'TypesUnit.pas',
   MenuManagerUnit in 'MenuManagerUnit.pas',
   AppManagerUnit in 'AppManagerUnit.pas',
@@ -22,7 +20,18 @@ uses
   CommonTypesUnit in '..\MelomaciacCommon\CommonTypesUnit.pas',
   CommonConstantsUnit in '..\MelomaciacCommon\CommonConstantsUnit.pas',
   CryptoUtils in '..\MelomaciacCommon\CryptoUtils.pas',
-  HostsFrameUnit in 'HostsFrameUnit.pas' {Scrol: TFrame};
+  HostsFrameUnit in 'Frames\HostsFrameUnit.pas' {HostsFrame: TFrame},
+  MenuFrameUnit in 'Frames\MenuFrameUnit.pas' {MenuFrame: TFrame},
+  EditHostFrameUnit in 'Frames\EditHostFrameUnit.pas' {EditHostFrame: TFrame},
+  ControlPanelFrameUnit in 'Frames\ControlPanelFrameUnit.pas' {ControlPanelFrame: TFrame},
+  HostScanner in '..\..\DevelopmentsCollection\HostScanner\HostScanner.pas',
+  CommonToolsUnit in '..\MelomaciacCommon\CommonToolsUnit.pas'
+  {$IFDEF MSWINDOWS}
+  , Windows.LocalIPs in '..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas'
+  {$ELSE IFDEF ANDROID}
+  , Android.LocalIPs in '..\..\DevelopmentsCollection\HostScanner\Android.LocalIPs.pas'
+  {$ENDIF}
+  ;
 
 {$R *.res}
 
