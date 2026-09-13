@@ -41,7 +41,7 @@ type
       const AForm: TFormExt;
       const ASchemeName: String;
       const AScrollBox: TScrollBox);
-    class procedure LoadForSetPasswordForm(
+    class procedure LoadForRCSettingsForm(
       const ASchemeName: String);
     class procedure AssignBitmap(
       const AControl: TControl;
@@ -66,7 +66,7 @@ uses
   , StateUnit
   , FileToolsUnit
   , PlayListItemFrameUnit
-  , SetPasswordFormUnit
+  , RCSettingsFormUnit
   , FMX.Types
   , System.UITypes
   , CommonTypesUnit
@@ -285,7 +285,7 @@ begin
 //  TState.VisualScheme := ASchemeName;
 end;
 
-class procedure TVisualScheme.LoadForSetPasswordForm(
+class procedure TVisualScheme.LoadForRCSettingsForm(
   const ASchemeName: String);
 var
   Params: TParamsExt;
@@ -300,33 +300,25 @@ begin
       PACKER_SETTINGS_FILE,
       Params);
 
-    SetPasswordForm.Theme.ParamsToSettings(Params);
+    RCSettingsForm.Theme.ParamsToSettings(Params);
   finally
     FreeAndNil(Params);
   end;
 
-  SetPasswordForm.CaptionLabel.StyledSettings := [];
-  SetPasswordForm.PasswordLabel.StyledSettings := [];
-  SetPasswordForm.RetryPasswordLabel.StyledSettings := [];
+  RCSettingsForm.Theme.CommonSettings.CustomTextSettings.Container :=
+    RCSettingsForm;
 
-  SetPasswordForm.Theme.CommonSettings.CustomTextSettings.ApplyTo(
-    SetPasswordForm.CaptionLabel);
-  SetPasswordForm.Theme.CommonSettings.CustomTextSettings.ApplyTo(
-    SetPasswordForm.PasswordLabel);
-  SetPasswordForm.Theme.CommonSettings.CustomTextSettings.ApplyTo(
-    SetPasswordForm.RetryPasswordLabel);
+  RCSettingsForm.Theme.DecorateButton(RCSettingsForm.OkButton);
+  RCSettingsForm.Theme.DecorateButton(RCSettingsForm.CancelButton);
+  RCSettingsForm.Theme.ButtonSettings.Container := RCSettingsForm;
 
-  SetPasswordForm.Theme.DecorateButton(SetPasswordForm.OkButton);
-  SetPasswordForm.Theme.DecorateButton(SetPasswordForm.CancelButton);
-  SetPasswordForm.Theme.ButtonSettings.Container := SetPasswordForm;
+  RCSettingsForm.Theme.FormSettings.Container := RCSettingsForm;
+  RCSettingsForm.Theme.Apply;
 
-  SetPasswordForm.Theme.FormSettings.Container := SetPasswordForm;
-  SetPasswordForm.Theme.Apply;
-
-  SetPasswordForm.OnFormStateLoaded := (
+  RCSettingsForm.OnFormStateLoaded := (
     procedure(ATFormExt: TFormExt)
     begin
-      SetPasswordForm.BorderFrame.Kind := TBorderFrameKind.bfkNone;
+      RCSettingsForm.BorderFrame.Kind := TBorderFrameKind.bfkNone;
     end);
 end;
 

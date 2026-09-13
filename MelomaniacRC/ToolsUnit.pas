@@ -6,6 +6,7 @@ uses
     Xml.XMLDoc
   , Xml.XMLIntf
   , FMX.Controls
+  , FMX.Layouts
   , ControlPanelFrameUnit
   , TypesUnit
   ;
@@ -21,7 +22,7 @@ type
     class procedure LoadHosts(const AHostCallbackProc: THostCallbackProc);
     class procedure SaveHosts;
     class function BuildRCControl(
-      const AOwner: TControl;
+      const AOwner: TScrollBox;
       const ARCIdent: String): TControlPanelFrame;
     class function ExtractFileName(const APath: String): String;
   end;
@@ -240,7 +241,7 @@ begin
 end;
 
 class function TTools.BuildRCControl(
-  const AOwner: TControl;
+  const AOwner: TScrollBox;
   const ARCIdent: String): TControlPanelFrame;
 var
   RCControlFrame: TControlPanelFrame;

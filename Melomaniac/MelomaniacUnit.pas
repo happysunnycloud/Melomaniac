@@ -13,6 +13,7 @@ uses
   , PopupMenuExt.Item
   , FMX.HintUnit
   , Net.Server
+  , Net.Exceptions
   , PlayListUnit
   ;
 
@@ -95,12 +96,16 @@ type
     procedure ThemeMenuItemOnClick(Sender: TObject);
     procedure RCEnabledItemOnClick(Sender: TObject);
     procedure RCDisabledItemOnClick(Sender: TObject);
-    procedure ShowSetPasswordFormItemOnClick(Sender: TObject);
+    procedure ShowRCSettingsFormItemOnClick(Sender: TObject);
     procedure OnAfterSyncPlayList;
     procedure DoNetClientConnected(
         const AIP: String;
         const APort: Word);
     procedure DoNetClientDisconnected(
+      const AIP: String;
+      const APort: Word);
+    procedure DoNetException(
+      const AExceptionCode: TNetExceptionCode;
       const AIP: String;
       const APort: Word);
     procedure StartPlay;
@@ -118,6 +123,8 @@ type
     property TrayMenuItemPause: TItem read FTrayMenuItemPause;
     property TrayMenuItemMute: TItem read FTrayMenuItemMute;
     property TrayMenuItemUnMute: TItem read FTrayMenuItemUnMute;
+  public
+    procedure UpdateRCPort(const APort: Word);
   end;
 
 var
@@ -141,7 +148,8 @@ uses
   , FMX.ControlToolsUnit
   , FMX.Media
   , CommonTypesUnit
-  , SetPasswordFormUnit
+  , CommonConstantsUnit
+  , RCSettingsFormUnit
   , AddLogUnit
   ;
 
@@ -224,6 +232,14 @@ begin
   RCCircle.Fill.Color := TAlphaColorRec.Red;
 end;
 
+procedure TMainForm.DoNetException(
+  const AExceptionCode: TNetExceptionCode;
+  const AIP: String;
+  const APort: Word);
+begin
+//
+end;
+
 function TMainForm.CheckRCLogin(
   const ALogin: String;
   const APassword: String): Boolean;
@@ -237,11 +253,6 @@ var
   VisualScheme: String;
 begin
   try
-    TLogger.Init('Log', 1000, true, true);
-
-    TTools.Init;
-    TState.Init;
-
     // К главной форме не применяется тема формы Self.ApplyFormTheme
     BorderFrame.Kind := TBorderFrameKind.bfkNone;
 
@@ -369,11 +380,6 @@ begin
       FTrayPopupMenuExt
       );
 
-    FNetServer := TNetServer.Create(1081);
-    FNetServer.AllowedConnectionCount := 1;
-    FNetServer.OnClientConnected := DoNetClientConnected;
-    FNetServer.OnClientDiconnected := DoNetClientDisconnected;
-    FNetServer.CheckLoginFuncRef := CheckRCLogin;
     if TState.RCEnabled then
       RCEnabledItemOnClick(nil)
     else
@@ -389,6 +395,18 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   ReportMemoryLeaksOnShutdown := true;
+
+  TLogger.Init('Log', 1000, true, true);
+
+  TTools.Init;
+  TState.Init;
+
+  FNetServer := TNetServer.Create(TState.RCPort);
+  FNetServer.AllowedConnectionCount := 1;
+  FNetServer.OnClientConnected := DoNetClientConnected;
+  FNetServer.OnClientDiconnected := DoNetClientDisconnected;
+  FNetServer.OnException := DoNetException;
+  FNetServer.CheckLoginFuncRef := CheckRCLogin;
 
   TThread.ForceQueue(nil,
     procedure
@@ -448,6 +466,11 @@ begin
   TControlTools.GetCurPos(X, Y);
 
   FTrayPopupMenuExt.Open(X, Y);
+end;
+
+procedure TMainForm.UpdateRCPort(const APort: Word);
+begin
+  FNetServer.Port := APort;
 end;
 
 procedure TMainForm.BuildPopupMenus;
@@ -527,8 +550,8 @@ begin
 
   MenuItem := TItem.Create;
   MenuItem.Parent := RCItem;
-  MenuItem.Text := 'Set password';
-  MenuItem.OnClick := ShowSetPasswordFormItemOnClick;
+  MenuItem.Text := 'RC settings';
+  MenuItem.OnClick := ShowRCSettingsFormItemOnClick;
   FMainPopupMenu.Add(MenuItem);
 end;
 
@@ -731,19 +754,32 @@ begin
   FRCDisabledMenuItem.Visible := false;
 end;
 
-procedure TMainForm.ShowSetPasswordFormItemOnClick(Sender: TObject);
+procedure TMainForm.ShowRCSettingsFormItemOnClick(Sender: TObject);
 var
   ModalResult: TModalResult;
   Password: String;
+  IsNetServerActivated: Boolean;
 begin
-  SetPasswordForm := TSetPasswordForm.Create(nil);
-  TVisualScheme.LoadForSetPasswordForm(TState.VisualScheme);
-  ModalResult := SetPasswordForm.ShowModal;
+  IsNetServerActivated := FNetServer.Active;
+
+  RCSettingsForm := TRCSettingsForm.Create(nil);
+  TVisualScheme.LoadForRCSettingsForm(TState.VisualScheme);
+  RCSettingsForm.PortEdit.Text := TState.RCPort.ToString;
+
+  if IsNetServerActivated then
+    RCDisabledItemOnClick(nil);
+
+  ModalResult := RCSettingsForm.ShowModal;
   if ModalResult <> mrOk then
     Exit;
 
-  Password := SetPasswordForm.PasswordEdit.Text;
+  Password := RCSettingsForm.PasswordEdit.Text;
   TTools.PasswordToCryptHash(Password);
+  TTools.SetRCPort(RCSettingsForm.PortEdit.Text);
+  TState.SaveConfig;
+
+  if IsNetServerActivated then
+    RCEnabledItemOnClick(nil);
 end;
 
 procedure TMainForm.TimeLineControlMouseWheel(Sender: TObject;

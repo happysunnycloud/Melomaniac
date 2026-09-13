@@ -88,6 +88,8 @@ type
     property NetClient: TNetClient read FNetClient;
 
     property _Index: Integer read GetIndex;
+  public
+    procedure Disconnect;
   end;
 
   TMRCPool = class
@@ -359,6 +361,11 @@ begin
   TRCFunctionManager.ClientException(Self);
 end;
 
+procedure TMRC.Disconnect;
+begin
+  DoClientDisconnect;
+end;
+
 procedure TMRC.ConnectButtonHandlers;
 begin
   FRCControlFrame.PlayButton.OnClick := DoPlayButtonClick;
@@ -459,6 +466,7 @@ var
   Port:                   Word;
   Password:               String;
   RC:                     TMRC;
+  ButtonSplitterRectangleHeight: Single;
 begin
   FScrollBox.BeginUpdate;
   try
@@ -477,14 +485,24 @@ begin
         Password := APassword;
 
         RC := AddRC(HostName, IP, Port, Password);
-        RC.RCControlFrame.ButtonSplitterRectangle.Visible := false;
+        ButtonSplitterRectangleHeight :=
+          RC.RCControlFrame.ButtonSplitterRectangle.Height;
+
+        if i > 0 then
+        begin
+          RC.RCControlFrame.TopSplitterRectangle.Height := 0;
+//          RC.RCControlFrame.ButtonSplitterRectangle.Height := 0;
+//          RC.RCControlFrame.ButtonSplitterRectangle.Visible := false;
+        end;
 
         Inc(i);
       end);
 
     if Assigned(RC) then
     begin
-      RC.RCControlFrame.ButtonSplitterRectangle.Visible := true;
+//      RC.RCControlFrame.ButtonSplitterRectangle.Height :=
+//        ButtonSplitterRectangleHeight;
+//      RC.RCControlFrame.ButtonSplitterRectangle.Visible := true;
 
       FScrollBox.Height := 0;
       if Assigned(RC) then
