@@ -86,6 +86,13 @@ begin
         Response.AddDataCode(ResponseHeader.Code);
         TUserRequestJobsUnit.GetCurrentPlayState(Response);
       end;
+      TRequestHeader.rqGetPlayList:
+      begin
+        ResponseHeader := TResponseHeader.rsGetPlayList;
+        Response.AllowIdentDuplicates := true;
+        Response.AddDataCode(ResponseHeader.Code);
+        TUserRequestJobsUnit.GetPlayList(Response);
+      end;
       TRequestHeader.rqNext:
       begin
         TMainFormMouseClickManager.NextClicked;

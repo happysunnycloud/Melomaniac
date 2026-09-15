@@ -56,6 +56,7 @@ uses
   , OGGTAGReaderUnit
   , WavTAGReaderUnit
   , FMX.Media
+  , CommonTypesUnit
   , AddLogUnit
   ;
 

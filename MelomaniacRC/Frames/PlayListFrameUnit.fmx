@@ -1,0 +1,42 @@
+object PlayListFrame: TPlayListFrame
+  Size.Width = 320.000000000000000000
+  Size.Height = 240.000000000000000000
+  Size.PlatformDefault = False
+  object BackgoundRectangle: TRectangle
+    Align = Contents
+    Size.Width = 320.000000000000000000
+    Size.Height = 240.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    Stroke.Thickness = 0.000000000000000000
+    object ButtonsLayout: TLayout
+      Align = Bottom
+      Position.Y = 178.000000000000000000
+      Size.Width = 320.000000000000000000
+      Size.Height = 62.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object CloseButton: TButton
+        Align = Center
+        Size.Width = 80.000000000000000000
+        Size.Height = 44.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'Close'
+      end
+    end
+    object PlayListScrollBox: TScrollBox
+      Align = Client
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 5.000000000000000000
+      Margins.Right = 5.000000000000000000
+      Margins.Bottom = 5.000000000000000000
+      Size.Width = 310.000000000000000000
+      Size.Height = 168.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Viewport.Width = 310.000000000000000000
+      Viewport.Height = 168.000000000000000000
+    end
+  end
+end

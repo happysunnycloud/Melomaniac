@@ -49,11 +49,13 @@ begin
   TMenuManager.OnClose := DoCloseMenuFrame;
 
   AppManager := TAppManager.Create;
+  AppManager.RCScrollBox := ScrollBox;
+  AppManager.MainContentLayout := ContentLayout;
 
   TThread.ForceQueue(nil,
     procedure
     begin
-      AppManager.CreateRCPool(ScrollBox);
+      AppManager.CreateRCPool;
     end);
 end;
 

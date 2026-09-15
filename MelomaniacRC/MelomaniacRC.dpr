@@ -25,7 +25,10 @@ uses
   EditHostFrameUnit in 'Frames\EditHostFrameUnit.pas' {EditHostFrame: TFrame},
   ControlPanelFrameUnit in 'Frames\ControlPanelFrameUnit.pas' {ControlPanelFrame: TFrame},
   HostScanner in '..\..\DevelopmentsCollection\HostScanner\HostScanner.pas',
-  CommonToolsUnit in '..\MelomaciacCommon\CommonToolsUnit.pas'
+  StringToolsUnit in '..\..\DevelopmentsCollection\StringToolsUnit.pas',
+  CommonToolsUnit in '..\MelomaciacCommon\CommonToolsUnit.pas',
+  PlayListFrameUnit in 'Frames\PlayListFrameUnit.pas' {PlayListFrame: TFrame},
+  PlayListItemFrameUnit in 'Frames\PlayListItemFrameUnit.pas' {PlayListItemFrameUnit: TFrame}
   {$IFDEF MSWINDOWS}
   , Windows.LocalIPs in '..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas'
   {$ELSE IFDEF ANDROID}

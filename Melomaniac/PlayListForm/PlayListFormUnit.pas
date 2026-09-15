@@ -54,6 +54,7 @@ uses
   , StateUnit
   , FMX.SingleSoundUnit
   , PlayListFormMouseHandlersUnit
+  , CommonTypesUnit
   ;
 
 { TPlayListForm }

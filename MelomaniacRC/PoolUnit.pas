@@ -14,6 +14,8 @@ uses
   , Net.Exceptions
   , CommonTypesUnit
   , TypesUnit
+  , PlayListFrameUnit
+  , FMX.Forms
   ;
 
 type
@@ -34,6 +36,7 @@ type
     FPort: Word;
     FPassword: String;
     FRCControlFrame: TControlPanelFrame;
+    FPlayListFrame: TPlayListFrame;
     FNetClient: TNetClient;
 
     FRewindDirection: TRewindDirection;
@@ -52,6 +55,8 @@ type
     procedure DoPrevButtonClick(Sender: TObject);
     procedure DoNextNSecsButtonClick(Sender: TObject);
     procedure DoPrevNSecsButtonClick(Sender: TObject);
+    procedure DoCompotitionNameTopLayoutClick(Sender: TObject);
+    procedure DoPlayListFrameCloseButtonClick(Sender: TObject);
 
     procedure DoClientConnect;
     procedure DoClientAuthorized(const ACredential: TCredential);
@@ -72,8 +77,7 @@ type
       const AHostName: String;
       const AIP: String;
       const APort: Word;
-      const APassword: String;
-      const AScrollBox: TScrollBox);
+      const APassword: String);
     destructor Destroy; override;
 
     property Ident: String read FIdent;
@@ -85,6 +89,8 @@ type
 
     property RCControlFrame: TControlPanelFrame
       read FRCControlFrame write FRCControlFrame;
+    property PlayListFrame: TPlayListFrame
+      read FPlayListFrame write FPlayListFrame;
     property NetClient: TNetClient read FNetClient;
 
     property _Index: Integer read GetIndex;
@@ -94,12 +100,11 @@ type
 
   TMRCPool = class
   strict private
-    FScrollBox: TScrollBox;
     FRCList: TMRCList;
     procedure LoadPool;
     procedure Clear;
   public
-    constructor Create(const AScrollBox: TScrollBox);
+    constructor Create;
     destructor Destroy; override;
 
     function AddRC(
@@ -138,6 +143,7 @@ uses
   , ConstantsUnit
   , CryptoUtils
   , FMX.ControlToolsUnit
+  , AppManagerUnit
   ;
 
 { TMRC }
@@ -147,8 +153,7 @@ constructor TMRC.Create(
   const AHostName: String;
   const AIP: String;
   const APort: Word;
-  const APassword: String;
-  const AScrollBox: TScrollBox);
+  const APassword: String);
 begin
   if not Assigned(AListOwner) then
     raise Exception.Create('List owner is nil');
@@ -160,14 +165,16 @@ begin
   FIP := AIP;
   FPort := APort;
   FPassword := APassword;
-  FIsRewindActivated := false;
+
   FRewindDirection := rdNone;
+  FIsRewindActivated := false;
 
   FGetPlayStateThread := nil;
 
-  FRCControlFrame := TTools.BuildRCControl(AScrollBox, FIdent);
-//  AScrollBox.Rebuild(0);
+  FRCControlFrame := TTools.BuildRCControl(AppManager.RCScrollBox, FIdent);
   FRCControlFrame.HostNameLabel.Text := FHostName;
+
+  FPlayListFrame := nil;
 
   // Здесь назначаем обработку только для кнопки подключения
   FRCControlFrame.ConnectButton.OnClick := DoConnectButtonClick;
@@ -188,6 +195,7 @@ destructor TMRC.Destroy;
 begin
   StopRequestPlayState;
   FreeAndNil(FNetClient);
+  FreeAndNil(FPlayListFrame);
 
   inherited;
 end;
@@ -329,6 +337,21 @@ begin
   end;
 end;
 
+procedure TMRC.DoCompotitionNameTopLayoutClick(Sender: TObject);
+begin
+  FPlayListFrame := TPlayListFrame.Create(AppManager.MainContentLayout);
+  FPlayListFrame.Parent := AppManager.MainContentLayout;
+  FPlayListFrame.Align := TAlignLayout.Contents;
+  FPlayListFrame.CloseButton.OnClick := DoPlayListFrameCloseButtonClick;
+
+  SendRequest(TRequestHeader.rqGetPlayList);
+end;
+
+procedure TMRC.DoPlayListFrameCloseButtonClick(Sender: TObject);
+begin
+  FreeAndNil(FPlayListFrame);
+end;
+
 procedure TMRC.DoClientConnect;
 begin
   FIsRewindActivated := false;
@@ -375,6 +398,9 @@ begin
   FRCControlFrame.PrevButton.OnClick := DoPrevButtonClick;
   FRCControlFrame.NextNSecsButton.OnClick := DoNextNSecsButtonClick;
   FRCControlFrame.PrevNSecsButton.OnClick := DoPrevNSecsButtonClick;
+  FRCControlFrame.CompotitionNameTopLayout.HitTest := true;
+  FRCControlFrame.CompotitionNameTopLayout.OnClick :=
+    DoCompotitionNameTopLayoutClick;
 end;
 
 procedure TMRC.DisconnectButtonHandlers;
@@ -409,9 +435,8 @@ end;
 
 { TMRCPool }
 
-constructor TMRCPool.Create(const AScrollBox: TScrollBox);
+constructor TMRCPool.Create;
 begin
-  FScrollBox := AScrollBox;
   FRCList := TMRCList.Create;
 
   TThread.ForceQueue(nil,
@@ -438,7 +463,8 @@ function TMRCPool.AddRC(
 var
   RC: TMRC;
 begin
-  RC := TMRC.Create(FRCList, AHostName, AIP, APort, APassword, FScrollBox);
+  RC := TMRC.Create(
+    FRCList, AHostName, AIP, APort, APassword);
 
   FRCList.Add(RC);
 
@@ -446,12 +472,15 @@ begin
 end;
 
 procedure TMRCPool.FreeRC(var ARC: TMRC);
+var
+  ScrollBox: TScrollBox;
 begin
-  FScrollBox.BeginUpdate;
+  ScrollBox := AppManager.RCScrollBox;
+  ScrollBox.BeginUpdate;
   try
-    FScrollBox.Content.RemoveObject(ARC.RCControlFrame);
+    ScrollBox.Content.RemoveObject(ARC.RCControlFrame);
   finally
-    FScrollBox.EndUpdate;
+    ScrollBox.EndUpdate;
   end;
 
   FRCList.Remove(ARC);
@@ -466,9 +495,10 @@ var
   Port:                   Word;
   Password:               String;
   RC:                     TMRC;
-  ButtonSplitterRectangleHeight: Single;
+  ScrollBox: TScrollBox;
 begin
-  FScrollBox.BeginUpdate;
+  ScrollBox := AppManager.RCScrollBox;
+  ScrollBox.BeginUpdate;
   try
     RC := nil;
     i := 0;
@@ -485,14 +515,10 @@ begin
         Password := APassword;
 
         RC := AddRC(HostName, IP, Port, Password);
-        ButtonSplitterRectangleHeight :=
-          RC.RCControlFrame.ButtonSplitterRectangle.Height;
 
         if i > 0 then
         begin
           RC.RCControlFrame.TopSplitterRectangle.Height := 0;
-//          RC.RCControlFrame.ButtonSplitterRectangle.Height := 0;
-//          RC.RCControlFrame.ButtonSplitterRectangle.Visible := false;
         end;
 
         Inc(i);
@@ -500,35 +526,33 @@ begin
 
     if Assigned(RC) then
     begin
-//      RC.RCControlFrame.ButtonSplitterRectangle.Height :=
-//        ButtonSplitterRectangleHeight;
-//      RC.RCControlFrame.ButtonSplitterRectangle.Visible := true;
-
-      FScrollBox.Height := 0;
+      ScrollBox.Height := 0;
       if Assigned(RC) then
-        FScrollBox.Height := RC.RCControlFrame.Height * i;
+        ScrollBox.Height := RC.RCControlFrame.Height * i;
     end;
   finally
-    FScrollBox.EndUpdate;
+    ScrollBox.EndUpdate;
   end;
 end;
 
 procedure TMRCPool.Clear;
 var
   Obj: TFmxObject;
+  ScrollBox: TScrollBox;
 begin
-  FScrollBox.BeginUpdate;
+  ScrollBox := AppManager.RCScrollBox;
+  ScrollBox.BeginUpdate;
   try
     while FRCList.Count > 0 do
     begin
       Obj := FRCList[0].RCControlFrame;
-      FScrollBox.RemoveObject(Obj);
+      ScrollBox.RemoveObject(Obj);
       Obj.Free;
       FRCList[0].Free;
       FRCList.Delete(0);
     end;
   finally
-    FScrollBox.EndUpdate;
+    ScrollBox.EndUpdate;
   end;
 end;
 

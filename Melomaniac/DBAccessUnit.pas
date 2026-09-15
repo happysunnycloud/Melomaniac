@@ -7,6 +7,7 @@ uses
   , BaseDBAccessUnit
   , ParamsExtUnit
   , PlayListUnit
+  , CommonTypesUnit
   ;
 
 type

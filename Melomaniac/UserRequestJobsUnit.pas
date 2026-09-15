@@ -10,6 +10,7 @@ type
   TUserRequestJobsUnit = class
   public
     class procedure GetCurrentPlayState(const AResponseHeader: TParamsExt);
+    class procedure GetPlayList(const AResponseHeader: TParamsExt);
   end;
 
 implementation
@@ -19,6 +20,7 @@ uses
   , CommonTypesUnit
   , PlayControllerUnit
   , StateUnit
+  , PlayListUnit
   ;
 
 { TUserRequestJobsUnit }
@@ -41,6 +43,23 @@ begin
     AResponseHeader.AddFrom(Response);
   finally
     FreeAndNil(CurrentPlayState);
+    FreeAndNil(Response);
+  end;
+end;
+
+class procedure TUserRequestJobsUnit.GetPlayList(
+  const AResponseHeader: TParamsExt);
+var
+  Response: TParamsExt;
+  PlayItemsList: TPlayItemsList;
+begin
+  Response := TParamsExt.Create;
+  PlayItemsList := TPlayController.PlayList.LockList;
+  try
+    Response.FromObjectList(PlayItemsList, 'PlayItemsList');
+    AResponseHeader.AddFrom(Response);
+  finally
+    TPlayController.PlayList.UnlockList;
     FreeAndNil(Response);
   end;
 end;

@@ -2,9 +2,43 @@ unit CommonTypesUnit;
 
 interface
 
+uses
+    System.Generics.Collections
+  ;
+
 type
   TPlayState = (psStop, psPlay, psPause);
   TRewindDirection = (rdNone = 0, rdForward = 1, rdBackward = 2);
+
+  TPlayItem = class
+  strict private
+    FTitle: String;
+    FArtist: String;
+    FAlbum: String;
+    FYear: String;
+    FDuration: Int64; // в секундах
+    FPath: String;
+    FMD5: String;
+    FSHA256: String;
+    FFileSize: Int64;
+  public
+    constructor Create;
+
+    property Title: String read FTitle write FTitle;
+    property Artist: String read FArtist  write FArtist;
+    property Album: String read FAlbum write FAlbum;
+    property Year: String read FYear write FYear;
+    property Duration: Int64 read FDuration write FDuration;
+    property Path: String read FPath write FPath;
+    property MD5: String read FMD5 write FMD5;
+    property SHA256: String read FSHA256 write FSHA256;
+    property FileSize: Int64 read FFileSize write FFileSize;
+  end;
+
+  TPlayItemsList = class(TList<TPlayItem>)
+  public
+    procedure Clear;
+  end;
 
   TCurrentPlayState = class
   strict private
@@ -32,6 +66,32 @@ implementation
 uses
     System.SysUtils
   ;
+
+{ TPlayItem }
+
+constructor TPlayItem.Create;
+begin
+  FTitle := '';
+  FArtist := '';
+  FAlbum := '';
+  FYear := '';
+  FDuration := 0;
+  FPath := '';
+  FMD5 := '';
+  FSHA256 := '';
+  FFileSize := 0;
+end;
+
+{ TPlayItemsList }
+
+procedure TPlayItemsList.Clear;
+begin
+  while Self.Count > 0 do
+  begin
+    Self[0].Free;
+    Delete(0);
+  end;
+end;
 
 { TPlayStateHelper }
 

@@ -13,9 +13,10 @@ const
   REQUEST_PLAY_STATE_TIME_INTERVAL = 1000;
 
 type
+  // OnClientRead обрабатывается в главном потоке,
+  // дополнительно синхронизировать не нужно
   TRCFunctionManager = class
   strict private
-    class var FSafeQueueThreadSignal: ISafeQueueThreadSignal;
   public
     class procedure Connect(const ARC: TMRC);
     class procedure ClientConnected(const ARC: TMRC);
@@ -27,9 +28,6 @@ type
       const ARequestCode: Integer);
 
     class procedure ClientRead(const ARC: TMRC);
-
-    class procedure ClassInit;
-    class procedure ClassUninit;
   end;
 
 implementation
@@ -48,16 +46,6 @@ uses
   ;
 
 { TRCFunctionManager }
-
-class procedure TRCFunctionManager.ClassInit;
-begin
-  FSafeQueueThreadSignal := TSafeQueueThreadSignal.Create;
-end;
-
-class procedure TRCFunctionManager.ClassUninit;
-begin
-  FSafeQueueThreadSignal.Deactivate;
-end;
 
 class procedure TRCFunctionManager.Connect(const ARC: TMRC);
 begin
@@ -155,18 +143,27 @@ begin
           Duration := TSingleSound.GetHumanTime(CurrentPlayState.Duration);
           CurrentTime := TSingleSound.GetHumanTime(CurrentPlayState.CurrentTime);
           VolumePercentage := Round(100 * CurrentPlayState.Volume).ToString + ' %';
-          TSafeQueueThread.SafeForceQueue(FSafeQueueThreadSignal,
-            procedure
-            begin
-              ARC.RCControlFrame.CompositionNameLabel.Text := Composition;
-              ARC.RCControlFrame.PlayButton.Text := PlayState;
-              ARC.RCControlFrame.CompositionTimeTotalLabel.Text := Duration;
-              ARC.RCControlFrame.CompositionTimeCurrentLabel.Text := CurrentTime;
-              ARC.RCControlFrame.VolumeLabel.Text := VolumePercentage;
-            end);
+
+          ARC.RCControlFrame.CompositionNameLabel.Text := Composition;
+          ARC.RCControlFrame.PlayButton.Text := PlayState;
+          ARC.RCControlFrame.CompositionTimeTotalLabel.Text := Duration;
+          ARC.RCControlFrame.CompositionTimeCurrentLabel.Text := CurrentTime;
+          ARC.RCControlFrame.VolumeLabel.Text := VolumePercentage;
         finally
           FreeAndNil(DataParams);
           FreeAndNil(CurrentPlayState);
+        end;
+      end;
+      rsGetPlayList:
+      begin
+        DataParams := TParamsExt.Create;
+        try
+          DataParams.CopyFrom(Response, 1, Response.Length);
+          DataParams.ToObjectList<TPlayItem>(
+            ARC.PlayListFrame.PlayItemsList, 'PlayItemsList');
+          ARC.PlayListFrame.BuilPlayList;
+        finally
+          FreeAndNil(DataParams);
         end;
       end;
     end;
@@ -175,9 +172,4 @@ begin
   end;
 end;
 
-initialization
-  TRCFunctionManager.ClassInit;
-
-finalization
-  TRCFunctionManager.ClassUninit;
 end.

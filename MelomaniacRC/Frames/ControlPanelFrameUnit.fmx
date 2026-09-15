@@ -60,6 +60,7 @@ object ControlPanelFrame: TControlPanelFrame
     end
     object CompositionNamePanel: TPanel
       Align = Top
+      HitTest = False
       Position.Y = 31.000000000000000000
       Size.Width = 386.000000000000000000
       Size.Height = 80.000000000000000000
@@ -67,6 +68,7 @@ object ControlPanelFrame: TControlPanelFrame
       TabOrder = 0
       object CompotitionNameTopLayout: TLayout
         Align = Top
+        HitTest = True
         Size.Width = 386.000000000000000000
         Size.Height = 47.000000000000000000
         Size.PlatformDefault = False

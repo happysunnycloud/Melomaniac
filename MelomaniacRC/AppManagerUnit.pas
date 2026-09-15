@@ -4,20 +4,30 @@ interface
 
 uses
     FMX.Layouts
+  , FMX.Forms
   , PoolUnit
   ;
 
 type
   TAppManager = class
   strict private
+    class var FRCScrollBox: TScrollBox;
+    class var FMainContentLayout: TLayout;
+  strict private
     FRCPool: TMRCPool;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property RCPool: TMRCPool read FRCPool;
+    procedure CreateRCPool;
 
-    procedure CreateRCPool(const AScrollBox: TScrollBox);
+    property RCPool: TMRCPool
+      read FRCPool;
+  public
+    class property RCScrollBox: TScrollBox
+      read FRCScrollBox write FRCScrollBox;
+    class property MainContentLayout: TLayout
+      read FMainContentLayout write FMainContentLayout;
   end;
 
 var
@@ -41,12 +51,9 @@ begin
   FreeAndNil(FRCPool);
 end;
 
-procedure TAppManager.CreateRCPool(const AScrollBox: TScrollBox);
+procedure TAppManager.CreateRCPool;
 begin
-  if not Assigned(AScrollBox) then
-    raise Exception.Create('ScrollBox is nil');
-
-  FRCPool := TMRCPool.Create(AScrollBox);
+  FRCPool := TMRCPool.Create;
 end;
 
 end.
