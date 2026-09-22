@@ -3318,4 +3318,11 @@ object MainForm: TMainForm
       TabOrder = 0
     end
   end
+  object Button1: TButton
+    Position.X = 724.000000000000000000
+    Position.Y = 424.000000000000000000
+    TabOrder = 12
+    Text = 'Button1'
+    OnClick = Button1Click
+  end
 end

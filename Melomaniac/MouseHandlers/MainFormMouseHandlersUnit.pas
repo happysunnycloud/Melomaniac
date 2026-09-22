@@ -65,39 +65,6 @@ uses
 
 { TMainFormMouseHandlers }
 
-//class procedure TMainFormMouseHandlers.PlayClicked(Sender: TObject);
-//begin
-//  if (TState.PlayState = psPause) or
-//     (TState.PlayState = psStop)
-//  then
-//  begin
-//    TPlayController.Play;
-//  end
-//  else
-//  if TState.PlayState = psPlay then
-//  begin
-//    TPlayController.Pause;
-//  end;
-//end;
-
-//class procedure TMainFormMouseHandlers.PrevClicked(Sender: TObject);
-//begin
-//  TPlayController.Prev;
-//end;
-
-//class procedure TMainFormMouseHandlers.NextClicked(Sender: TObject);
-//begin
-//  TPlayController.Next;
-//end;
-
-//class procedure TMainFormMouseHandlers.SoundClicked(Sender: TObject);
-//begin
-//  if TPlayController.Volume > 0 then
-//    TPlayController.Mute
-//  else
-//    TPlayController.UnMute;
-//end;
-
 class procedure TMainFormMouseHandlers.OnMouseDownHandler(
   Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
@@ -367,26 +334,6 @@ begin
   end;
 end;
 
-//class procedure TMouseHandlers.OnMouseEnter(Sender: TObject);
-//var
-//  Control: TControl;
-//begin
-//  if not Assigned(Sender) then
-//    Exit;
-//
-//  Control := Sender as TControl;
-//
-//  if Control = MainForm.CopyModeControl then
-//  begin
-//
-//  end
-//  else
-//  if Control = MainForm.MoveModeControl then
-//  begin
-//
-//  end;
-//end;
-
 class procedure TMainFormMouseHandlers.OnMouseLeaveHandler(Sender: TObject);
 var
   Control: TControl;
@@ -416,7 +363,6 @@ begin
     Control.OnMouseMove := TMainFormMouseHandlers.OnMouseMoveHandler;
     Control.OnMouseUp := TMainFormMouseHandlers.OnMouseUpHandler;
 
-//    Control.OnMouseEnter := TMouseHandlers.OnMouseEnter;
     Control.OnMouseLeave := TMainFormMouseHandlers.OnMouseLeaveHandler;
   end;
 end;

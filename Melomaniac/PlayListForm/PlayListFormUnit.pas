@@ -256,7 +256,6 @@ procedure TPlayListForm.ScrollToItem(const APath: String);
 var
   PlayListItemFrame: TPlayListItemFrame;
   Control: TControl;
-  PointF: TPointF;
 begin
   FPathControlDict.TryGetValue(APath, Control);
   if not Assigned(Control) then
@@ -264,10 +263,7 @@ begin
 
   PlayListItemFrame := Control as TPlayListItemFrame;
 
-  PointF.X := PlayListItemFrame.Position.X;
-  PointF.Y := PlayListItemFrame.Position.Y;
-  PointF := PlayListItemFrame.LocalToAbsolute(PointF);
-  ScrollBox.ViewportPosition := PointF;
+  ScrollBox.ScrollTo(PlayListItemFrame);
 end;
 
 procedure TPlayListForm.FormCreate(Sender: TObject);

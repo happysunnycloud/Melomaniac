@@ -2,9 +2,11 @@ object PlayListItemFrame: TPlayListItemFrame
   Size.Width = 480.000000000000000000
   Size.Height = 96.000000000000000000
   Size.PlatformDefault = False
+  OnMouseEnter = FrameMouseEnter
+  OnMouseLeave = FrameMouseLeave
   object BackgroundRectangle: TRectangle
     Align = Contents
-    Fill.Color = xFFD8FF8D
+    HitTest = False
     Size.Width = 480.000000000000000000
     Size.Height = 96.000000000000000000
     Size.PlatformDefault = False
@@ -110,5 +112,15 @@ object PlayListItemFrame: TPlayListItemFrame
         TabOrder = 3
       end
     end
+  end
+  object FocusFrameRectangle: TRectangle
+    Align = Contents
+    Fill.Kind = None
+    HitTest = False
+    Size.Width = 480.000000000000000000
+    Size.Height = 96.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = xFF4FE1FF
+    Stroke.Thickness = 4.000000000000000000
   end
 end

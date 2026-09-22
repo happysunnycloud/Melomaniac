@@ -16,6 +16,7 @@ uses
   , TypesUnit
   , PlayListFrameUnit
   , FMX.Forms
+  , ParamsExtUnit
   ;
 
 type
@@ -42,10 +43,16 @@ type
     FRewindDirection: TRewindDirection;
     FIsRewindActivated: Boolean;
 
+    FCurruntCompositionPath: String;
+
     function GetIndex: Integer;
     function CheckIsRewindActivated: Boolean;
 
-    procedure SendRequest(const ARequestHeader: TRequestHeader);
+    procedure SendRequest(
+      const ARequestHeader: TRequestHeader); overload;
+    procedure SendRequest(
+      const ARequestHeader: TRequestHeader;
+      const AParams: TParamsExt); overload;
 
     procedure DoConnectButtonClick(Sender: TObject);
     procedure DoPlayButtonClick(Sender: TObject);
@@ -55,8 +62,9 @@ type
     procedure DoPrevButtonClick(Sender: TObject);
     procedure DoNextNSecsButtonClick(Sender: TObject);
     procedure DoPrevNSecsButtonClick(Sender: TObject);
-    procedure DoCompotitionNameTopLayoutClick(Sender: TObject);
+    procedure DoCompositionNameTopLayoutClick(Sender: TObject);
     procedure DoPlayListFrameCloseButtonClick(Sender: TObject);
+    procedure DoPlayListItemClick(Sender: TObject);
 
     procedure DoClientConnect;
     procedure DoClientAuthorized(const ACredential: TCredential);
@@ -80,6 +88,8 @@ type
       const APassword: String);
     destructor Destroy; override;
 
+    procedure ScrollByCurrentCompositonPath;
+
     property Ident: String read FIdent;
     property ListOwner: TMRCList read FListOwner;
     property HostName: String read FHostName write FHostName;
@@ -94,6 +104,9 @@ type
     property NetClient: TNetClient read FNetClient;
 
     property _Index: Integer read GetIndex;
+
+    property CurrentCompositonPath: String
+      read FCurruntCompositionPath write FCurruntCompositionPath;
   public
     procedure Disconnect;
   end;
@@ -142,8 +155,9 @@ uses
   , RCFunctionManagerUnit
   , ConstantsUnit
   , CryptoUtils
-  , FMX.ControlToolsUnit
+//  , FMX.ControlToolsUnit
   , AppManagerUnit
+  , PlayListItemFrameUnit
   ;
 
 { TMRC }
@@ -169,6 +183,8 @@ begin
   FRewindDirection := rdNone;
   FIsRewindActivated := false;
 
+  FCurruntCompositionPath := '';
+
   FGetPlayStateThread := nil;
 
   FRCControlFrame := TTools.BuildRCControl(AppManager.RCScrollBox, FIdent);
@@ -193,6 +209,11 @@ end;
 
 destructor TMRC.Destroy;
 begin
+  // Просто нилим, его удалит владелец
+  FRCControlFrame := nil;
+  // Просто нилим, его удалит владелец
+  FPlayListFrame := nil;
+
   StopRequestPlayState;
   FreeAndNil(FNetClient);
   FreeAndNil(FPlayListFrame);
@@ -252,6 +273,18 @@ begin
     Exit;
 
   TRCFunctionManager.SendRequest(FNetClient, ARequestHeader.Code);
+end;
+
+procedure TMRC.SendRequest(
+  const ARequestHeader: TRequestHeader;
+  const AParams: TParamsExt);
+begin
+  if not FNetClient.IsConnected then
+    Exit;
+
+  TRCFunctionManager.SendRequest(
+    FNetClient, ARequestHeader.Code,
+    AParams);
 end;
 
 procedure TMRC.DoConnectButtonClick(Sender: TObject);
@@ -337,12 +370,13 @@ begin
   end;
 end;
 
-procedure TMRC.DoCompotitionNameTopLayoutClick(Sender: TObject);
+procedure TMRC.DoCompositionNameTopLayoutClick(Sender: TObject);
 begin
   FPlayListFrame := TPlayListFrame.Create(AppManager.MainContentLayout);
   FPlayListFrame.Parent := AppManager.MainContentLayout;
   FPlayListFrame.Align := TAlignLayout.Contents;
   FPlayListFrame.CloseButton.OnClick := DoPlayListFrameCloseButtonClick;
+  FPlayListFrame.OnPlayListItemClick := DoPlayListItemClick;
 
   SendRequest(TRequestHeader.rqGetPlayList);
 end;
@@ -350,6 +384,27 @@ end;
 procedure TMRC.DoPlayListFrameCloseButtonClick(Sender: TObject);
 begin
   FreeAndNil(FPlayListFrame);
+end;
+
+procedure TMRC.DoPlayListItemClick(Sender: TObject);
+var
+  PlayListItemFrame: TPlayListItemFrame;
+  Path: String;
+  Params: TParamsExt;
+begin
+  if not (Sender is TPlayListItemFrame) then
+    raise Exception.Create('Sender is not a ' + TPlayListItemFrame.ClassName);
+
+  PlayListItemFrame := TPlayListItemFrame(Sender);
+  Path := PlayListItemFrame.CompositionPath;
+
+  Params := TParamsExt.Create;
+  try
+    Params.AddAsType(Path, varUString, 'Path');
+    SendRequest(rqSetCurrentComposition, Params);
+  finally
+    FreeAndNil(Params);
+  end;
 end;
 
 procedure TMRC.DoClientConnect;
@@ -400,7 +455,7 @@ begin
   FRCControlFrame.PrevNSecsButton.OnClick := DoPrevNSecsButtonClick;
   FRCControlFrame.CompotitionNameTopLayout.HitTest := true;
   FRCControlFrame.CompotitionNameTopLayout.OnClick :=
-    DoCompotitionNameTopLayoutClick;
+    DoCompositionNameTopLayoutClick;
 end;
 
 procedure TMRC.DisconnectButtonHandlers;
@@ -415,6 +470,13 @@ begin
 
   FRCControlFrame.NextNSecsButton.Text := FORWARD_REWIND_OFF;
   FRCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_OFF;
+end;
+
+procedure TMRC.ScrollByCurrentCompositonPath;
+begin
+  if Assigned(FPlayListFrame) then
+    if not FCurruntCompositionPath.IsEmpty then
+      FPlayListFrame.ScrollTo(FCurruntCompositionPath);
 end;
 
 procedure TMRC.StartRequestPlayState(
@@ -546,10 +608,14 @@ begin
     while FRCList.Count > 0 do
     begin
       Obj := FRCList[0].RCControlFrame;
-      ScrollBox.RemoveObject(Obj);
-      Obj.Free;
+      // Важно вначале удалить RC,
+      // здесь останаваливается поток обработки входящих сообщений
+      // Потом уже удалить его контролы
       FRCList[0].Free;
       FRCList.Delete(0);
+      ScrollBox.RemoveObject(Obj);
+      Obj.Free;
+      //asd debug
     end;
   finally
     ScrollBox.EndUpdate;

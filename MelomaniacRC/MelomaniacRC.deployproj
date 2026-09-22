@@ -63,6 +63,24 @@
     <ItemGroup Condition="'$(Platform)'=='Linux64'"/>
     <ItemGroup Condition="'$(Platform)'=='OSX64'"/>
     <ItemGroup Condition="'$(Platform)'=='Android'">
+        <DeployFile Include="SVG\MRCSplash960X720.png" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>MelomaniacRC\res\drawable-xlarge\</RemoteDir>
+            <RemoteName>splash_image.png</RemoteName>
+            <DeployClass>Android_SplashImage960</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="SVG\MRC72X72.png" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>MelomaniacRC\res\drawable-xxhdpi\</RemoteDir>
+            <RemoteName>ic_notification.png</RemoteName>
+            <DeployClass>Android_NotificationIcon72</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
         <DeployFile Include="SVG\MRCSplash640X480.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>MelomaniacRC\res\drawable-large\</RemoteDir>
             <RemoteName>splash_image.png</RemoteName>
@@ -248,24 +266,6 @@
             <RemoteDir>MelomaniacRC\res\values-v21\</RemoteDir>
             <RemoteName>styles.xml</RemoteName>
             <DeployClass>AndroidSplashStylesV21</DeployClass>
-            <Operation>1</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
-        <DeployFile Include="SVG\MRCSplash960X720.png" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>MelomaniacRC\res\drawable-xlarge\</RemoteDir>
-            <RemoteName>splash_image.png</RemoteName>
-            <DeployClass>Android_SplashImage960</DeployClass>
-            <Operation>1</Operation>
-            <LocalCommand/>
-            <RemoteCommand/>
-            <Overwrite>True</Overwrite>
-        </DeployFile>
-        <DeployFile Include="SVG\MRC72X72.png" Condition="'$(Config)'=='Debug'">
-            <RemoteDir>MelomaniacRC\res\drawable-xxhdpi\</RemoteDir>
-            <RemoteName>ic_notification.png</RemoteName>
-            <DeployClass>Android_NotificationIcon72</DeployClass>
             <Operation>1</Operation>
             <LocalCommand/>
             <RemoteCommand/>

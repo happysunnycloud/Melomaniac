@@ -57,6 +57,7 @@ type
     InfoPanelTitleLabel: TLabel;
     DurationLabel: TLabel;
     RCCircle: TCircle;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
     procedure ChangeViewControlClick(Sender: TObject);
@@ -66,6 +67,7 @@ type
     procedure TimeLineControlMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
     procedure FormDestroy(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   strict private
     function CheckRCLogin(
       const ALogin: String;
@@ -150,6 +152,7 @@ uses
   , CommonTypesUnit
   , CommonConstantsUnit
   , RCSettingsFormUnit
+  , FMX.MessageBox
   , AddLogUnit
   ;
 
@@ -616,6 +619,11 @@ begin
   MenuItem.Text := FUNC_IDENT_CLOSE;
   MenuItem.OnClick := OnCloseTrayItemHandler;
   FTrayPopupMenuExt.Add(MenuItem);
+end;
+
+procedure TMainForm.Button1Click(Sender: TObject);
+begin
+  TMessageBox.Show('Hello', 'World');
 end;
 
 procedure TMainForm.ChangeViewControlClick(Sender: TObject);

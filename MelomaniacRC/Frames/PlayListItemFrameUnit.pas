@@ -1,4 +1,4 @@
-unit PlayListItemFrameUnit;
+﻿unit PlayListItemFrameUnit;
 
 interface
 
@@ -19,14 +19,30 @@ type
     NumberLabel: TLabel;
     DurationLabel: TLabel;
     BackgroundRectangle: TRectangle;
+    FocusFrameRectangle: TRectangle;
+    procedure FrameMouseEnter(Sender: TObject);
+    procedure FrameMouseLeave(Sender: TObject);
   private
-    { Private declarations }
+    FCompositionPath: String;
   public
-    { Public declarations }
+    property CompositionPath: String
+      read FCompositionPath write FCompositionPath;
   end;
 
 implementation
 
 {$R *.fmx}
+
+procedure TPlayListItemFrame.FrameMouseEnter(Sender: TObject);
+begin
+  FocusFrameRectangle.Visible := true;
+//  BackgroundRectangle.Fill.Color := TAlphaColorRec.Limegreen;
+end;
+
+procedure TPlayListItemFrame.FrameMouseLeave(Sender: TObject);
+begin
+  FocusFrameRectangle.Visible := false;
+//  BackgroundRectangle.Fill.Color := $FFE0E0E0;
+end;
 
 end.

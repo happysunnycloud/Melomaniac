@@ -30,9 +30,11 @@ uses
   , Net.RequestHeaders
   , Net.ResponseHeaders
   , MainFormMouseHandlersUnit
+  , PlayListFormMouseHandlersUnit
   , PlayControllerUnit
   , CommonTypesUnit
   , UserRequestJobsUnit
+  , ParamsExtUnit
   ;
 
 { TNetUserRequestJobThread }
@@ -57,8 +59,10 @@ procedure TNetUserRequestJobThread.DoJob(const ARequest: TRequest);
 
 var
   Response: TResponse;
+  RequestParams: TParamsExt;
   RequestHeader: TRequestHeader;
   ResponseHeader: TResponseHeader;
+  Path: String;
 begin
   RequestHeader.FromInteger(ARequest.GetDataCode);
 
@@ -86,13 +90,6 @@ begin
         Response.AddDataCode(ResponseHeader.Code);
         TUserRequestJobsUnit.GetCurrentPlayState(Response);
       end;
-      TRequestHeader.rqGetPlayList:
-      begin
-        ResponseHeader := TResponseHeader.rsGetPlayList;
-        Response.AllowIdentDuplicates := true;
-        Response.AddDataCode(ResponseHeader.Code);
-        TUserRequestJobsUnit.GetPlayList(Response);
-      end;
       TRequestHeader.rqNext:
       begin
         TMainFormMouseClickManager.NextClicked;
@@ -117,6 +114,25 @@ begin
       begin
         TMainFormMouseClickManager.StopRewind;
         _ResponseOkTo(Response, TResponseHeader.rsStopRewind);
+      end;
+      TRequestHeader.rqGetPlayList:
+      begin
+        ResponseHeader := TResponseHeader.rsGetPlayList;
+        Response.AllowIdentDuplicates := true;
+        Response.AddDataCode(ResponseHeader.Code);
+        TUserRequestJobsUnit.GetPlayList(Response);
+      end;
+      TRequestHeader.rqSetCurrentComposition:
+      begin
+        RequestParams := TParamsExt.Create;
+        try
+          RequestParams.CopyFrom(ARequest, 1, ARequest.Length);
+          RequestParams.Get<String>(Path, 'Path');
+          TPlayListFormMouseClickManager.CompositionClicked(Path);
+        finally
+          FreeAndNil(RequestParams);
+        end;
+        _ResponseOkTo(Response, TResponseHeader.rsSetCurrentComposition);
       end;
 
       TRequestHeader.rqGetTestString:

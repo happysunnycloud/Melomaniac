@@ -14,6 +14,7 @@ type
     rqPrevNSecs = 7,
     rqStopRewind = 8,
     rqGetPlayList = 9,
+    rqSetCurrentComposition = 10,
 
     rqGetTestString = 999
   );
@@ -51,6 +52,7 @@ begin
     rqPrevNSecs: Result := 'PrevNSecs';
     rqStopRewind: Result := 'StopRewind';
     rqGetPlayList: Result := 'GetPlayList';
+    rqSetCurrentComposition: Result := 'SetCurrentComposition';
 
     rqGetTestString: Result := 'GetTestString';
   end;
@@ -59,18 +61,20 @@ end;
 procedure TRequestHeaderHelper.FromInteger(const AVal: Integer);
 begin
   case AVal of
-    Integer(rqPlay): Self := rqPlay;
-    Integer(rqVolumeUp): Self := rqVolumeUp;
-    Integer(rqVolumeDown): Self := rqVolumeDown;
-    Integer(rqCurrentPlayState): Self := rqCurrentPlayState;
-    Integer(rqNext): Self := rqNext;
-    Integer(rqPrev): Self := rqPrev;
-    Integer(rqNextNSecs): Self := rqNextNSecs;
-    Integer(rqPrevNSecs): Self := rqPrevNSecs;
-    Integer(rqStopRewind): Self := rqStopRewind;
-    Integer(rqGetPlayList): Self := rqGetPlayList;
-
-    Integer(rqGetTestString): Self := rqGetTestString;
+    Integer(rqPlay),
+    Integer(rqVolumeUp),
+    Integer(rqVolumeDown),
+    Integer(rqCurrentPlayState),
+    Integer(rqNext),
+    Integer(rqPrev),
+    Integer(rqNextNSecs),
+    Integer(rqPrevNSecs),
+    Integer(rqStopRewind),
+    Integer(rqGetPlayList),
+    Integer(rqSetCurrentComposition),
+    //
+    Integer(rqGetTestString):
+      Self := TRequestHeader(AVal);
   else
     raise Exception.Create('Invalid value');
   end;

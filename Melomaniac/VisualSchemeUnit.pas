@@ -70,6 +70,7 @@ uses
   , FMX.Types
   , System.UITypes
   , CommonTypesUnit
+  , FMX.MessageBox
   ;
 
 { TVisualScheme }
@@ -215,6 +216,10 @@ begin
   ATrayPopupMenuExt.Theme.CopyFrom(AForm.Theme.PopUpMenuTheme);
 
   AForm.Theme.Apply;
+
+  TMessageBox.Theme.CopyFrom(AForm.Theme);
+  TMessageBox.Theme.CommonSettings.CustomTextSettings.FontSize := 20;
+  TMessageBox.Theme.FormSettings.BorderFrameKind := TBorderFrameKind.bfkNormal;
 
   if TState.PlayState = psPlay then
     TVisualScheme.AssignBitmap(PlayControl, FUNC_IDENT_PLAY)

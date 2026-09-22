@@ -30,6 +30,12 @@ type
     class procedure ConnectHandlers(const AControls: array of TControl); override;
   end;
 
+  TPlayListFormMouseClickManager = class
+  public
+    class procedure CompositionClicked(const APath: String);
+  end;
+
+
 implementation
 
 uses
@@ -37,6 +43,14 @@ uses
   , PlayListFormUnit
   , PlayControllerUnit
   ;
+
+{ TPlayListFormMouseClickManager }
+
+class procedure TPlayListFormMouseClickManager.CompositionClicked(
+  const APath: String);
+begin
+  TPlayController.PlayOf(APath);
+end;
 
 { TPlayListFormMouseHandlers }
 
@@ -89,7 +103,7 @@ begin
     Exit;
 
   Path := PlayListForm.GetPath(Control);
-  TPlayController.PlayOf(Path);
+  TPlayListFormMouseClickManager.CompositionClicked(Path);
 end;
 
 class procedure TPlayListFormMouseHandlers.ConnectHandlers(

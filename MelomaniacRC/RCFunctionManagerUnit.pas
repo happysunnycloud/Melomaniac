@@ -7,6 +7,7 @@ uses
   , PoolUnit
   , Net.Client
   , SafeQueueThread
+  , ParamsExtUnit
   ;
 
 const
@@ -25,7 +26,11 @@ type
 
     class procedure SendRequest(
       const ANetClient: TNetClient;
-      const ARequestCode: Integer);
+      const ARequestCode: Integer); overload;
+    class procedure SendRequest(
+      const ANetClient: TNetClient;
+      const ARequestCode: Integer;
+      const AParams: TParamsExt); overload;
 
     class procedure ClientRead(const ARC: TMRC);
   end;
@@ -40,7 +45,6 @@ uses
   , Net.RequestHeaders
   , Net.ResponseHeaders
   , CommonTypesUnit
-  , ParamsExtUnit
   , FMX.SingleSoundUnit
   , ToolsUnit
   ;
@@ -82,6 +86,23 @@ begin
   end;
 end;
 
+class procedure TRCFunctionManager.SendRequest(
+  const ANetClient: TNetClient;
+  const ARequestCode: Integer;
+  const AParams: TParamsExt);
+var
+  Request: TRequest;
+begin
+  Request := TRequest.Create;
+  try
+    Request.AddDataCode(ARequestCode);
+    Request.AddFrom(AParams);
+    ANetClient.AddToStack(Request);
+  finally
+    FreeAndNil(Request);
+  end;
+end;
+
 class procedure TRCFunctionManager.ClientRead(const ARC: TMRC);
 var
   Response: TResponse;
@@ -95,6 +116,8 @@ var
   Duration: String;
   CurrentTime: String;
   VolumePercentage: String;
+  CurrentCompositonPath: String;
+  MustScroll: Boolean;
 begin
   Response := TResponse.Create;
   try
@@ -132,23 +155,32 @@ begin
       end;
       rsCurrentPlayState:
       begin
+        if not (Assigned(ARC) and Assigned(ARC.RCControlFrame)) then
+          Exit;
+
         DataParams := TParamsExt.Create;
         CurrentPlayState := TCurrentPlayState.Create;
         try
           DataParams.CopyFrom(Response, 1, Response.Length);
           DataParams.ToObject(CurrentPlayState);
 
-          Composition := TTools.ExtractFileName(CurrentPlayState.Composition);
+          MustScroll := not (ARC.CurrentCompositonPath = CurrentPlayState.Composition);
+          CurrentCompositonPath := CurrentPlayState.Composition;
+          Composition := TTools.ExtractFileName(CurrentCompositonPath);
           PlayState := CurrentPlayState.PlayState.ToStr;
           Duration := TSingleSound.GetHumanTime(CurrentPlayState.Duration);
           CurrentTime := TSingleSound.GetHumanTime(CurrentPlayState.CurrentTime);
           VolumePercentage := Round(100 * CurrentPlayState.Volume).ToString + ' %';
 
+          ARC.CurrentCompositonPath := CurrentCompositonPath;
           ARC.RCControlFrame.CompositionNameLabel.Text := Composition;
           ARC.RCControlFrame.PlayButton.Text := PlayState;
           ARC.RCControlFrame.CompositionTimeTotalLabel.Text := Duration;
           ARC.RCControlFrame.CompositionTimeCurrentLabel.Text := CurrentTime;
           ARC.RCControlFrame.VolumeLabel.Text := VolumePercentage;
+
+          if MustScroll then
+            ARC.ScrollByCurrentCompositonPath;
         finally
           FreeAndNil(DataParams);
           FreeAndNil(CurrentPlayState);
@@ -156,12 +188,17 @@ begin
       end;
       rsGetPlayList:
       begin
+        if not (Assigned(ARC) and Assigned(ARC.PlayListFrame)) then
+          Exit;
+
         DataParams := TParamsExt.Create;
         try
           DataParams.CopyFrom(Response, 1, Response.Length);
           DataParams.ToObjectList<TPlayItem>(
             ARC.PlayListFrame.PlayItemsList, 'PlayItemsList');
-          ARC.PlayListFrame.BuilPlayList;
+          ARC.PlayListFrame.BuildPlayList;
+
+          ARC.ScrollByCurrentCompositonPath;
         finally
           FreeAndNil(DataParams);
         end;

@@ -127,9 +127,8 @@ object PlayListItemFrame: TPlayListItemFrame
       Align = Contents
       Fill.Kind = None
       HitTest = False
-      Margins.Top = 5.000000000000000000
       Size.Width = 668.000000000000000000
-      Size.Height = 90.000000000000000000
+      Size.Height = 95.000000000000000000
       Size.PlatformDefault = False
       Stroke.Thickness = 4.000000000000000000
     end

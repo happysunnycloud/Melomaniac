@@ -14,6 +14,7 @@ type
     rsPrevNSecs = 7,
     rsStopRewind = 8,
     rsGetPlayList = 9,
+    rsSetCurrentComposition = 10,
 
     rsGetTestString = 999
   );
@@ -51,6 +52,7 @@ begin
     rsPrevNSecs: Result := 'PrevNSecs';
     rsStopRewind: Result := 'StopRewind';
     rsGetPlayList: Result := 'GetPlayList';
+    rsSetCurrentComposition: Result := 'SetCurrentComposition';
 
     rsGetTestString: Result := 'GetTestString';
   end;
@@ -59,18 +61,20 @@ end;
 procedure TResponseHeaderHelper.FromInteger(const AVal: Integer);
 begin
   case AVal of
-    Integer(rsPlay): Self := rsPlay;
-    Integer(rsVolumeUp): Self := rsVolumeUp;
-    Integer(rsVolumeDown): Self := rsVolumeDown;
-    Integer(rsNext): Self := rsNext;
-    Integer(rsPrev): Self := rsPrev;
-    Integer(rsCurrentPlayState): Self := rsCurrentPlayState;
-    Integer(rsNextNSecs): Self := rsNextNSecs;
-    Integer(rsPrevNSecs): Self := rsPrevNSecs;
-    Integer(rsStopRewind): Self := rsStopRewind;
-    Integer(rsGetPlayList): Self := rsGetPlayList;
-
-    Integer(rsGetTestString): Self := rsGetTestString;
+    Integer(rsPlay),
+    Integer(rsVolumeUp),
+    Integer(rsVolumeDown),
+    Integer(rsNext),
+    Integer(rsPrev),
+    Integer(rsCurrentPlayState),
+    Integer(rsNextNSecs),
+    Integer(rsPrevNSecs),
+    Integer(rsStopRewind),
+    Integer(rsGetPlayList),
+    Integer(rsSetCurrentComposition),
+    //
+    Integer(rsGetTestString):
+      Self := TResponseHeader(AVal);
   else
     raise Exception.Create('Invalid value');
   end;

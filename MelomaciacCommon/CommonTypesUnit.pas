@@ -35,10 +35,12 @@ type
     property FileSize: Int64 read FFileSize write FFileSize;
   end;
 
-  TPlayItemsList = class(TList<TPlayItem>)
-  public
-    procedure Clear;
-  end;
+  TPlayItemsList = TList<TPlayItem>;
+
+//  TPlayItemsList = class(TList<TPlayItem>)
+//  public
+//    procedure Clear;
+//  end;
 
   TCurrentPlayState = class
   strict private
@@ -59,6 +61,11 @@ type
   public
     function ToInt: Integer;
     function ToStr: String;
+  end;
+
+  TPlayItemsListHelper = class helper for TPlayItemsList
+  public
+    procedure Clear;
   end;
 
 implementation
@@ -82,9 +89,9 @@ begin
   FFileSize := 0;
 end;
 
-{ TPlayItemsList }
+{ TPlayItemsListHelper }
 
-procedure TPlayItemsList.Clear;
+procedure TPlayItemsListHelper.Clear;
 begin
   while Self.Count > 0 do
   begin
