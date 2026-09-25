@@ -203,6 +203,8 @@ begin
         end
         else
         begin
+          TLogger.AddLog(Format('ERROR: Unprocessable file format "%s" in file "%s"', [AudioFormat.ToStr, FileName]));
+          пишем в лог и выводим бокс с сообщением
           raise Exception.
             CreateFmt('Unprocessable file format "%s"', [AudioFormat.ToStr]);
         end;
@@ -248,8 +250,6 @@ begin
         FDone.WaitFor(INFINITE);
 
         PlayItemsList.Add(PlayItem);
-
-        TLogger.AddLog('*** PlayItem.Path = ' + PlayItem.Path);
 
         Inc(i);
       end;

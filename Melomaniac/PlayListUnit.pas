@@ -81,6 +81,7 @@ uses
   , TAGReaderThreadUnit
   , ConstantsUnit
   , ToolsUnit
+  , FMX.MessageBox
   , AddLogUnit
   ;
 
@@ -190,8 +191,6 @@ var
   FilesPerThread: Integer;
   FileCount: Integer;
 begin
-  TLogger.AddLog('*** TPlayList.ReloadPlayListByFileNames Enter');
-
   Clear;
 
   FCurrentIndex := 0;
@@ -227,8 +226,6 @@ begin
   end;
 
   FThreadFactory.OnAllThreadsAreDestroyed := OnAllThreadsAreDestroyed;
-
-  TLogger.AddLog('*** TPlayList.ReloadPlayListByFileNames Leave');
 end;
 
 procedure TPlayList.ReloadPlayListFromDB(
@@ -261,7 +258,7 @@ var
   i: Integer;
   IsFound: Boolean;
 begin
-  TLogger.AddLog('*** TPlayList.SyncPlayLists Enter');
+  TMessageBox.Show('Please wait...', 'Info', 3);
 
   Path := APath;
 
@@ -318,8 +315,6 @@ begin
     FreePlayItemsList(PathPlayItemsList);
     FreePlayItemsList(DBPlayItemsList);
   end;
-
-  TLogger.AddLog('*** TPlayList.SyncPlayLists Leave');
 end;
 
 procedure TPlayList.SaveToDB;

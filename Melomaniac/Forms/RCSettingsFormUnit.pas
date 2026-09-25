@@ -26,6 +26,7 @@ type
     PortEdit: TEdit;
     PortLayout: TLayout;
     PortLabel: TLabel;
+    ContentLayout: TLayout;
     procedure CancelButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure OkButtonClick(Sender: TObject);

@@ -4,7 +4,7 @@ object MainForm: TMainForm
   BorderStyle = None
   Caption = 'Melomaniac'
   ClientHeight = 457
-  ClientWidth = 809
+  ClientWidth = 806
   Transparency = True
   FormFactor.Width = 320
   FormFactor.Height = 480
@@ -3317,12 +3317,5 @@ object MainForm: TMainForm
       Text = 'Not defined'
       TabOrder = 0
     end
-  end
-  object Button1: TButton
-    Position.X = 724.000000000000000000
-    Position.Y = 424.000000000000000000
-    TabOrder = 12
-    Text = 'Button1'
-    OnClick = Button1Click
   end
 end

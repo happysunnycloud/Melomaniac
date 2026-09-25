@@ -311,7 +311,7 @@ begin
   end;
 
   RCSettingsForm.Theme.CommonSettings.CustomTextSettings.Container :=
-    RCSettingsForm;
+    RCSettingsForm.ContentLayout;
 
   RCSettingsForm.Theme.DecorateButton(RCSettingsForm.OkButton);
   RCSettingsForm.Theme.DecorateButton(RCSettingsForm.CancelButton);
@@ -323,7 +323,7 @@ begin
   RCSettingsForm.OnFormStateLoaded := (
     procedure(ATFormExt: TFormExt)
     begin
-      RCSettingsForm.BorderFrame.Kind := TBorderFrameKind.bfkNone;
+      RCSettingsForm.BorderFrame.Kind := TBorderFrameKind.bfkNormal;
     end);
 end;
 

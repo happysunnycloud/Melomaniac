@@ -251,13 +251,9 @@ var
   LastPlayState: TPlayState;
   FileName: String;
 begin
-  TLogger.AddLog('*** TPlayController.Play Enter');
-
   MainForm.TrayMenuItemPlay.Visible := false;
   MainForm.TrayMenuItemPause.Visible := true;
 
-  TLogger.AddLog('*** TPlayController.Play Point 0');
-  TLogger.AddLog('*** TPlayController.Play TPlayController.PlayList.Count = ' + TPlayController.PlayList.Count.ToString);
   if TPlayController.PlayList.Count = 0 then
   begin
     HeighlightFail(MainForm.PlayControl);
@@ -265,14 +261,12 @@ begin
     Exit;
   end;
 
-  TLogger.AddLog('*** TPlayController.Play Point 1');
   FileName := FSingleSound.FileName;
   if FileName.IsEmpty then
     Exit;
 
   LastPlayState := TState.PlayState;
 
-  TLogger.AddLog('*** TPlayController.Play Point 2');
   FSingleSound.Play;
   FSingleSound.Volume := TState.Volume;
   FTimelineTrackerThread.UnHoldThread;
@@ -282,12 +276,9 @@ begin
   if LastPlayState = psPlay then
     Exit;
 
-  TLogger.AddLog('*** TPlayController.Play Point 3');
   TVisualScheme.AssignBitmap(MainForm.PlayControl, FUNC_IDENT_PLAY);
 //  TTools.DisplayCurrentComposition;
   TTools.RenderPlayState(TState.PlayState);
-
-  TLogger.AddLog('*** TPlayController.Play Leave');
 end;
 
 class procedure TPlayController.Stop;

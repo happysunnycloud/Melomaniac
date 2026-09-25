@@ -10,179 +10,186 @@ object RCSettingsForm: TRCSettingsForm
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   DesignerMasterStyle = 0
-  object PasswordLayout: TLayout
-    Align = Top
-    Position.Y = 55.000000000000000000
+  object ContentLayout: TLayout
+    Align = Contents
     Size.Width = 435.000000000000000000
-    Size.Height = 40.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 1
-    object PasswordLabel: TLabel
-      Align = Left
-      Margins.Left = 10.000000000000000000
-      Margins.Right = 10.000000000000000000
-      Position.X = 10.000000000000000000
-      Size.Width = 120.000000000000000000
-      Size.Height = 40.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Password:'
-      TabOrder = 0
-    end
-    object PasswordEdit: TEdit
-      Touch.InteractiveGestures = [LongTap, DoubleTap]
-      Align = Client
-      TabOrder = 1
-      Password = True
-      Margins.Left = 5.000000000000000000
-      Margins.Top = 5.000000000000000000
-      Margins.Right = 5.000000000000000000
-      Margins.Bottom = 5.000000000000000000
-      Size.Width = 285.000000000000000000
-      Size.Height = 30.000000000000000000
-      Size.PlatformDefault = False
-    end
-  end
-  object RetryPasswordLayout: TLayout
-    Align = Top
-    Position.Y = 95.000000000000000000
-    Size.Width = 435.000000000000000000
-    Size.Height = 40.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 2
-    object RetryPasswordLabel: TLabel
-      Align = Left
-      Margins.Left = 10.000000000000000000
-      Margins.Right = 10.000000000000000000
-      Position.X = 10.000000000000000000
-      Size.Width = 120.000000000000000000
-      Size.Height = 40.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Retry password:'
-      TabOrder = 0
-    end
-    object RetryPasswordEdit: TEdit
-      Touch.InteractiveGestures = [LongTap, DoubleTap]
-      Align = Client
-      TabOrder = 1
-      Password = True
-      Margins.Left = 5.000000000000000000
-      Margins.Top = 5.000000000000000000
-      Margins.Right = 5.000000000000000000
-      Margins.Bottom = 5.000000000000000000
-      Size.Width = 285.000000000000000000
-      Size.Height = 30.000000000000000000
-      Size.PlatformDefault = False
-    end
-  end
-  object ButtonsLayout: TLayout
-    Align = Bottom
-    Position.Y = 249.000000000000000000
-    Size.Width = 435.000000000000000000
-    Size.Height = 43.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 3
-    object OkButton: TButton
-      Align = Left
-      Anchors = []
-      Margins.Left = 5.000000000000000000
-      Margins.Top = 15.000000000000000000
-      Margins.Right = 5.000000000000000000
-      Margins.Bottom = 5.000000000000000000
-      Position.X = 5.000000000000000000
-      Position.Y = 15.000000000000000000
-      Size.Width = 80.000000000000000000
-      Size.Height = 23.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 0
-      Text = 'Ok'
-      OnClick = OkButtonClick
-    end
-    object CancelButton: TButton
-      Align = Right
-      Anchors = []
-      Margins.Left = 5.000000000000000000
-      Margins.Top = 15.000000000000000000
-      Margins.Right = 5.000000000000000000
-      Margins.Bottom = 5.000000000000000000
-      Position.X = 350.000000000000000000
-      Position.Y = 15.000000000000000000
-      Size.Width = 80.000000000000000000
-      Size.Height = 23.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 1
-      Text = 'Cancel'
-      OnClick = CancelButtonClick
-    end
-  end
-  object PasswordCaptionLayout: TLayout
-    Align = Top
-    Margins.Top = 15.000000000000000000
-    Position.Y = 15.000000000000000000
-    Size.Width = 435.000000000000000000
-    Size.Height = 40.000000000000000000
+    Size.Height = 292.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    object PasswordCaptionLabel: TLabel
-      Align = Left
-      Margins.Left = 10.000000000000000000
-      Margins.Right = 10.000000000000000000
-      Position.X = 10.000000000000000000
-      Size.Width = 399.000000000000000000
+    object ButtonsLayout: TLayout
+      Align = Bottom
+      Position.Y = 249.000000000000000000
+      Size.Width = 435.000000000000000000
+      Size.Height = 43.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      object OkButton: TButton
+        Align = Left
+        Anchors = []
+        Margins.Left = 5.000000000000000000
+        Margins.Top = 15.000000000000000000
+        Margins.Right = 5.000000000000000000
+        Margins.Bottom = 5.000000000000000000
+        Position.X = 5.000000000000000000
+        Position.Y = 15.000000000000000000
+        Size.Width = 80.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'Ok'
+        OnClick = OkButtonClick
+      end
+      object CancelButton: TButton
+        Align = Right
+        Anchors = []
+        Margins.Left = 5.000000000000000000
+        Margins.Top = 15.000000000000000000
+        Margins.Right = 5.000000000000000000
+        Margins.Bottom = 5.000000000000000000
+        Position.X = 350.000000000000000000
+        Position.Y = 15.000000000000000000
+        Size.Width = 80.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'Cancel'
+        OnClick = CancelButtonClick
+      end
+    end
+    object PasswordCaptionLayout: TLayout
+      Align = Top
+      Margins.Top = 15.000000000000000000
+      Position.Y = 15.000000000000000000
+      Size.Width = 435.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
-      Text = 'Enter the password for the remote connection'
       TabOrder = 0
+      object PasswordCaptionLabel: TLabel
+        Align = Left
+        Margins.Left = 10.000000000000000000
+        Margins.Right = 10.000000000000000000
+        Position.X = 10.000000000000000000
+        Size.Width = 399.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Enter the password for the remote connection'
+        TabOrder = 0
+      end
     end
-  end
-  object PortCaptionLayout: TLayout
-    Align = Top
-    Margins.Top = 15.000000000000000000
-    Position.Y = 150.000000000000000000
-    Size.Width = 435.000000000000000000
-    Size.Height = 40.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 4
-    object PortCaptionLabel: TLabel
-      Align = Left
-      Margins.Left = 10.000000000000000000
-      Margins.Right = 10.000000000000000000
-      Position.X = 10.000000000000000000
-      Size.Width = 399.000000000000000000
+    object PasswordLayout: TLayout
+      Align = Top
+      Position.Y = 55.000000000000000000
+      Size.Width = 435.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
-      Text = 'Enter the port for remote connection'
-      TabOrder = 0
-    end
-  end
-  object PortLayout: TLayout
-    Align = Top
-    Position.Y = 190.000000000000000000
-    Size.Width = 435.000000000000000000
-    Size.Height = 40.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 5
-    object PortEdit: TEdit
-      Touch.InteractiveGestures = [LongTap, DoubleTap]
-      Align = Client
-      TabOrder = 0
-      Margins.Left = 5.000000000000000000
-      Margins.Top = 5.000000000000000000
-      Margins.Right = 5.000000000000000000
-      Margins.Bottom = 5.000000000000000000
-      Size.Width = 285.000000000000000000
-      Size.Height = 30.000000000000000000
-      Size.PlatformDefault = False
-    end
-    object PortLabel: TLabel
-      Align = Left
-      Margins.Left = 10.000000000000000000
-      Margins.Right = 10.000000000000000000
-      Position.X = 10.000000000000000000
-      Size.Width = 120.000000000000000000
-      Size.Height = 40.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Port:'
       TabOrder = 1
+      object PasswordLabel: TLabel
+        Align = Left
+        Margins.Left = 10.000000000000000000
+        Margins.Right = 10.000000000000000000
+        Position.X = 10.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Password:'
+        TabOrder = 0
+      end
+      object PasswordEdit: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Client
+        TabOrder = 1
+        Password = True
+        Margins.Left = 5.000000000000000000
+        Margins.Top = 5.000000000000000000
+        Margins.Right = 5.000000000000000000
+        Margins.Bottom = 5.000000000000000000
+        Size.Width = 285.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+      end
+    end
+    object PortCaptionLayout: TLayout
+      Align = Top
+      Margins.Top = 15.000000000000000000
+      Position.Y = 150.000000000000000000
+      Size.Width = 435.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      object PortCaptionLabel: TLabel
+        Align = Left
+        Margins.Left = 10.000000000000000000
+        Margins.Right = 10.000000000000000000
+        Position.X = 10.000000000000000000
+        Size.Width = 399.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Enter the port for remote connection'
+        TabOrder = 0
+      end
+    end
+    object PortLayout: TLayout
+      Align = Top
+      Position.Y = 190.000000000000000000
+      Size.Width = 435.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      object PortEdit: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Client
+        TabOrder = 0
+        Margins.Left = 5.000000000000000000
+        Margins.Top = 5.000000000000000000
+        Margins.Right = 5.000000000000000000
+        Margins.Bottom = 5.000000000000000000
+        Size.Width = 285.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object PortLabel: TLabel
+        Align = Left
+        Margins.Left = 10.000000000000000000
+        Margins.Right = 10.000000000000000000
+        Position.X = 10.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Port:'
+        TabOrder = 1
+      end
+    end
+    object RetryPasswordLayout: TLayout
+      Align = Top
+      Position.Y = 95.000000000000000000
+      Size.Width = 435.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      object RetryPasswordLabel: TLabel
+        Align = Left
+        Margins.Left = 10.000000000000000000
+        Margins.Right = 10.000000000000000000
+        Position.X = 10.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Retry password:'
+        TabOrder = 0
+      end
+      object RetryPasswordEdit: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Client
+        TabOrder = 1
+        Password = True
+        Margins.Left = 5.000000000000000000
+        Margins.Top = 5.000000000000000000
+        Margins.Right = 5.000000000000000000
+        Margins.Bottom = 5.000000000000000000
+        Size.Width = 285.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+      end
     end
   end
 end
