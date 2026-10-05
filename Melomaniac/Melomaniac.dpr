@@ -76,7 +76,8 @@ uses
   CommonConstantsUnit in '..\MelomaciacCommon\CommonConstantsUnit.pas',
   RCSettingsFormUnit in 'Forms\RCSettingsFormUnit.pas' {RCSettingsForm},
   CommonToolsUnit in '..\MelomaciacCommon\CommonToolsUnit.pas',
-  FMX.MessageBox in '..\..\DevelopmentsCollection\FMX.MessageBox\FMX.MessageBox.pas' {MessageBoxForm};
+  FMX.MessageBox in '..\..\DevelopmentsCollection\FMX.MessageBox\FMX.MessageBox.pas' {MessageBoxForm},
+  TypesUnit in 'TypesUnit.pas';
 
 {$R *.res}
 

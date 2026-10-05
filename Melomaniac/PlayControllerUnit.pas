@@ -14,6 +14,7 @@ uses
   , FMX.SingleSoundUnit
   , CommonTypesUnit
   , SafeQueueThread
+  , TypesUnit
   ;
 
 type
@@ -151,7 +152,7 @@ class procedure TPlayController.Init(
   const ADurationBar: TControl;
   const ACurrentTimeLabel: TControl);
 var
-  PlayListThreadFactory: TThreadFactory;
+  PlayListThreadFactory: TPlayListThreadFactory;
 begin
   FSingleSound := TSingleSound.Create(MainForm.ThreadFactory);
 
@@ -164,7 +165,8 @@ begin
     ADurationBar,
     ACurrentTimeLabel);
 
-  PlayListThreadFactory := AThreadFactoryRegistry.CreateThreadFactory;
+  PlayListThreadFactory := TPlayListThreadFactory(
+    AThreadFactoryRegistry.CreateThreadFactory(TPlayListThreadFactory));
   PlayListThreadFactory.ThreadFactoryName := 'PlayListThreadFactory';
 
   FPlayList := TPlayList.Create(PlayListThreadFactory);

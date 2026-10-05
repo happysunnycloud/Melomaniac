@@ -5,22 +5,24 @@ interface
 uses
     System.Generics.Collections
   , System.Classes
+  {TODO: проверить и убрать}
   , ThreadFactoryUnit
   , LockedListExtUnit
   , FileToolsUnit
   , CommonTypesUnit
+  , TypesUnit
   ;
 
 const
   ALLOWED_EXTENSIONS: array[0..3] of String = ('mp3', 'ogg', 'flac', 'wav');
 
 type
-  TPlayListReloadedProcRef = reference to procedure;
+  TPlayListSynchronizedProcRef = reference to procedure;
 
   TPlayList = class(TLockedListExt<TPlayItem>)
   strict private
-    FThreadFactory: TThreadFactory;
-    FOnPlayListReloaded: TPlayListReloadedProcRef;
+    FTAGReaderThreadFactory: TPlayListThreadFactory;
+    FOnPlayListSynchronized: TPlayListSynchronizedProcRef;
     FCurrentIndex: Integer;
 
     function GetFirst: TPlayItem;
@@ -38,7 +40,7 @@ type
 
     procedure FreePlayItemsList(var APlayItemsList: TPlayItemsList);
   public
-    constructor Create(const AThreadFactory: TThreadFactory);
+    constructor Create(const ATAGReaderThreadFactory: TPlayListThreadFactory);
     destructor Destroy; override;
 
     procedure Clear;
@@ -52,14 +54,19 @@ type
     procedure ReloadPlayListFromDB(
       const AMainPath: String;
       const ADuplicateMode: Boolean);
+    procedure BreakReloadPlayListByFileNames;
 
     procedure SyncPlayLists(
       const APath: String);
+    procedure RestartSyncPlayList(const APath: String);
 
     procedure SaveToDB;
 
-    property OnPlayListReloaded: TPlayListReloadedProcRef
-      read FOnPlayListReloaded write FOnPlayListReloaded;
+    property OnPlayListSynchronized: TPlayListSynchronizedProcRef
+      read FOnPlayListSynchronized write FOnPlayListSynchronized;
+
+    property TAGReaderThreadFactory: TPlayListThreadFactory
+      read FTAGReaderThreadFactory write FTAGReaderThreadFactory;
 
     property First: TPlayItem read GetFirst;
     property Last: TPlayItem read GetLast;
@@ -78,6 +85,7 @@ implementation
 uses
     System.SysUtils
   , System.Math
+  , System.SyncObjs
   , TAGReaderThreadUnit
   , ConstantsUnit
   , ToolsUnit
@@ -87,12 +95,12 @@ uses
 
 { TPlayList }
 
-constructor TPlayList.Create(const AThreadFactory: TThreadFactory);
+constructor TPlayList.Create(const ATAGReaderThreadFactory: TPlayListThreadFactory);
 begin
   inherited Create;
 
-  FThreadFactory := AThreadFactory;
-  FOnPlayListReloaded := nil;
+  FTAGReaderThreadFactory := ATAGReaderThreadFactory;
+  FOnPlayListSynchronized := nil;
 
   FCurrentIndex := 0;
 end;
@@ -151,12 +159,23 @@ end;
 
 procedure TPlayList.OnAllThreadsAreDestroyed(Sender: TObject);
 begin
-  TThread.ForceQueue(nil,
-    procedure
-    begin
-      if Assigned(FOnPlayListReloaded) then
-        FOnPlayListReloaded;
-    end);
+  FTAGReaderThreadFactory.IsSyncPlayListStarted := false;
+  FTAGReaderThreadFactory.IsSyncPlayListReStarted := false;
+  if FTAGReaderThreadFactory.IsSyncPlayListReStarted then
+  begin
+    SyncPlayLists(FTAGReaderThreadFactory.Path);
+  end
+  else
+  begin
+    TThread.ForceQueue(nil,
+      procedure
+      begin
+        if Assigned(FOnPlayListSynchronized) then
+        begin
+          FOnPlayListSynchronized;
+        end;
+      end);
+  end;
 end;
 
 procedure TPlayList.FreePlayItemsList(var APlayItemsList: TPlayItemsList);
@@ -191,6 +210,8 @@ var
   FilesPerThread: Integer;
   FileCount: Integer;
 begin
+  FTAGReaderThreadFactory.IsNeedToSaveToDB := true;
+
   Clear;
 
   FCurrentIndex := 0;
@@ -208,7 +229,7 @@ begin
         Break;
 
       TTAGReaderThread.Create(
-        FThreadFactory,
+        FTAGReaderThreadFactory,
         Self,
         FileNames,
         StartIndex,
@@ -218,14 +239,14 @@ begin
   else
   begin
     TTAGReaderThread.Create(
-      FThreadFactory,
+      FTAGReaderThreadFactory,
       Self,
       FileNames,
       0,
       Pred(FileCount));
   end;
 
-  FThreadFactory.OnAllThreadsAreDestroyed := OnAllThreadsAreDestroyed;
+  FTAGReaderThreadFactory.OnAllThreadsAreDestroyed := OnAllThreadsAreDestroyed;
 end;
 
 procedure TPlayList.ReloadPlayListFromDB(
@@ -244,8 +265,33 @@ begin
   end;
 end;
 
+procedure TPlayList.BreakReloadPlayListByFileNames;
+begin
+  FTAGReaderThreadFactory.IsNeedToSaveToDB := false;
+  FTAGReaderThreadFactory.TerminateAllThreads;
+end;
+
 procedure TPlayList.SyncPlayLists(
   const APath: String);
+begin
+  FTAGReaderThreadFactory.IsNeedToSaveToDB := false;
+  FTAGReaderThreadFactory.Path := APath;
+  if FTAGReaderThreadFactory.IsSyncPlayListStarted then
+  begin
+    FTAGReaderThreadFactory.IsSyncPlayListReStarted := true;
+    BreakReloadPlayListByFileNames;
+
+    Exit;
+  end;
+
+  FTAGReaderThreadFactory.IsSyncPlayListStarted := true;
+
+  TMessageBox.Hide(TTools.PleaseWaitMessageBoxRef);
+
+  RestartSyncPlayList(APath);
+end;
+
+procedure TPlayList.RestartSyncPlayList(const APath: String);
 var
   Path: String;
   DBPlayItemsList: TPlayItemsList;
@@ -258,7 +304,8 @@ var
   i: Integer;
   IsFound: Boolean;
 begin
-  TMessageBox.Show('Please wait...', 'Info', 3);
+  TTools.PleaseWaitMessageBoxRef :=
+    TMessageBox.Show('Please wait...', 'Info', 3);
 
   Path := APath;
 
@@ -308,9 +355,12 @@ begin
     if Length(ToAddFileNames) > 0 then
       ReloadPlayListByFileNames(ToAddFileNames)
     else
-      if Assigned(OnPlayListReloaded) then
-        OnPlayListReloaded;
-
+    if Assigned(FOnPlayListSynchronized) then
+    begin
+      FOnPlayListSynchronized;
+      FTAGReaderThreadFactory.IsSyncPlayListStarted := false;
+      FTAGReaderThreadFactory.IsSyncPlayListReStarted := false;
+    end;
   finally
     FreePlayItemsList(PathPlayItemsList);
     FreePlayItemsList(DBPlayItemsList);
@@ -435,3 +485,4 @@ begin
 end;
 
 end.
+

@@ -143,12 +143,8 @@ begin
     end
   );
 
-  if not Terminated then
-  begin
-    HoldThread;
-    ExecHold;
-  end;
+  HoldThread;
+  ExecHold;
 end;
-
 
 end.

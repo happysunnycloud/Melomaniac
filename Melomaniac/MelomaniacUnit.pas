@@ -57,6 +57,7 @@ type
     InfoPanelTitleLabel: TLabel;
     DurationLabel: TLabel;
     RCCircle: TCircle;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
     procedure ChangeViewControlClick(Sender: TObject);
@@ -66,6 +67,7 @@ type
     procedure TimeLineControlMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
     procedure FormDestroy(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   strict private
     function CheckRCLogin(
       const ALogin: String;
@@ -204,13 +206,18 @@ procedure TMainForm.OnAfterSyncPlayList;
 var
   MainPath: String;
 begin
-  TPlayController.PlayList.SaveToDB;
+  if TPlayController.PlayList.TAGReaderThreadFactory.IsNeedToSaveToDB then
+  begin
+    TPlayController.PlayList.SaveToDB;
+
+    Exit;
+  end;
 
   MainPath := TState.MainPath;
   TPlayController.PlayList.ReloadPlayListFromDB(MainPath, TState.DuplicateMode);
   TPlayController.RefreshPlayListForm;
 
-  TMessageBox.Hide;
+  TMessageBox.Hide(TTools.PleaseWaitMessageBoxRef);
 
   StartPlay;
 end;
@@ -273,7 +280,7 @@ begin
     BuildPopupMenus;
 
     MainPath := TState.MainPath;
-    TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+    TPlayController.PlayList.OnPlayListSynchronized := OnAfterSyncPlayList;
     TPlayController.PlayList.SyncPlayLists(MainPath);
 
     TMainFormMouseHandlers.ConnectHandlers([
@@ -411,6 +418,7 @@ begin
     procedure
     begin
       Init;
+//      TMessageBox.Show('Hello', '', 1);
     end);
 end;
 
@@ -480,7 +488,6 @@ var
   ThemeName: String;
 begin
   FLeafePopupMenu := TPopupMenuExt.Create(Self);
-//  FLeafePopupMenu.Theme.CopyFrom(Self.Theme.PopUpMenuTheme);
 
   MenuItem := TItem.Create;
   MenuItem.Text := 'Choose destination';
@@ -617,6 +624,11 @@ begin
   FTrayPopupMenuExt.Add(MenuItem);
 end;
 
+procedure TMainForm.Button1Click(Sender: TObject);
+begin
+  TPlayController.PlayList.BreakReloadPlayListByFileNames;
+end;
+
 procedure TMainForm.ChangeViewControlClick(Sender: TObject);
 
   function _IfThenElse(
@@ -687,7 +699,7 @@ begin
 
   TState.CurrentTime := 0;
 
-  TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+  TPlayController.PlayList.OnPlayListSynchronized := OnAfterSyncPlayList;
   TPlayController.PlayList.SyncPlayLists(TState.MainPath);
 end;
 
@@ -706,7 +718,7 @@ begin
 
   TState.CurrentTime := 0;
 
-  TPlayController.PlayList.OnPlayListReloaded := OnAfterSyncPlayList;
+  TPlayController.PlayList.OnPlayListSynchronized := OnAfterSyncPlayList;
   TPlayController.PlayList.SyncPlayLists(TState.MainPath);
 end;
 

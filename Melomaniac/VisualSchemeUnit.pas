@@ -216,10 +216,10 @@ begin
   ATrayPopupMenuExt.Theme.CopyFrom(AForm.Theme.PopUpMenuTheme);
 
   AForm.Theme.Apply;
-
   TMessageBox.Theme.CopyFrom(AForm.Theme);
   TMessageBox.Theme.CommonSettings.CustomTextSettings.FontSize := 20;
-  TMessageBox.Theme.FormSettings.BorderFrameKind := TBorderFrameKind.bfkNormal;
+  TMessageBox.Theme.FormSettings.BorderFrameSettings.Kind :=
+    TBorderFrameKind.bfkNormal;
 
   if TState.PlayState = psPlay then
     TVisualScheme.AssignBitmap(PlayControl, FUNC_IDENT_PLAY)
@@ -284,10 +284,14 @@ begin
     end;
 
   AForm.Theme.FormSettings.Container := AForm;
-  AForm.Theme.Apply;
-  AForm.BorderFrame.Kind := TBorderFrameKind.bfkNoCaption;
+  AForm.Theme.FormSettings.BorderFrameSettings.Kind :=
+    TBorderFrameKind.bfkNoCaption;
 
-//  TState.VisualScheme := ASchemeName;
+  TThread.ForceQueue(nil,
+    procedure
+    begin
+      AForm.Theme.Apply;
+    end);
 end;
 
 class procedure TVisualScheme.LoadForRCSettingsForm(
@@ -320,7 +324,7 @@ begin
   RCSettingsForm.Theme.FormSettings.Container := RCSettingsForm;
   RCSettingsForm.Theme.Apply;
 
-  RCSettingsForm.OnFormStateLoaded := (
+  RCSettingsForm.OnFormStateLoadedProc := (
     procedure(ATFormExt: TFormExt)
     begin
       RCSettingsForm.BorderFrame.Kind := TBorderFrameKind.bfkNormal;

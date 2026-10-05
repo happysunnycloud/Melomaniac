@@ -1,4 +1,5 @@
-﻿unit TAGReaderThreadUnit;
+﻿{$DEFINE MOVE_TO_TRASH}
+unit TAGReaderThreadUnit;
 
 interface
 
@@ -9,6 +10,7 @@ uses
   , ThreadFactoryUnit
   , PlayListUnit
   , FileToolsUnit
+  , FMX.Media
   ;
 
 type
@@ -34,6 +36,14 @@ type
     FDone: TEvent;
     FFileNames: TFileNames;
     FPlayList: TPlayList;
+    //asd debug
+    FMediaPlayer: TMedia;
+    //asd debug
+  strict private
+    procedure WriteTinyWav(const AFileName: string);
+    procedure WarmUpMediaCodec;   // вызвать один раз в главном потоке
+
+    function GetDurationBySync(const APath: String): Int64;
   protected
     procedure InnerExecute; override;
   public
@@ -44,18 +54,22 @@ type
       const AStartIndex: Integer;
       const AFinishIndex: Integer); reintroduce;
     destructor Destroy; override;
+
+    procedure InitCodec;
   end;
 
 implementation
 
 uses
     System.SysUtils
+  , System.IOUtils
   , AudioFormatDetectorUnit
   , MP3TAGsReaderUnit
   , FlacTAGReaderUnit
   , OGGTAGReaderUnit
   , WavTAGReaderUnit
-  , FMX.Media
+//  , FMX.Media
+  , FMX.MessageBox
   , CommonTypesUnit
   , AddLogUnit
   ;
@@ -78,6 +92,73 @@ uses
 
 { TTAGReaderThread }
 
+procedure TTAGReaderThread.WriteTinyWav(const AFileName: string);
+const
+  Rate = 8000; Samples = 800;   // 0.1 с тишины, 8 бит, моно
+var
+  FS: TFileStream;
+  DataSize, RiffSize: Cardinal;
+  Fmt: Cardinal;
+  W: Word;
+  D: Cardinal;
+  B: Byte;
+  I: Integer;
+begin
+  FS := TFileStream.Create(AFileName, fmCreate);
+  try
+    DataSize := Samples;
+    RiffSize := 36 + DataSize;
+    FS.WriteBuffer(AnsiString('RIFF')[1], 4);
+    FS.WriteBuffer(RiffSize, 4);
+    FS.WriteBuffer(AnsiString('WAVEfmt ')[1], 8);
+    Fmt := 16;     FS.WriteBuffer(Fmt, 4);
+    W := 1;        FS.WriteBuffer(W, 2);    // PCM
+    W := 1;        FS.WriteBuffer(W, 2);    // каналы
+    D := Rate;     FS.WriteBuffer(D, 4);
+    D := Rate;     FS.WriteBuffer(D, 4);    // byte rate
+    W := 1;        FS.WriteBuffer(W, 2);    // block align
+    W := 8;        FS.WriteBuffer(W, 2);    // bits
+    FS.WriteBuffer(AnsiString('data')[1], 4);
+    FS.WriteBuffer(DataSize, 4);
+    B := $80;
+    for I := 1 to Samples do FS.WriteBuffer(B, 1);
+  finally
+    FS.Free;
+  end;
+end;
+
+procedure TTAGReaderThread.WarmUpMediaCodec;   // вызвать один раз в главном потоке
+var
+  Tmp: string;
+//  Codec: TMedia;
+begin
+//  Tmp := TPath.Combine(TPath.GetTempPath, 'warmup_codec.wav');
+//  WriteTinyWav(Tmp);
+//  try
+//    Codec := TMediaCodecManager.CreateFromFile(Tmp);
+//    //CreateFromFile('C:\000\phoebe_cates_paradise.mp3');
+//
+//    FreeAndNil(Codec);
+//  finally
+//    TFile.Delete(Tmp);
+//  end;
+  Tmp := TPath.Combine(TPath.GetTempPath, 'warmup_codec.wav');
+  WriteTinyWav(Tmp);
+  try
+    FMediaPlayer := TMediaCodecManager.CreateFromFile(Tmp);
+    //CreateFromFile('C:\000\phoebe_cates_paradise.mp3');
+
+    FreeAndNil(FMediaPlayer);
+  finally
+    TFile.Delete(Tmp);
+  end;
+end;
+
+procedure TTAGReaderThread.InitCodec;
+begin
+  WarmUpMediaCodec;
+end;
+
 constructor TTAGReaderThread.Create(
   const AThreadFactory: TThreadFactory;
   const APlayList: TPlayList;
@@ -85,6 +166,10 @@ constructor TTAGReaderThread.Create(
   const AStartIndex: Integer;
   const AFinishIndex: Integer);
 begin
+//  FMediaPlayer := TMediaCodecManager.CreateFromFile('C:\000\phoebe_cates_paradise.mp3');
+//  FreeAndNil(FMediaPlayer);
+  InitCodec;
+
   FDone := TEvent.Create(nil, true, false, '');
 
   FPlayList := APlayList;
@@ -109,6 +194,35 @@ begin
   inherited;
 end;
 
+function TTAGReaderThread.GetDurationBySync(const APath: String): Int64;
+var
+  Duration: Int64;
+begin
+  FDone.ResetEvent;
+
+  Queue(nil,
+    procedure
+    begin
+      FMediaPlayer := TMediaCodecManager.CreateFromFile(APath);
+      try
+        try
+          Duration := FMediaPlayer.Duration;
+        except
+          on e: Exception do
+            Duration := -1;
+        end;
+      finally
+        FMediaPlayer.Free;
+      end;
+
+      FDone.SetEvent;
+    end);
+
+  FDone.WaitFor(INFINITE);
+
+  Result := Duration;
+end;
+
 procedure TTAGReaderThread.InnerExecute;
 var
   TAGInfo: TTAGInfo;
@@ -123,10 +237,11 @@ var
   DestPlayItemsList: TPlayItemsList;
   PlayItem: TPlayItem;
   AudioFormat: TAudioFormat;
-  MediaPlayer: TMedia;
+  Duration: Int64;
   MD5: String;
   SHA256: String;
   FileSize: Int64;
+  WarningMessage: String;
 begin
   TAGInfoList := TTAGInfoList.Create;
   try
@@ -203,20 +318,31 @@ begin
         end
         else
         begin
-          TLogger.AddLog(Format('ERROR: Unprocessable file format "%s" in file "%s"', [AudioFormat.ToStr, FileName]));
-          пишем в лог и выводим бокс с сообщением
-          raise Exception.
-            CreateFmt('Unprocessable file format "%s"', [AudioFormat.ToStr]);
+          WarningMessage :=
+            Format('ERROR: Unprocessable file format "%s" in file "%s"',
+              [AudioFormat.ToStr, FileName]);
+          TLogger.AddLog(WarningMessage);
+          {$IFDEF MOVE_TO_TRASH}
+          TFileTools.MoveFile(FileName, 'e:\TrashMP3\' + ExtractFileName(FileName), caRename);
+          {$ELSE}
+          TThread.Queue(nil,
+            procedure
+            begin
+              TMessageBox.Show(WarningMessage);
+            end);
+          {$ENDIF}
         end;
       end;
 
       Inc(i);
+
+      TLogger.AddLog(Format('File "%s" TAG processed', [TAGInfo.FileName]), MG);
     end;
 
     PlayItemsList := TPlayItemsList.Create;
     try
       i := 0;
-      while (i < TAGInfoList.Count) and not Terminated do
+      while (i < TAGInfoList.Count) and (not Terminated) do
       begin
         PlayItem := TPlayItem.Create;
         PlayItem.Title := TAGInfoList[i].Title;
@@ -233,23 +359,25 @@ begin
         // Считать в "ручную" - лепить химеру
         // MediaPlayer := TMedia.Create(PlayItem.Path);
 
-        FDone.ResetEvent;
-        Queue(nil,
-          procedure
-          begin
-            MediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
-            try
-              PlayItem.Duration := MediaPlayer.Duration;
-            finally
-              MediaPlayer.Free;
-            end;
+        FMediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
+        try
+          try
+            Duration := FMediaPlayer.Duration;
+          except
+            Duration := GetDurationBySync(PlayItem.Path);
+            if Duration < 0 then
+              TLogger.AddLog(Format('Unsupported file "%s"', [PlayItem.Path]), ER);
+          end;
+        finally
+          FMediaPlayer.Free;
+        end;
 
-            FDone.SetEvent;
-          end);
-
-        FDone.WaitFor(INFINITE);
-
-        PlayItemsList.Add(PlayItem);
+        if Duration > 0 then
+        begin
+          PlayItem.Duration := Duration;
+          PlayItemsList.Add(PlayItem);
+          TLogger.AddLog(Format('File "%s" duration processed', [PlayItem.Path]), MG);
+        end;
 
         Inc(i);
       end;
@@ -267,5 +395,8 @@ begin
     FreeAndNil(TAGInfoList);
   end;
 end;
+
+//initialization
+//  TTAGReaderThread.Init;
 
 end.

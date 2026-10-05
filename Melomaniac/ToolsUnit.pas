@@ -14,6 +14,7 @@ uses
   , DBAccessUnit
   , PlayListUnit
   , CommonTypesUnit
+  , FMX.MessageBox
   ;
 
 type
@@ -23,6 +24,8 @@ type
     class var FCurrentRenderPlayState: TPlayState;
     class var FHookedOnMouseEnterHandlerDict: TDictionary<TControl, TControl>;
     class var FHookedOnMouseLeaveHandlerDict: TDictionary<TControl, TControl>;
+
+    class var FPleaseWaitMessageBoxRef: TMessageBoxForm;
 
     class procedure SetLeafePath(
       const AControl: TControl;
@@ -103,6 +106,9 @@ type
     class function CheckRCLogin(const ALogin: String): Boolean;
     class function CheckRCPassword(const APassword: String): Boolean;
     class function GetCryptoKey: String;
+
+    class property PleaseWaitMessageBoxRef: TMessageBoxForm
+      read FPleaseWaitMessageBoxRef write FPleaseWaitMessageBoxRef;
   end;
 
 implementation
@@ -171,6 +177,8 @@ begin
   FDBAccess :=
     TDBAccess.Create(DBFileName, SQL_TEMPLATES_PATH, TTemplatesKind.tkPath);
   FDBAccess.CreateCatalogTable;
+
+  FPleaseWaitMessageBoxRef := nil;
 end;
 
 class procedure TTools.UnInit;
