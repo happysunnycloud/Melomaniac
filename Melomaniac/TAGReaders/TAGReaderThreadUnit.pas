@@ -39,6 +39,7 @@ type
     //asd debug
     FMediaPlayer: TMedia;
     //asd debug
+    FOnThreadIsDone: TNotifyEvent;
   strict private
     procedure WriteTinyWav(const AFileName: string);
     procedure WarmUpMediaCodec;   // вызвать один раз в главном потоке
@@ -56,6 +57,9 @@ type
     destructor Destroy; override;
 
     procedure InitCodec;
+
+    property OnThreadIsDone: TNotifyEvent
+      write FOnThreadIsDone;
   end;
 
 implementation
@@ -72,6 +76,7 @@ uses
   , FMX.MessageBox
   , CommonTypesUnit
   , AddLogUnit
+  , DebugUnit
   ;
 
 //{ TTAGInfo }
@@ -180,7 +185,7 @@ begin
     '');
 //    'TTAGReaderThread');
 
-  OnSetTerminateProcRef :=
+  OnAfterTerminatedSetProcRef :=
     procedure
     begin
       FDone.SetEvent;
@@ -394,6 +399,11 @@ begin
   finally
     FreeAndNil(TAGInfoList);
   end;
+
+  if Assigned(FOnThreadIsDone) then
+    FOnThreadIsDone(nil);
+
+  TDebug.ODS('Thread is done');
 end;
 
 //initialization

@@ -39,6 +39,10 @@ type
     procedure OnAllThreadsAreDestroyed(Sender: TObject);
 
     procedure FreePlayItemsList(var APlayItemsList: TPlayItemsList);
+  strict private
+    FTotalSyncThreadCount: Integer;
+    FDoneSyncThreadCount: Integer;
+    procedure DoTAGReaderThreadTerminate(Sender: TObject);
   public
     constructor Create(const ATAGReaderThreadFactory: TPlayListThreadFactory);
     destructor Destroy; override;
@@ -91,6 +95,10 @@ uses
   , ToolsUnit
   , FMX.MessageBox
   , AddLogUnit
+  , DebugUnit
+  //asd debug
+  , FMX.Dialogs
+  //asd debug
   ;
 
 { TPlayList }
@@ -103,6 +111,9 @@ begin
   FOnPlayListSynchronized := nil;
 
   FCurrentIndex := 0;
+
+  FTotalSyncThreadCount := 0;
+  FDoneSyncThreadCount := 0;
 end;
 
 destructor TPlayList.Destroy;
@@ -167,7 +178,7 @@ begin
   end
   else
   begin
-    TThread.ForceQueue(nil,
+    TThread.Queue(nil,
       procedure
       begin
         if Assigned(FOnPlayListSynchronized) then
@@ -187,6 +198,30 @@ begin
   end;
 
   FreeAndNil(APlayItemsList);
+end;
+
+procedure TPlayList.DoTAGReaderThreadTerminate(Sender: TObject);
+var
+  Percent: Integer;
+  Msg: String;
+begin
+  TMonitor.Enter(Self);
+  try
+    Inc(FDoneSyncThreadCount);
+
+    Percent := Round((100 * FDoneSyncThreadCount) / FTotalSyncThreadCount);
+    Msg := Percent.ToString + '% complete';
+    TThread.ForceQueue(nil,
+      procedure
+      begin
+        TTools.ChangeMessageForPleaseWaitMessageBox(Msg);
+//        ShowMessage(Msg);
+      end);
+
+    TDebug.ODS('DoTAGReaderThreadTerminate');
+  finally
+    TMonitor.Exit(Self);
+  end;
 end;
 
 procedure TPlayList.ReloadPlayListFromPath(const APath: String);
@@ -209,6 +244,7 @@ var
   FinishIndex: Integer;
   FilesPerThread: Integer;
   FileCount: Integer;
+  TAGReaderThread: TTAGReaderThread;
 begin
   FTAGReaderThreadFactory.IsNeedToSaveToDB := true;
 
@@ -221,6 +257,7 @@ begin
   if FileCount > PLAY_LIST_RELOAD_THREAD_COUNT then
   begin
     FilesPerThread := Ceil(FileCount / PLAY_LIST_RELOAD_THREAD_COUNT);
+    FTotalSyncThreadCount := Ceil(FileCount / FilesPerThread);
     for i := 0 to PLAY_LIST_RELOAD_THREAD_COUNT - 1 do
     begin
       StartIndex := i * FilesPerThread;
@@ -228,24 +265,35 @@ begin
       if StartIndex > FileCount then
         Break;
 
-      TTAGReaderThread.Create(
+      TAGReaderThread := TTAGReaderThread.Create(
         FTAGReaderThreadFactory,
         Self,
         FileNames,
         StartIndex,
         FinishIndex);
+//      TAGReaderThread.OnThreadIsDone := DoTAGReaderThreadTerminate;
+      TAGReaderThread.OnTerminate := DoTAGReaderThreadTerminate;
+
+      TDebug.ODS('Thread started');
     end;
   end
   else
   begin
-    TTAGReaderThread.Create(
+    FTotalSyncThreadCount := 1;
+
+    TAGReaderThread := TTAGReaderThread.Create(
       FTAGReaderThreadFactory,
       Self,
       FileNames,
       0,
       Pred(FileCount));
+//    TAGReaderThread.OnThreadIsDone := DoTAGReaderThreadTerminate;
+      TAGReaderThread.OnTerminate := DoTAGReaderThreadTerminate;
+
+    TDebug.ODS('Thread started');
   end;
 
+  FDoneSyncThreadCount := 0;
   FTAGReaderThreadFactory.OnAllThreadsAreDestroyed := OnAllThreadsAreDestroyed;
 end;
 
@@ -286,7 +334,7 @@ begin
 
   FTAGReaderThreadFactory.IsSyncPlayListStarted := true;
 
-  TMessageBox.Hide(TTools.PleaseWaitMessageBoxRef);
+  TTools.HidePleaseWaitMessageBox;
 
   RestartSyncPlayList(APath);
 end;
@@ -304,8 +352,7 @@ var
   i: Integer;
   IsFound: Boolean;
 begin
-  TTools.PleaseWaitMessageBoxRef :=
-    TMessageBox.Show('Please wait...', 'Info', 3);
+  TTools.ShowPleaseWaitMessageBox;
 
   Path := APath;
 

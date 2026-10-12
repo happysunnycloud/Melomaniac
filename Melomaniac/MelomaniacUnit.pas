@@ -207,17 +207,13 @@ var
   MainPath: String;
 begin
   if TPlayController.PlayList.TAGReaderThreadFactory.IsNeedToSaveToDB then
-  begin
     TPlayController.PlayList.SaveToDB;
-
-    Exit;
-  end;
 
   MainPath := TState.MainPath;
   TPlayController.PlayList.ReloadPlayListFromDB(MainPath, TState.DuplicateMode);
   TPlayController.RefreshPlayListForm;
 
-  TMessageBox.Hide(TTools.PleaseWaitMessageBoxRef);
+  TTools.HidePleaseWaitMessageBox;
 
   StartPlay;
 end;
@@ -418,7 +414,6 @@ begin
     procedure
     begin
       Init;
-//      TMessageBox.Show('Hello', '', 1);
     end);
 end;
 
@@ -767,7 +762,6 @@ end;
 
 procedure TMainForm.ShowRCSettingsFormItemOnClick(Sender: TObject);
 var
-  ModalResult: TModalResult;
   Password: String;
   IsNetServerActivated: Boolean;
 begin
@@ -780,17 +774,21 @@ begin
   if IsNetServerActivated then
     RCDisabledItemOnClick(nil);
 
-  ModalResult := RCSettingsForm.ShowModal;
-  if ModalResult <> mrOk then
-    Exit;
+  RCSettingsForm.ShowModal;
+  RCSettingsForm.OnModalResultProcRef :=
+    procedure (const AModalResult: TModalResult)
+    begin
+      if AModalResult <> mrOk then
+        Exit;
 
-  Password := RCSettingsForm.PasswordEdit.Text;
-  TTools.PasswordToCryptHash(Password);
-  TTools.SetRCPort(RCSettingsForm.PortEdit.Text);
-  TState.SaveConfig;
+      Password := RCSettingsForm.PasswordEdit.Text;
+      TTools.PasswordToCryptHash(Password);
+      TTools.SetRCPort(RCSettingsForm.PortEdit.Text);
+      TState.SaveConfig;
 
-  if IsNetServerActivated then
-    RCEnabledItemOnClick(nil);
+      if IsNetServerActivated then
+        RCEnabledItemOnClick(nil);
+    end;
 end;
 
 procedure TMainForm.TimeLineControlMouseWheel(Sender: TObject;

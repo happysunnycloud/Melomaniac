@@ -107,8 +107,9 @@ type
     class function CheckRCPassword(const APassword: String): Boolean;
     class function GetCryptoKey: String;
 
-    class property PleaseWaitMessageBoxRef: TMessageBoxForm
-      read FPleaseWaitMessageBoxRef write FPleaseWaitMessageBoxRef;
+    class procedure ShowPleaseWaitMessageBox;
+    class procedure HidePleaseWaitMessageBox;
+    class procedure ChangeMessageForPleaseWaitMessageBox(const AMessage: String);
   end;
 
 implementation
@@ -916,6 +917,27 @@ class procedure TTools.OnMouseDownkHook(
   const ADestControl: TControl);
 begin
   ASourceControl.OnMouseDown := ADestControl.OnMouseDown;
+end;
+
+class procedure TTools.ShowPleaseWaitMessageBox;
+begin
+  FPleaseWaitMessageBoxRef :=
+    TMessageBox.Show('Please wait...', 'Info', 3);
+end;
+
+class procedure TTools.HidePleaseWaitMessageBox;
+begin
+  TMessageBox.Hide(FPleaseWaitMessageBoxRef);
+  FPleaseWaitMessageBoxRef := nil;
+end;
+
+class procedure TTools.ChangeMessageForPleaseWaitMessageBox(
+  const AMessage: String);
+begin
+  if not Assigned(FPleaseWaitMessageBoxRef) then
+    Exit;
+
+  FPleaseWaitMessageBoxRef.ChangeMessage(AMessage);
 end;
 
 class function TTools.PasswordToCryptHash(const APassword: String): String;

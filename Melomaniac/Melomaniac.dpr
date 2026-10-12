@@ -84,6 +84,5 @@ uses
 begin
   Application.Initialize;
   Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TRCSettingsForm, RCSettingsForm);
   Application.Run;
 end.

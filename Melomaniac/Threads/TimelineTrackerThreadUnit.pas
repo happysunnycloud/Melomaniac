@@ -67,7 +67,7 @@ begin
   inherited Create(
     AThreadFactory);
 
-  OnSetTerminateProcRef := (
+  OnAfterTerminatedSetProcRef := (
     procedure
     begin
       FRenderEvent.SetEvent;
@@ -148,7 +148,7 @@ begin
 
   while not Terminated do
   begin
-    while not Terminated and not IntentionHoldState do
+    while not Terminated do
     begin
       if TPlayController.Duration > 0 then
       begin
