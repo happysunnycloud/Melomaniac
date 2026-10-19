@@ -151,8 +151,8 @@ class procedure TPlayController.Init(
   const ATimelineCaret: TControl;
   const ADurationBar: TControl;
   const ACurrentTimeLabel: TControl);
-var
-  PlayListThreadFactory: TPlayListThreadFactory;
+//var
+//  PlayListThreadFactory: TPlayListThreadFactory;
 begin
   FSingleSound := TSingleSound.Create(MainForm.ThreadFactory);
 
@@ -165,11 +165,11 @@ begin
     ADurationBar,
     ACurrentTimeLabel);
 
-  PlayListThreadFactory := TPlayListThreadFactory(
-    AThreadFactoryRegistry.CreateThreadFactory(TPlayListThreadFactory));
-  PlayListThreadFactory.ThreadFactoryName := 'PlayListThreadFactory';
+//  PlayListThreadFactory := TPlayListThreadFactory(
+//    AThreadFactoryRegistry.CreateThreadFactory(TPlayListThreadFactory));
+//  PlayListThreadFactory.ThreadFactoryName := 'PlayListThreadFactory';
 
-  FPlayList := TPlayList.Create(PlayListThreadFactory);
+  FPlayList := TPlayList.Create;
 
   FTerminateThreadEvent := TEvent.Create(nil, true, false, '');
   FStepRewindDoneEvent := TEvent.Create(nil, true, false, '');

@@ -37,6 +37,9 @@ type
 
     class procedure HookedOnMouseEnterHandler(Sender: TObject);
     class procedure HookedOnMouseLeaveHandler(Sender: TObject);
+
+    class procedure DoClosePleaseWaitMessageBox(
+      Sender: TObject; var Action: TCloseAction);
   public
     class procedure Init;
     class procedure UnInit;
@@ -107,15 +110,18 @@ type
     class function CheckRCPassword(const APassword: String): Boolean;
     class function GetCryptoKey: String;
 
-    class procedure ShowPleaseWaitMessageBox;
+    class function ShowPleaseWaitMessageBox: TMessageBoxForm;
     class procedure HidePleaseWaitMessageBox;
     class procedure ChangeMessageForPleaseWaitMessageBox(const AMessage: String);
+
+    class procedure MoveToTrash(const AFileName: String);
   end;
 
 implementation
 
 uses
     System.Types
+  , System.IOUtils
   , Winapi.Windows
   , FMX.StdCtrls
   , FMX.Effects
@@ -535,6 +541,12 @@ begin
       false);
 end;
 
+class procedure TTools.DoClosePleaseWaitMessageBox(
+  Sender: TObject; var Action: TCloseAction);
+begin
+  FPleaseWaitMessageBoxRef := nil;
+end;
+
 class function TTools.GetCryptoKey: String;
 var
   TF: TextFile;
@@ -919,10 +931,23 @@ begin
   ASourceControl.OnMouseDown := ADestControl.OnMouseDown;
 end;
 
-class procedure TTools.ShowPleaseWaitMessageBox;
+class function TTools.ShowPleaseWaitMessageBox: TMessageBoxForm;
+var
+  Msg: String;
 begin
   FPleaseWaitMessageBoxRef :=
-    TMessageBox.Show('Please wait...', 'Info', 3);
+    TMessageBox.ShowCancel('', 'Please wait...');
+  Msg := 'Scanning...';
+  FPleaseWaitMessageBoxRef.ChangeMessage(Msg);
+  FPleaseWaitMessageBoxRef.OnClose := DoClosePleaseWaitMessageBox;
+  FPleaseWaitMessageBoxRef.OnModalResultProcRef :=
+    procedure (const AModalResult: TModalResult)
+    begin
+      if AModalResult = mrCancel then
+        TPlayController.PlayList.BreakReloadPlayListByFileNames;
+    end;
+
+  Result := FPleaseWaitMessageBoxRef;
 end;
 
 class procedure TTools.HidePleaseWaitMessageBox;
@@ -969,6 +994,15 @@ end;
 class function TTools.CheckRCPassword(const APassword: String): Boolean;
 begin
   Result := TState.RCPasswordHash = TCryptoUtils.GetStringHash(APassword);
+end;
+
+class procedure TTools.MoveToTrash(const AFileName: String);
+begin
+  if not DirectoryExists(TRASH_DIR_NAME) then
+    TDirectory.CreateDirectory(TRASH_DIR_NAME);
+
+  TFileTools.MoveFile(
+    AFileName, TRASH_DIR_NAME + '\' + ExtractFileName(AFileName), caRename);
 end;
 
 end.

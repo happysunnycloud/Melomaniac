@@ -7,6 +7,7 @@ const
 
   REWIND_TIME = 1;
   PLAY_LIST_RELOAD_THREAD_COUNT = 10;
+  FILE_PER_THREAD = 10;
   CONTROL_NAME_TAIL = 'Control';
   MOVE_CONTROLS_STEP = 20;
   GLOW_EFFECT_IDENT = 'GlowEffect';
@@ -26,6 +27,8 @@ const
   THEME_FILE_EXT = 'mth';
 
   VOLUME_STEP = 0.02;
+
+  TRASH_DIR_NAME = 'Trash';
 
 implementation
 

@@ -57,7 +57,6 @@ type
     InfoPanelTitleLabel: TLabel;
     DurationLabel: TLabel;
     RCCircle: TCircle;
-    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure CloseControlClick(Sender: TObject);
     procedure ChangeViewControlClick(Sender: TObject);
@@ -67,7 +66,6 @@ type
     procedure TimeLineControlMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
     procedure FormDestroy(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
   strict private
     function CheckRCLogin(
       const ALogin: String;
@@ -206,7 +204,7 @@ procedure TMainForm.OnAfterSyncPlayList;
 var
   MainPath: String;
 begin
-  if TPlayController.PlayList.TAGReaderThreadFactory.IsNeedToSaveToDB then
+  if TPlayListSyncManager.TAGReaderThreadFactory.IsNeedToSaveToDB then
     TPlayController.PlayList.SaveToDB;
 
   MainPath := TState.MainPath;
@@ -617,11 +615,6 @@ begin
   MenuItem.Text := FUNC_IDENT_CLOSE;
   MenuItem.OnClick := OnCloseTrayItemHandler;
   FTrayPopupMenuExt.Add(MenuItem);
-end;
-
-procedure TMainForm.Button1Click(Sender: TObject);
-begin
-  TPlayController.PlayList.BreakReloadPlayListByFileNames;
 end;
 
 procedure TMainForm.ChangeViewControlClick(Sender: TObject);

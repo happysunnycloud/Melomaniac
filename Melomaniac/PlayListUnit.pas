@@ -21,7 +21,7 @@ type
 
   TPlayList = class(TLockedListExt<TPlayItem>)
   strict private
-    FTAGReaderThreadFactory: TPlayListThreadFactory;
+//    FTAGReaderThreadFactory: TPlayListThreadFactory;
     FOnPlayListSynchronized: TPlayListSynchronizedProcRef;
     FCurrentIndex: Integer;
 
@@ -40,11 +40,15 @@ type
 
     procedure FreePlayItemsList(var APlayItemsList: TPlayItemsList);
   strict private
-    FTotalSyncThreadCount: Integer;
-    FDoneSyncThreadCount: Integer;
-    procedure DoTAGReaderThreadTerminate(Sender: TObject);
+//    FTotalSyncThreadCount: Integer;
+//    FDoneSyncThreadCount: Integer;
+//    FTotalSyncFileCount: Integer;
+//    FDoneSyncFileCount: Integer;
+    //procedure DoTAGReaderThreadTerminate(Sender: TObject);
+//    procedure DoHeaderReadProgressQuant;
+//    procedure DoProgressQuant;
   public
-    constructor Create(const ATAGReaderThreadFactory: TPlayListThreadFactory);
+    constructor Create;
     destructor Destroy; override;
 
     procedure Clear;
@@ -69,8 +73,8 @@ type
     property OnPlayListSynchronized: TPlayListSynchronizedProcRef
       read FOnPlayListSynchronized write FOnPlayListSynchronized;
 
-    property TAGReaderThreadFactory: TPlayListThreadFactory
-      read FTAGReaderThreadFactory write FTAGReaderThreadFactory;
+//    property TAGReaderThreadFactory: TPlayListThreadFactory
+//      read FTAGReaderThreadFactory write FTAGReaderThreadFactory;
 
     property First: TPlayItem read GetFirst;
     property Last: TPlayItem read GetLast;
@@ -82,6 +86,34 @@ type
     property NextComposition: String read GetNextComposition;
     property CurrentComposition: String read GetCurrentComposition;
     property CurrentIndex: Integer read FCurrentIndex write FCurrentIndex;
+  end;
+
+  TPlayListSyncManager = class
+  strict private
+    class var
+      FTAGReaderThreadFactory: TPlayListThreadFactory;
+      FLock: TObject;
+      FTotalSyncThreadCount: Integer;
+      FDoneSyncThreadCount: Integer;
+      FTotalSyncFileCount: Integer;
+      FDoneSyncFileCount: Integer;
+  public
+    class procedure Init;
+    class procedure UnInit;
+
+    class procedure DoHeaderReadProgressQuant; static;
+    class procedure DoDurationCalculateProgressQuant; static;
+
+    class property TAGReaderThreadFactory: TPlayListThreadFactory
+      read FTAGReaderThreadFactory write FTAGReaderThreadFactory;
+    class property TotalSyncThreadCount: Integer
+      read FTotalSyncThreadCount write FTotalSyncThreadCount;
+    class property DoneSyncThreadCount: Integer
+      read FDoneSyncThreadCount write FDoneSyncThreadCount;
+    class property TotalSyncFileCount: Integer
+      read FTotalSyncFileCount write FTotalSyncFileCount;
+    class property DoneSyncFileCount: Integer
+      read FDoneSyncFileCount write FDoneSyncFileCount;
   end;
 
 implementation
@@ -103,17 +135,19 @@ uses
 
 { TPlayList }
 
-constructor TPlayList.Create(const ATAGReaderThreadFactory: TPlayListThreadFactory);
+constructor TPlayList.Create;
 begin
   inherited Create;
 
-  FTAGReaderThreadFactory := ATAGReaderThreadFactory;
+//  FTAGReaderThreadFactory := ATAGReaderThreadFactory;
   FOnPlayListSynchronized := nil;
 
   FCurrentIndex := 0;
 
-  FTotalSyncThreadCount := 0;
-  FDoneSyncThreadCount := 0;
+//  FTotalSyncThreadCount := 0;
+//  FDoneSyncThreadCount := 0;
+//  FTotalSyncFileCount := 0;
+//  FDoneSyncFileCount := 0;
 end;
 
 destructor TPlayList.Destroy;
@@ -170,22 +204,18 @@ end;
 
 procedure TPlayList.OnAllThreadsAreDestroyed(Sender: TObject);
 begin
-  FTAGReaderThreadFactory.IsSyncPlayListStarted := false;
-  FTAGReaderThreadFactory.IsSyncPlayListReStarted := false;
-  if FTAGReaderThreadFactory.IsSyncPlayListReStarted then
+  TPlayListSyncManager.TAGReaderThreadFactory.IsSyncPlayListStarted := false;
+  TPlayListSyncManager.TAGReaderThreadFactory.IsSyncPlayListReStarted := false;
+  if TPlayListSyncManager.TAGReaderThreadFactory.IsSyncPlayListReStarted then
   begin
-    SyncPlayLists(FTAGReaderThreadFactory.Path);
+    SyncPlayLists(TPlayListSyncManager.TAGReaderThreadFactory.Path);
   end
   else
   begin
-    TThread.Queue(nil,
-      procedure
-      begin
-        if Assigned(FOnPlayListSynchronized) then
-        begin
-          FOnPlayListSynchronized;
-        end;
-      end);
+    if Assigned(FOnPlayListSynchronized) then
+    begin
+      FOnPlayListSynchronized;
+    end;
   end;
 end;
 
@@ -200,29 +230,69 @@ begin
   FreeAndNil(APlayItemsList);
 end;
 
-procedure TPlayList.DoTAGReaderThreadTerminate(Sender: TObject);
-var
-  Percent: Integer;
-  Msg: String;
-begin
-  TMonitor.Enter(Self);
-  try
-    Inc(FDoneSyncThreadCount);
+//procedure TPlayList.DoTAGReaderThreadTerminate(Sender: TObject);
+//var
+//  Percent: Integer;
+//  Msg: String;
+//begin
+//  TDebug.ODS('TAGReaderThread terminated');
+//  TMonitor.Enter(Self);
+//  try
+//    Inc(FDoneSyncThreadCount);
+//
+//    Percent := Round((100 * FDoneSyncThreadCount) / FTotalSyncThreadCount);
+//    Msg := 'File catalog being compiled' + #10 + Percent.ToString + '% complete';
+//    TTools.ChangeMessageForPleaseWaitMessageBox(Msg);
+//  finally
+//    TMonitor.Exit(Self);
+//  end;
+//end;
 
-    Percent := Round((100 * FDoneSyncThreadCount) / FTotalSyncThreadCount);
-    Msg := Percent.ToString + '% complete';
-    TThread.ForceQueue(nil,
-      procedure
-      begin
-        TTools.ChangeMessageForPleaseWaitMessageBox(Msg);
-//        ShowMessage(Msg);
-      end);
+//procedure TPlayList.DoHeaderReadProgressQuant;
+//var
+//  Percent: Integer;
+//  Msg: String;
+//begin
+//  TMonitor.Enter(Self);
+//  try
+//    Inc(FDoneSyncFileCount, 1);
+//
+//    Percent := Round((100 * FDoneSyncFileCount) / FTotalSyncFileCount);
+//
+//    Msg := 'Reading headers' + #10 + Percent.ToString + '% complete';
+//    TTools.ChangeMessageForPleaseWaitMessageBox(Msg);
+//
+//    if FDoneSyncFileCount >= FTotalSyncFileCount then
+//    begin
+//      FDoneSyncFileCount := 0;
+//
+//      TPlayListSyncManager.TAGReaderThreadFactory.EnumerateThreads(
+//        procedure (const AThread: TThreadExt; var ABreak: Boolean)
+//        begin
+//          AThread.UnHoldThread;
+//        end);
+//    end;
+//  finally
+//    TMonitor.Exit(Self);
+//  end;
+//end;
 
-    TDebug.ODS('DoTAGReaderThreadTerminate');
-  finally
-    TMonitor.Exit(Self);
-  end;
-end;
+//procedure TPlayList.DoProgressQuant;
+//var
+//  Percent: Integer;
+//  Msg: String;
+//begin
+//  TMonitor.Enter(Self);
+//  try
+//    Inc(FDoneSyncFileCount, 1);
+//
+//    Percent := Round((100 * FDoneSyncFileCount) / FTotalSyncFileCount);
+//    Msg := 'Calculation of duration' + #10 + Percent.ToString + '% complete';
+//    TTools.ChangeMessageForPleaseWaitMessageBox(Msg);
+//  finally
+//    TMonitor.Exit(Self);
+//  end;
+//end;
 
 procedure TPlayList.ReloadPlayListFromPath(const APath: String);
 var
@@ -245,8 +315,10 @@ var
   FilesPerThread: Integer;
   FileCount: Integer;
   TAGReaderThread: TTAGReaderThread;
+  ThreadList: TList<TTAGReaderThread>;
+//  DoneEvent: TEvent;
 begin
-  FTAGReaderThreadFactory.IsNeedToSaveToDB := true;
+  TPlayListSyncManager.TAGReaderThreadFactory.IsNeedToSaveToDB := true;
 
   Clear;
 
@@ -254,47 +326,74 @@ begin
 
   // Создаём потоки
   FileCount := Length(FileNames);
-  if FileCount > PLAY_LIST_RELOAD_THREAD_COUNT then
+  TPlayListSyncManager.TotalSyncFileCount := FileCount;
+  TPlayListSyncManager.DoneSyncFileCount := 0;
+  if FileCount > 10 then
   begin
     FilesPerThread := Ceil(FileCount / PLAY_LIST_RELOAD_THREAD_COUNT);
-    FTotalSyncThreadCount := Ceil(FileCount / FilesPerThread);
-    for i := 0 to PLAY_LIST_RELOAD_THREAD_COUNT - 1 do
-    begin
-      StartIndex := i * FilesPerThread;
-      FinishIndex := Min(StartIndex + FilesPerThread - 1, FileCount - 1);
-      if StartIndex > FileCount then
-        Break;
+//    FTotalSyncThreadCount := Ceil(FileCount / FilesPerThread);
+    ThreadList := TList<TTAGReaderThread>.Create;
+//    DoneEvent := TEvent.Create(nil, true, false, '');
+    try
+      i := 0;
+      while true do
+      begin
+        StartIndex := i * FilesPerThread;
+        FinishIndex := Min(StartIndex + FilesPerThread - 1 , FileCount - 1);
+        if StartIndex >= FileCount then
+          Break;
 
-      TAGReaderThread := TTAGReaderThread.Create(
-        FTAGReaderThreadFactory,
-        Self,
-        FileNames,
-        StartIndex,
-        FinishIndex);
-//      TAGReaderThread.OnThreadIsDone := DoTAGReaderThreadTerminate;
-      TAGReaderThread.OnTerminate := DoTAGReaderThreadTerminate;
+        TAGReaderThread := TTAGReaderThread.Create(
+          TPlayListSyncManager.TAGReaderThreadFactory,
+          Self,
+          FileNames,
+          StartIndex,
+          FinishIndex);
+//        TAGReaderThread.OnTerminate := DoTAGReaderThreadTerminate;
+        TAGReaderThread.OnHeaderRedProgressQuantProcRef :=
+          TPlayListSyncManager.DoHeaderReadProgressQuant;
+        TAGReaderThread.OnProgressQuantProcRef :=
+          TPlayListSyncManager.DoDurationCalculateProgressQuant;
 
-      TDebug.ODS('Thread started');
+        ThreadList.Add(TAGReaderThread);
+
+        Inc(i);
+      end;
+
+//      DoneEvent.ResetEvent;
+      for TAGReaderThread in ThreadList do
+      begin
+        Sleep(1000);
+
+        TAGReaderThread.Start;
+      end;
+    finally
+//      FreeAndNil(DoneEvent);
+      FreeAndNil(ThreadList);
     end;
   end
   else
   begin
-    FTotalSyncThreadCount := 1;
+    TPlayListSyncManager.TotalSyncThreadCount := 1;
 
     TAGReaderThread := TTAGReaderThread.Create(
-      FTAGReaderThreadFactory,
+      TPlayListSyncManager.TAGReaderThreadFactory,
       Self,
       FileNames,
       0,
       Pred(FileCount));
-//    TAGReaderThread.OnThreadIsDone := DoTAGReaderThreadTerminate;
-      TAGReaderThread.OnTerminate := DoTAGReaderThreadTerminate;
+      //TAGReaderThread.OnTerminate := DoTAGReaderThreadTerminate;
+      TAGReaderThread.OnHeaderRedProgressQuantProcRef :=
+        TPlayListSyncManager.DoHeaderReadProgressQuant;
+      TAGReaderThread.OnProgressQuantProcRef :=
+        TPlayListSyncManager.DoDurationCalculateProgressQuant;
 
-    TDebug.ODS('Thread started');
+    TAGReaderThread.Start;
   end;
 
-  FDoneSyncThreadCount := 0;
-  FTAGReaderThreadFactory.OnAllThreadsAreDestroyed := OnAllThreadsAreDestroyed;
+  TPlayListSyncManager.DoneSyncThreadCount := 0;
+  TPlayListSyncManager.TAGReaderThreadFactory.OnAllThreadsAreDestroyed :=
+    OnAllThreadsAreDestroyed;
 end;
 
 procedure TPlayList.ReloadPlayListFromDB(
@@ -315,24 +414,24 @@ end;
 
 procedure TPlayList.BreakReloadPlayListByFileNames;
 begin
-  FTAGReaderThreadFactory.IsNeedToSaveToDB := false;
-  FTAGReaderThreadFactory.TerminateAllThreads;
+  TPlayListSyncManager.TAGReaderThreadFactory.IsNeedToSaveToDB := false;
+  TPlayListSyncManager.TAGReaderThreadFactory.TerminateAllThreads;
 end;
 
 procedure TPlayList.SyncPlayLists(
   const APath: String);
 begin
-  FTAGReaderThreadFactory.IsNeedToSaveToDB := false;
-  FTAGReaderThreadFactory.Path := APath;
-  if FTAGReaderThreadFactory.IsSyncPlayListStarted then
+  TPlayListSyncManager.TAGReaderThreadFactory.IsNeedToSaveToDB := false;
+  TPlayListSyncManager.TAGReaderThreadFactory.Path := APath;
+  if TPlayListSyncManager.TAGReaderThreadFactory.IsSyncPlayListStarted then
   begin
-    FTAGReaderThreadFactory.IsSyncPlayListReStarted := true;
+    TPlayListSyncManager.TAGReaderThreadFactory.IsSyncPlayListReStarted := true;
     BreakReloadPlayListByFileNames;
 
     Exit;
   end;
 
-  FTAGReaderThreadFactory.IsSyncPlayListStarted := true;
+  TPlayListSyncManager.TAGReaderThreadFactory.IsSyncPlayListStarted := true;
 
   TTools.HidePleaseWaitMessageBox;
 
@@ -351,9 +450,8 @@ var
   FileName: String;
   i: Integer;
   IsFound: Boolean;
+  MessageBoxForm: TMessageBoxForm;
 begin
-  TTools.ShowPleaseWaitMessageBox;
-
   Path := APath;
 
   DBPlayItemsList := TPlayItemsList.Create;
@@ -366,6 +464,7 @@ begin
     // Нам не нужно искать по всему диску, только по конкретной папке
     if Length(Path) > 0 then
       TFileTools.GetTreeOfFileNames(Path, ALLOWED_EXTENSIONS, FileNames);
+
     for i := 0 to Pred(Length(FileNames)) do
     begin
       FileName := FileNames[i];
@@ -400,13 +499,20 @@ begin
       TTools.DeletePlayItemsListFromDB(DBPlayItemsList);
 
     if Length(ToAddFileNames) > 0 then
-      ReloadPlayListByFileNames(ToAddFileNames)
+    begin
+      MessageBoxForm := TTools.ShowPleaseWaitMessageBox;
+      MessageBoxForm.OnFirstTimePaintProcRef :=
+        procedure
+        begin
+          ReloadPlayListByFileNames(ToAddFileNames);
+        end;
+    end
     else
     if Assigned(FOnPlayListSynchronized) then
     begin
       FOnPlayListSynchronized;
-      FTAGReaderThreadFactory.IsSyncPlayListStarted := false;
-      FTAGReaderThreadFactory.IsSyncPlayListReStarted := false;
+      TPlayListSyncManager.TAGReaderThreadFactory.IsSyncPlayListStarted := false;
+      TPlayListSyncManager.TAGReaderThreadFactory.IsSyncPlayListReStarted := false;
     end;
   finally
     FreePlayItemsList(PathPlayItemsList);
@@ -530,6 +636,78 @@ begin
   if Assigned(PlayItem) then
     Result := PlayItem.Path;
 end;
+
+{ TPlayListSyncManager }
+
+class procedure TPlayListSyncManager.Init;
+begin
+  FTAGReaderThreadFactory := TPlayListThreadFactory.Create;
+
+  FLock := TObject.Create;      // объект для TMonitor
+
+  FTotalSyncThreadCount := 0;
+  FDoneSyncThreadCount := 0;
+  FTotalSyncFileCount := 0;
+  FDoneSyncFileCount := 0;
+end;
+
+class procedure TPlayListSyncManager.UnInit;
+begin
+  FreeAndNil(FLock);
+  FreeAndNil(FTAGReaderThreadFactory);
+end;
+
+class procedure TPlayListSyncManager.DoHeaderReadProgressQuant;
+var
+  Percent: Integer;
+  Msg: String;
+begin
+  TMonitor.Enter(FLock);
+  try
+    Inc(FDoneSyncFileCount, 1);
+
+    Percent := Round((100 * FDoneSyncFileCount) / FTotalSyncFileCount);
+
+    Msg := 'Reading headers' + #10 + Percent.ToString + '% complete';
+    TTools.ChangeMessageForPleaseWaitMessageBox(Msg);
+
+    if FDoneSyncFileCount >= FTotalSyncFileCount then
+    begin
+      FDoneSyncFileCount := 0;
+
+      FTAGReaderThreadFactory.EnumerateThreads(
+        procedure (const AThread: TThreadExt; var ABreak: Boolean)
+        begin
+          AThread.UnHoldThread;
+        end);
+    end;
+  finally
+    TMonitor.Exit(FLock);
+  end;
+end;
+
+class procedure TPlayListSyncManager.DoDurationCalculateProgressQuant;
+var
+  Percent: Integer;
+  Msg: String;
+begin
+  TMonitor.Enter(FLock);
+  try
+    Inc(FDoneSyncFileCount, 1);
+
+    Percent := Round((100 * FDoneSyncFileCount) / FTotalSyncFileCount);
+    Msg := 'Calculation of duration' + #10 + Percent.ToString + '% complete';
+    TTools.ChangeMessageForPleaseWaitMessageBox(Msg);
+  finally
+    TMonitor.Exit(FLock);
+  end;
+end;
+
+initialization
+  TPlayListSyncManager.Init;
+
+finalization
+  TPlayListSyncManager.UnInit;
 
 end.
 

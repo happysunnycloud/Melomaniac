@@ -10,7 +10,7 @@ uses
 type
   TPlayListThreadFactory = class(TThreadFactory)
   strict private
-    FCriticalSection: TCriticalSection;
+//    FCriticalSection: TCriticalSection;
     FPath: String;
     FSyncPlayListStarted: Integer;
     FSyncPlayListReStarted: Integer;
@@ -50,7 +50,7 @@ uses
 constructor TPlayListThreadFactory.Create(
   const AUnregProc: TUnregFromThreadFactoryProc);
 begin
-  FCriticalSection := TCriticalSection.Create;
+//  FCriticalSection := TCriticalSection.Create;
 
   FPath := '';
 
@@ -64,18 +64,18 @@ end;
 
 destructor TPlayListThreadFactory.Destroy;
 begin
-  FreeAndNil(FCriticalSection);
+//  FreeAndNil(FCriticalSection);
 
   inherited;
 end;
 
 function TPlayListThreadFactory.GetPath: String;
 begin
-  FCriticalSection.Enter;
+  CriticalSection.Enter;
   try
     Result := FPath;
   finally
-    FreeAndNil(FCriticalSection);
+    FreeAndNil(CriticalSection);
   end;
 end;
 
@@ -96,11 +96,11 @@ end;
 
 procedure TPlayListThreadFactory.SetPath(const AVal: String);
 begin
-  FCriticalSection.Enter;
+  CriticalSection.Enter;
   try
     FPath := AVal;
   finally
-    FCriticalSection.Leave;
+    CriticalSection.Leave;
   end;
 end;
 
