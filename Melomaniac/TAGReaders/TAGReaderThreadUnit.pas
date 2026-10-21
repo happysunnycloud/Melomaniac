@@ -391,10 +391,12 @@ begin
         try
           Duration := 0;
           try
-            TLogger.AddLog(Format('Start duration cacl to "%s"', [PlayItem.Path]));
+//            TLogger.AddLog(Format('Start duration cacl to "%s"', [PlayItem.Path]));
             // Duration вычисляем через TMediaPlayer.Duration
             // Он поднимает нужный кодак и, тот высчитывает верный Duration
             // Считать в "ручную" - лепить химеру
+            // TMediaCodecManager.CreateFromFile необходим монопольный вызов
+            // По этому используем TMonitor
             try
               FMediaPlayer := TMediaCodecManager.CreateFromFile(PlayItem.Path);
             except
@@ -406,7 +408,7 @@ begin
               end;
             end;
             Duration := FMediaPlayer.Duration;
-            TLogger.AddLog(Format('Finish duration cacl to "%s"', [PlayItem.Path]));
+//            TLogger.AddLog(Format('Finish duration cacl to "%s"', [PlayItem.Path]));
           finally
             if Duration > 0 then
             begin

@@ -253,9 +253,6 @@ var
   LastPlayState: TPlayState;
   FileName: String;
 begin
-  MainForm.TrayMenuItemPlay.Visible := false;
-  MainForm.TrayMenuItemPause.Visible := true;
-
   if TPlayController.PlayList.Count = 0 then
   begin
     HeighlightFail(MainForm.PlayControl);
@@ -281,15 +278,15 @@ begin
   TVisualScheme.AssignBitmap(MainForm.PlayControl, FUNC_IDENT_PLAY);
 //  TTools.DisplayCurrentComposition;
   TTools.RenderPlayState(TState.PlayState);
+
+  MainForm.TrayMenuItemPlay.Visible := false;
+  MainForm.TrayMenuItemPause.Visible := true;
 end;
 
 class procedure TPlayController.Stop;
 var
   LastPlayState: TPlayState;
 begin
-  MainForm.TrayMenuItemPlay.Visible := true;
-  MainForm.TrayMenuItemPause.Visible := false;
-
   LastPlayState := TState.PlayState;
 
   FSingleSound.Stop;
@@ -305,15 +302,15 @@ begin
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, FUNC_IDENT_PAUSE);
   TTools.RenderPlayState(TState.PlayState);
+
+  MainForm.TrayMenuItemPlay.Visible := true;
+  MainForm.TrayMenuItemPause.Visible := false;
 end;
 
 class procedure TPlayController.Pause;
 var
   LastPlayState: TPlayState;
 begin
-  MainForm.TrayMenuItemPlay.Visible := true;
-  MainForm.TrayMenuItemPause.Visible := false;
-
   LastPlayState := TState.PlayState;
 
   FSingleSound.Pause;
@@ -326,6 +323,9 @@ begin
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, FUNC_IDENT_PAUSE);
   TTools.RenderPlayState(TState.PlayState);
+
+  MainForm.TrayMenuItemPlay.Visible := true;
+  MainForm.TrayMenuItemPause.Visible := false;
 end;
 
 class procedure TPlayController.Mute;

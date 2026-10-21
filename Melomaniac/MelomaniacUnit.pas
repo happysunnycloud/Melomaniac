@@ -273,6 +273,9 @@ begin
     BuildTrayPopupMenu;
     BuildPopupMenus;
 
+    TrayMenuItemPlay.Visible := TState.PlayState <> psPlay;
+    TrayMenuItemPause.Visible := not MainForm.TrayMenuItemPlay.Visible;
+
     MainPath := TState.MainPath;
     TPlayController.PlayList.OnPlayListSynchronized := OnAfterSyncPlayList;
     TPlayController.PlayList.SyncPlayLists(MainPath);
@@ -419,7 +422,7 @@ procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   TState.CurrentTime := TPlayController.CurrentTime;
   TState.Composition := TPlayController.PlayList.CurrentComposition;
-  TState.MainPath := ExtractFilePath(TState.Composition);
+//  TState.MainPath := ExtractFilePath(TState.Composition);
 
   TTools.UnInit;
 

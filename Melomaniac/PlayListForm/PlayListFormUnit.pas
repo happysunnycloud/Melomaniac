@@ -19,9 +19,16 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     FPathControlDict: TDictionary<String, TControl>;
-    //FOnItemClick: TProc<String>;
-//    procedure OnPlayListItemFrameClickHandler(Sender: TObject);
+
+    procedure DoBorderMouseDown(
+      Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single);
+    procedure DoBorderMouseUp(
+      Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single);
   public
+    constructor Create(AOwner: TComponent); override;
+
     function AddFrame(
       const APath: String;
       const ATitle: String;
@@ -58,6 +65,28 @@ uses
   ;
 
 { TPlayListForm }
+
+constructor TPlayListForm.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  BorderFrame.OnBorderMouseDown := DoBorderMouseDown;
+  BorderFrame.OnBorderMouseUp := DoBorderMouseUp;
+end;
+
+procedure TPlayListForm.DoBorderMouseDown(
+  Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+begin
+  ScrollBox.BeginUpdate;
+end;
+
+procedure TPlayListForm.DoBorderMouseUp(
+  Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+begin
+  ScrollBox.EndUpdate;
+end;
 
 function TPlayListForm.GetPath(Sender: TObject): String;
 var
