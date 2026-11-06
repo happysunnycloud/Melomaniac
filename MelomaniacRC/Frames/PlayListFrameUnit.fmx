@@ -23,6 +23,7 @@ object PlayListFrame: TPlayListFrame
         Size.PlatformDefault = False
         TabOrder = 0
         Text = 'Close'
+        TextSettings.Trimming = None
       end
     end
     object PlayListScrollBox: TScrollBox

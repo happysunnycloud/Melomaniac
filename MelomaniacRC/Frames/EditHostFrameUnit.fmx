@@ -48,6 +48,7 @@ object EditHostFrame: TEditHostFrame
               Size.PlatformDefault = False
               TabOrder = 5
               Text = 'Save'
+              TextSettings.Trimming = None
               OnClick = SaveButtonClick
             end
             object ScanHostsButton: TButton
@@ -58,6 +59,7 @@ object EditHostFrame: TEditHostFrame
               Size.PlatformDefault = False
               TabOrder = 7
               Text = 'Scan hosts'
+              TextSettings.Trimming = None
               OnClick = ScanHostsButtonClick
             end
           end
@@ -264,6 +266,7 @@ object EditHostFrame: TEditHostFrame
             Size.PlatformDefault = False
             TabOrder = 6
             Text = 'Close'
+            TextSettings.Trimming = None
           end
         end
       end

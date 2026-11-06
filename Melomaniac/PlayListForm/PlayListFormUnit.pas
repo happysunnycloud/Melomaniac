@@ -9,14 +9,20 @@ uses
   FMX.FormExtUnit,
   FMX.Theme,
   PlayListItemFrameUnit,
-  PlayListUnit
+  PlayListUnit, FMX.Controls.Presentation, FMX.Edit, FMX.StdCtrls
   ;
 
 type
   TPlayListForm = class(TFormExt)
     ScrollBox: TScrollBox;
+    SearchLayout: TLayout;
+    SearchEdit: TEdit;
+    CloseButton: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure CloseButtonClick(Sender: TObject);
+    procedure SearchEditKeyUp(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
   private
     FPathControlDict: TDictionary<String, TControl>;
 
@@ -26,6 +32,9 @@ type
     procedure DoBorderMouseUp(
       Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
+
+    procedure Search(const ASearchString: String);
+    procedure ClearSearch;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -62,6 +71,7 @@ uses
   , FMX.SingleSoundUnit
   , PlayListFormMouseHandlersUnit
   , CommonTypesUnit
+  , ToolsUnit
   ;
 
 { TPlayListForm }
@@ -232,6 +242,163 @@ begin
   FPathControlDict.Clear;
 end;
 
+procedure TPlayListForm.Search(const ASearchString: String);
+begin
+  ScrollBox.BeginUpdate;
+  try
+    ScrollBox.ContentControlsEnumerator(
+      edForward,
+      procedure (const AControl: TControl)
+      var
+        PlayListItemFrame: TPlayListItemFrame;
+      begin
+        if AControl is TPlayListItemFrame then
+        begin
+          PlayListItemFrame := TPlayListItemFrame(AControl);
+          AControl.Visible := Pos(ASearchString,
+            UpperCase(PlayListItemFrame.PathLabel.Text)) > 0;
+        end;
+      end)
+  finally
+    ScrollBox.EndUpdate;
+  end;
+end;
+
+procedure TPlayListForm.ClearSearch;
+var
+  i: Integer;
+begin
+  i := 0;
+  ScrollBox.BeginUpdate;
+  try
+    ScrollBox.ContentControlsEnumerator(
+      edForward,
+      procedure (const AControl: TControl)
+      begin
+        if AControl is TPlayListItemFrame then
+        begin
+          AControl.Position.Y := i * AControl.Height;
+          AControl.Visible := true;
+
+          Inc(i);
+        end;
+      end);
+  finally
+    ScrollBox.EndUpdate;
+  end;
+
+//  TThread.Queue(nil,
+//    procedure
+//    var
+//      i: Integer;
+//    begin
+//      i := 0;
+//      ScrollBox.BeginUpdate;
+//      try
+//        ScrollBox.ContentControlsEnumerator(
+//          edForward,
+//          procedure (const AControl: TControl)
+//          begin
+//            if AControl is TPlayListItemFrame then
+//            begin
+//              AControl.Visible := true;
+//              AControl.Position.Y := i * AControl.Height;
+//
+//              Inc(i);
+//            end;
+//          end);
+//      finally
+//        ScrollBox.EndUpdate;
+//      end;
+//    end);
+
+//  TThread.Queue(nil,
+//    procedure
+//    begin
+//      ScrollBox.BeginUpdate;
+//      try
+//        ScrollBox.ContentControlsEnumerator(
+//          edBackward,
+//          procedure (const AControl: TControl)
+//          var
+//            PlayListItemFrame: TPlayListItemFrame;
+//            Text: String;
+//          begin
+//            if AControl is TPlayListItemFrame then
+//            begin
+//              PlayListItemFrame := TPlayListItemFrame(AControl);
+//              Text := PlayListItemFrame.PathLabel.Text;
+//              AControl.Align := TAlignLayout.Bottom;
+//            end;
+//          end);
+//      finally
+//        ScrollBox.EndUpdate;
+//      end;
+//    end);
+//
+//  TThread.Queue(nil,
+//    procedure
+//    begin
+//      ScrollBox.BeginUpdate;
+//      try
+//        ScrollBox.ContentControlsEnumerator(
+//          edForward,
+//          procedure (const AControl: TControl)
+//          begin
+//            if AControl is TPlayListItemFrame then
+//            begin
+//              AControl.Visible := true;
+//            end;
+//          end);
+//      finally
+//        ScrollBox.EndUpdate;
+//      end;
+//    end);
+//
+//  TThread.Queue(nil,
+//    procedure
+//    begin
+//      ScrollBox.BeginUpdate;
+//      try
+//        ScrollBox.ContentControlsEnumerator(
+//          edForward,
+//          procedure (const AControl: TControl)
+//          begin
+//            if AControl is TPlayListItemFrame then
+//            begin
+//              AControl.Align := TAlignLayout.Top;
+//            end;
+//          end);
+//      finally
+//        ScrollBox.EndUpdate;
+//      end;
+//    end);
+//
+//  TThread.Queue(nil,
+//    procedure
+//    begin
+//      ScrollBox.RealignContent;
+//    end);
+end;
+
+procedure TPlayListForm.CloseButtonClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TPlayListForm.SearchEditKeyUp(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+var
+  SearchString: String;
+begin
+  SearchString := UpperCase(Trim(SearchEdit.Text));
+
+  if not SearchString.IsEmpty then
+    Search(SearchString)
+  else
+    ClearSearch;
+end;
+
 procedure TPlayListForm.Select(const APath: String);
 var
   PlayListItemFrame: TPlayListItemFrame;
@@ -260,8 +427,6 @@ begin
     Exit;
 
   PlayListItemFrame := Control as TPlayListItemFrame;
-  PlayListItemFrame.BackgroundRectangle.Fill.Color :=
-    Theme.ItemSettings.FocusedBackgroundColor;
 
   // Визуальная парковка ScrollBox на текущий трек
 
@@ -279,6 +444,13 @@ begin
   if not ViewportRect.Contains(ControlRect) then
     ScrollBox.ViewportPosition :=
       PointF(0, PlayListItemFrame.Index * PlayListItemFrame.Height);
+
+  TThread.ForceQueue(nil,
+    procedure
+    begin
+      PlayListItemFrame.BackgroundRectangle.Fill.Color :=
+        Theme.ItemSettings.FocusedBackgroundColor;
+    end);
 end;
 
 procedure TPlayListForm.ScrollToItem(const APath: String);
@@ -297,14 +469,17 @@ end;
 
 procedure TPlayListForm.FormCreate(Sender: TObject);
 begin
-//  BorderFrame.Kind := TBorderFrameKind.bfkNoCaption;
   Self.Fill.Kind := TBrushKind.Solid;
   FPathControlDict := TDictionary<String, TControl>.Create;
+
+  TTools.HeighlightChangeView(true);
 end;
 
 procedure TPlayListForm.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(FPathControlDict);
+
+  TTools.HeighlightChangeView(false);
 
   PlayListForm := nil;
 end;

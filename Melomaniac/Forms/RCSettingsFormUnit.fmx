@@ -37,6 +37,7 @@ object RCSettingsForm: TRCSettingsForm
         Size.PlatformDefault = False
         TabOrder = 0
         Text = 'Ok'
+        TextSettings.Trimming = None
         OnClick = OkButtonClick
       end
       object CancelButton: TButton
@@ -53,6 +54,7 @@ object RCSettingsForm: TRCSettingsForm
         Size.PlatformDefault = False
         TabOrder = 1
         Text = 'Cancel'
+        TextSettings.Trimming = None
         OnClick = CancelButtonClick
       end
     end

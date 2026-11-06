@@ -56,11 +56,13 @@ end;
 
 procedure TRCSettingsForm.FormCreate(Sender: TObject);
 begin
+  SaveFormStateFlag := false;
+
   TThread.ForceQueue(nil,
     procedure
     begin
-      Left := (Screen.Width div 2) - (Width div 2);
-      Top := (Screen.Height div 2) - (Height div 2);
+      Left := Round((Screen.Width / 2) - (Width / 2));
+      Top := Round((Screen.Height / 2) - (Height / 2));
 
       PasswordCaptionLayout.Align := TAlignLayout.Bottom;
       PasswordLayout.Align := TAlignLayout.Bottom;

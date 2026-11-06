@@ -8,6 +8,7 @@ const
   {$ELSE IF MSWINDOWS}
   FILE_PATH_SPLITTER = '\';
   {$ENDIF}
+  REMOTE_PATH_SPLITTER = '\';
 
   ConfigFileName = 'MelomaniacRC.conf';
 

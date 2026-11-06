@@ -115,6 +115,16 @@ type
     class procedure ChangeMessageForPleaseWaitMessageBox(const AMessage: String);
 
     class procedure MoveToTrash(const AFileName: String);
+  private
+    class procedure OffHeighlight(const AControlsArray: array of TControl);
+  public
+    class procedure HeighlightChangeView(const AOn: Boolean);
+    class procedure HeighlightCopyMode;
+    class procedure HeighlightMarkMode;
+    class procedure HeighlightLeafe;
+    class procedure HeighlightDuplicateMode;
+    class procedure HeighlightFail(const AControl: TControl);
+    class procedure HeighlightSetOfPaths;
   end;
 
 implementation
@@ -139,6 +149,7 @@ uses
   , CryptoUtils
   , CommonConstantsUnit
   , CommonToolsUnit
+  , HeighlightFailThreadUnit
   ;
 
 { TTools }
@@ -1004,6 +1015,171 @@ begin
   TFileTools.MoveFile(
     AFileName, TRASH_DIR_NAME + '\' + ExtractFileName(AFileName), caRename);
 end;
+
+class procedure TTools.HeighlightChangeView(const AOn: Boolean);
+begin
+  TTools.GlowEffectActivated(
+    HEIGHLIGTH_GLOW_EFFECT_IDENT,
+    MainForm.ChangeViewControl,
+    AOn);
+end;
+
+class procedure TTools.HeighlightCopyMode;
+begin
+  if TState.CopyMode = cmCopy then
+  begin
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.CopyModeControl,
+      true);
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.MoveModeControl,
+      false);
+  end
+  else
+  if TState.CopyMode = cmMove then
+  begin
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.CopyModeControl,
+      false);
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.MoveModeControl,
+      true);
+  end
+  else
+  if TState.CopyMode = cmNone then
+  begin
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.CopyModeControl,
+      false);
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      MainForm.MoveModeControl,
+      false)
+  end;
+end;
+
+class procedure TTools.HeighlightMarkMode;
+begin
+  TTools.GlowEffectActivated(
+    HEIGHLIGTH_GLOW_EFFECT_IDENT,
+    MainForm.MarkModeControl,
+    TState.MarkMode);
+end;
+
+class procedure TTools.OffHeighlight(const AControlsArray: array of TControl);
+var
+  i: Integer;
+begin
+  for i := 0 to Pred(Length(AControlsArray)) do
+  begin
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      AControlsArray[i],
+      false);
+  end;
+end;
+
+class procedure TTools.HeighlightLeafe;
+
+  procedure _HeighlightOff(const AControlsArray: array of TControl);
+  var
+    i: Integer;
+  begin
+    for i := 0 to Pred(Length(AControlsArray)) do
+    begin
+      TTools.GlowEffectActivated(
+        HEIGHLIGTH_GLOW_EFFECT_IDENT,
+        AControlsArray[i],
+        false);
+    end;
+  end;
+
+var
+  LeafeControl: TControl;
+begin
+  _HeighlightOff([
+    MainForm.TopLeftControl,
+    MainForm.TopRightControl,
+    MainForm.BottomLeftControl,
+    MainForm.BottomRightControl
+  ]);
+
+  LeafeControl := TTools.LeafeToControl(TState.Leafe);
+  if Assigned(LeafeControl) then
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      LeafeControl,
+      true);
+end;
+
+class procedure TTools.HeighlightDuplicateMode;
+begin
+  TTools.GlowEffectActivated(
+    HEIGHLIGTH_GLOW_EFFECT_IDENT,
+    MainForm.DuplicateModeControl,
+    TState.DuplicateMode);
+end;
+
+class procedure TTools.HeighlightFail(const AControl: TControl);
+var
+  ThreadName: String;
+  Thread: TThreadExt;
+  HeighlightFailThread: THeighlightFailThread;
+begin
+//  TLogger.AddLog('*** TPlayController.HeighlightFail Enter');
+
+  ThreadName := Concat('THeighlightFailThread', AControl.Name);
+  Thread := MainForm.ThreadFactory.FindThread(ThreadName);
+  if Assigned(Thread) then
+  begin
+    HeighlightFailThread := Thread as THeighlightFailThread;
+    if not HeighlightFailThread.Terminated then
+    begin
+      HeighlightFailThread.OnAfterDestroyProcRef :=
+        procedure
+        begin
+          THeighlightFailThread.Create(
+            MainForm.ThreadFactory,
+            ThreadName,
+            AControl);
+        end;
+      HeighlightFailThread.Terminate;
+      HeighlightFailThread.UnHoldThread;
+    end;
+  end
+  else
+    THeighlightFailThread.Create(
+      MainForm.ThreadFactory,
+      ThreadName,
+      AControl);
+
+//  TLogger.AddLog('*** TPlayController.HeighlightFail Leave');
+end;
+
+class procedure TTools.HeighlightSetOfPaths;
+var
+  SetOfPathsControl: TControl;
+begin
+  OffHeighlight([
+    MainForm.SetOfPathsNumber1Control,
+    MainForm.SetOfPathsNumber2Control,
+    MainForm.SetOfPathsNumber3Control,
+    MainForm.SetOfPathsNumber4Control
+  ]);
+
+  SetOfPathsControl := TTools.SetOfPathsIndexToControl(TState.SetOfPathsIndex);
+  if Assigned(SetOfPathsControl) then
+    TTools.GlowEffectActivated(
+      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+      SetOfPathsControl,
+      true);
+end;
+
 
 end.
 

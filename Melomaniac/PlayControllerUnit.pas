@@ -40,7 +40,7 @@ type
     class function SetNext: Boolean;
     class function SetCurrent: Boolean;
 
-    class procedure OffHeighlight(const AControlsArray: array of TControl);
+//    class procedure OffHeighlight(const AControlsArray: array of TControl);
 
     class property SingleSound: TSingleSound read FSingleSound write FSingleSound;
   public
@@ -84,14 +84,12 @@ type
 
     class procedure MountCurrentTime;
     class procedure MountVolume;
-
-    class procedure HeighlightCopyMode;
-    class procedure HeighlightMarkMode;
-    class procedure HeighlightLeafe;
-    class procedure HeighlightDuplicateMode;
-    class procedure HeighlightFail(const AControl: TControl);
-    class procedure HeighlightSetOfPaths;
-    class procedure HeighlightChangeView;
+    {TODO: перенести все Heighlight в TTools}
+//    class procedure HeighlightMarkMode;
+//    class procedure HeighlightLeafe;
+//    class procedure HeighlightDuplicateMode;
+//    class procedure HeighlightFail(const AControl: TControl);
+//    class procedure HeighlightSetOfPaths;
     class procedure LeafeClicked(Sender: TObject);
     class procedure SetOfPathClicked(Sender: TObject);
     class procedure UnselectLeafe;
@@ -103,16 +101,14 @@ type
 
   TRewinderThread = class(TSafeQueueThread)
   strict private
-    FStepRewindDoneEvent: TEvent;
     FSingleSound: TSingleSound;
     FRewindDirection: TRewindDirection;
   protected
-    procedure Execute; override;
+    procedure InnerExecute; override;
   public
     constructor Create(
       const ASingleSound: TSingleSound;
       const ARewindDirection: TRewindDirection); reintroduce;
-    destructor Destroy; override;
 
     procedure Kill;
   end;
@@ -137,7 +133,6 @@ uses
   , MelomaniacUnit
   , VisualSchemeUnit
   , ConstantsUnit
-  , HeighlightFailThreadUnit
   , PlayListFormUnit
   , StateUnit
   , AddLogUnit
@@ -151,8 +146,6 @@ class procedure TPlayController.Init(
   const ATimelineCaret: TControl;
   const ADurationBar: TControl;
   const ACurrentTimeLabel: TControl);
-//var
-//  PlayListThreadFactory: TPlayListThreadFactory;
 begin
   FSingleSound := TSingleSound.Create(MainForm.ThreadFactory);
 
@@ -165,10 +158,6 @@ begin
     ADurationBar,
     ACurrentTimeLabel);
 
-//  PlayListThreadFactory := TPlayListThreadFactory(
-//    AThreadFactoryRegistry.CreateThreadFactory(TPlayListThreadFactory));
-//  PlayListThreadFactory.ThreadFactoryName := 'PlayListThreadFactory';
-
   FPlayList := TPlayList.Create;
 
   FTerminateThreadEvent := TEvent.Create(nil, true, false, '');
@@ -179,7 +168,6 @@ end;
 
 class procedure TPlayController.UnInit;
 begin
-//  StopRewind;
   TRewinder.StopRewind;
   TRewinder.UnInit;
 
@@ -255,7 +243,7 @@ var
 begin
   if TPlayController.PlayList.Count = 0 then
   begin
-    HeighlightFail(MainForm.PlayControl);
+    TTools.HeighlightFail(MainForm.PlayControl);
 
     Exit;
   end;
@@ -276,7 +264,6 @@ begin
     Exit;
 
   TVisualScheme.AssignBitmap(MainForm.PlayControl, FUNC_IDENT_PLAY);
-//  TTools.DisplayCurrentComposition;
   TTools.RenderPlayState(TState.PlayState);
 
   MainForm.TrayMenuItemPlay.Visible := false;
@@ -519,169 +506,122 @@ begin
   Volume := TTools.VolumeMousePositionToVolume(X);
 end;
 
-class procedure TPlayController.OffHeighlight(const AControlsArray: array of TControl);
-var
-  i: Integer;
-begin
-  for i := 0 to Pred(Length(AControlsArray)) do
-  begin
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      AControlsArray[i],
-      false);
-  end;
-end;
-
-class procedure TPlayController.HeighlightMarkMode;
-begin
-  TTools.GlowEffectActivated(
-    HEIGHLIGTH_GLOW_EFFECT_IDENT,
-    MainForm.MarkModeControl,
-    TState.MarkMode);
-end;
-
-class procedure TPlayController.HeighlightCopyMode;
-begin
-  if TState.CopyMode = cmCopy then
-  begin
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      MainForm.CopyModeControl,
-      true);
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      MainForm.MoveModeControl,
-      false);
-  end
-  else
-  if TState.CopyMode = cmMove then
-  begin
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      MainForm.CopyModeControl,
-      false);
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      MainForm.MoveModeControl,
-      true);
-  end
-  else
-  if TState.CopyMode = cmNone then
-  begin
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      MainForm.CopyModeControl,
-      false);
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      MainForm.MoveModeControl,
-      false)
-  end;
-end;
-
-class procedure TPlayController.HeighlightLeafe;
-
-  procedure _HeighlightOff(const AControlsArray: array of TControl);
-  var
-    i: Integer;
-  begin
-    for i := 0 to Pred(Length(AControlsArray)) do
-    begin
-      TTools.GlowEffectActivated(
-        HEIGHLIGTH_GLOW_EFFECT_IDENT,
-        AControlsArray[i],
-        false);
-    end;
-  end;
-
-var
-  LeafeControl: TControl;
-begin
-  _HeighlightOff([
-    MainForm.TopLeftControl,
-    MainForm.TopRightControl,
-    MainForm.BottomLeftControl,
-    MainForm.BottomRightControl
-  ]);
-
-  LeafeControl := TTools.LeafeToControl(TState.Leafe);
-  if Assigned(LeafeControl) then
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      LeafeControl,
-      true);
-end;
-
-class procedure TPlayController.HeighlightDuplicateMode;
-begin
-  TTools.GlowEffectActivated(
-    HEIGHLIGTH_GLOW_EFFECT_IDENT,
-    MainForm.DuplicateModeControl,
-    TState.DuplicateMode);
-end;
-
-class procedure TPlayController.HeighlightFail(const AControl: TControl);
-var
-  ThreadName: String;
-  Thread: TThreadExt;
-  HeighlightFailThread: THeighlightFailThread;
-begin
-  TLogger.AddLog('*** TPlayController.HeighlightFail Enter');
-
-  ThreadName := Concat('THeighlightFailThread', AControl.Name);
-  Thread := MainForm.ThreadFactory.FindThread(ThreadName);
-  if Assigned(Thread) then
-  begin
-    HeighlightFailThread := Thread as THeighlightFailThread;
-    if not HeighlightFailThread.Terminated then
-    begin
-      HeighlightFailThread.OnAfterDestroyProcRef :=
-        procedure
-        begin
-          THeighlightFailThread.Create(
-            MainForm.ThreadFactory,
-            ThreadName,
-            AControl);
-        end;
-      HeighlightFailThread.Terminate;
-      HeighlightFailThread.UnHoldThread;
-    end;
-  end
-  else
-    THeighlightFailThread.Create(
-      MainForm.ThreadFactory,
-      ThreadName,
-      AControl);
-
-  TLogger.AddLog('*** TPlayController.HeighlightFail Leave');
-end;
-
-class procedure TPlayController.HeighlightSetOfPaths;
-var
-  SetOfPathsControl: TControl;
-begin
-  OffHeighlight([
-    MainForm.SetOfPathsNumber1Control,
-    MainForm.SetOfPathsNumber2Control,
-    MainForm.SetOfPathsNumber3Control,
-    MainForm.SetOfPathsNumber4Control
-  ]);
-
-  SetOfPathsControl := TTools.SetOfPathsIndexToControl(TState.SetOfPathsIndex);
-  if Assigned(SetOfPathsControl) then
-    TTools.GlowEffectActivated(
-      HEIGHLIGTH_GLOW_EFFECT_IDENT,
-      SetOfPathsControl,
-      true);
-end;
-
-class procedure TPlayController.HeighlightChangeView;
-begin
-  TTools.GlowEffectActivated(
-    HEIGHLIGTH_GLOW_EFFECT_IDENT,
-    MainForm.ChangeViewControl,
-    Assigned(PlayListForm));
-end;
+//class procedure TPlayController.OffHeighlight(const AControlsArray: array of TControl);
+//var
+//  i: Integer;
+//begin
+//  for i := 0 to Pred(Length(AControlsArray)) do
+//  begin
+//    TTools.GlowEffectActivated(
+//      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+//      AControlsArray[i],
+//      false);
+//  end;
+//end;
+//
+//class procedure TPlayController.HeighlightMarkMode;
+//begin
+//  TTools.GlowEffectActivated(
+//    HEIGHLIGTH_GLOW_EFFECT_IDENT,
+//    MainForm.MarkModeControl,
+//    TState.MarkMode);
+//end;
+//
+//class procedure TPlayController.HeighlightLeafe;
+//
+//  procedure _HeighlightOff(const AControlsArray: array of TControl);
+//  var
+//    i: Integer;
+//  begin
+//    for i := 0 to Pred(Length(AControlsArray)) do
+//    begin
+//      TTools.GlowEffectActivated(
+//        HEIGHLIGTH_GLOW_EFFECT_IDENT,
+//        AControlsArray[i],
+//        false);
+//    end;
+//  end;
+//
+//var
+//  LeafeControl: TControl;
+//begin
+//  _HeighlightOff([
+//    MainForm.TopLeftControl,
+//    MainForm.TopRightControl,
+//    MainForm.BottomLeftControl,
+//    MainForm.BottomRightControl
+//  ]);
+//
+//  LeafeControl := TTools.LeafeToControl(TState.Leafe);
+//  if Assigned(LeafeControl) then
+//    TTools.GlowEffectActivated(
+//      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+//      LeafeControl,
+//      true);
+//end;
+//
+//class procedure TPlayController.HeighlightDuplicateMode;
+//begin
+//  TTools.GlowEffectActivated(
+//    HEIGHLIGTH_GLOW_EFFECT_IDENT,
+//    MainForm.DuplicateModeControl,
+//    TState.DuplicateMode);
+//end;
+//
+//class procedure TPlayController.HeighlightFail(const AControl: TControl);
+//var
+//  ThreadName: String;
+//  Thread: TThreadExt;
+//  HeighlightFailThread: THeighlightFailThread;
+//begin
+//  TLogger.AddLog('*** TPlayController.HeighlightFail Enter');
+//
+//  ThreadName := Concat('THeighlightFailThread', AControl.Name);
+//  Thread := MainForm.ThreadFactory.FindThread(ThreadName);
+//  if Assigned(Thread) then
+//  begin
+//    HeighlightFailThread := Thread as THeighlightFailThread;
+//    if not HeighlightFailThread.Terminated then
+//    begin
+//      HeighlightFailThread.OnAfterDestroyProcRef :=
+//        procedure
+//        begin
+//          THeighlightFailThread.Create(
+//            MainForm.ThreadFactory,
+//            ThreadName,
+//            AControl);
+//        end;
+//      HeighlightFailThread.Terminate;
+//      HeighlightFailThread.UnHoldThread;
+//    end;
+//  end
+//  else
+//    THeighlightFailThread.Create(
+//      MainForm.ThreadFactory,
+//      ThreadName,
+//      AControl);
+//
+//  TLogger.AddLog('*** TPlayController.HeighlightFail Leave');
+//end;
+//
+//class procedure TPlayController.HeighlightSetOfPaths;
+//var
+//  SetOfPathsControl: TControl;
+//begin
+//  OffHeighlight([
+//    MainForm.SetOfPathsNumber1Control,
+//    MainForm.SetOfPathsNumber2Control,
+//    MainForm.SetOfPathsNumber3Control,
+//    MainForm.SetOfPathsNumber4Control
+//  ]);
+//
+//  SetOfPathsControl := TTools.SetOfPathsIndexToControl(TState.SetOfPathsIndex);
+//  if Assigned(SetOfPathsControl) then
+//    TTools.GlowEffectActivated(
+//      HEIGHLIGTH_GLOW_EFFECT_IDENT,
+//      SetOfPathsControl,
+//      true);
+//end;
 
 class procedure TPlayController.LeafeClicked(Sender: TObject);
 var
@@ -692,7 +632,7 @@ begin
 
   if TState.CopyMode = TCopyMode.cmNone then
   begin
-    HeighlightFail(Control);
+    TTools.HeighlightFail(Control);
 
     Exit;
   end;
@@ -703,7 +643,7 @@ begin
 
   if Leafe.ToPath.IsEmpty then
   begin
-    HeighlightFail(Control);
+    TTools.HeighlightFail(Control);
 
     Exit;
   end;
@@ -713,7 +653,7 @@ begin
   else
     TState.Leafe := Leafe;
 
-  HeighlightLeafe;
+  TTools.HeighlightLeafe;
 
   if not TState.MarkMode then
     TPlayController.Next;
@@ -731,7 +671,7 @@ end;
 class procedure TPlayController.UnselectLeafe;
 begin
   TState.Leafe := liNone;
-  TPlayController.HeighlightLeafe;
+  TTools.HeighlightLeafe;
 end;
 
 class procedure TPlayController.CopyThenNext;
@@ -762,7 +702,7 @@ begin
   end;
 
   TState.Leafe := liNone;
-  HeighlightLeafe;
+  TTools.HeighlightLeafe;
 end;
 
 class procedure TPlayController.RefreshPlayListForm;
@@ -785,81 +725,65 @@ constructor TRewinderThread.Create(
   const ASingleSound: TSingleSound;
   const ARewindDirection: TRewindDirection);
 begin
-  FStepRewindDoneEvent := TEvent.Create(nil, true, false, '');
-
   FSingleSound := ASingleSound;
   FRewindDirection := ARewindDirection;
 
   inherited Create(false);
 end;
 
-destructor TRewinderThread.Destroy;
-begin
-  FreeAndNil(FStepRewindDoneEvent);
-
-  inherited;
-end;
-
 procedure TRewinderThread.Kill;
 begin
   Terminate;
-
-  FStepRewindDoneEvent.SetEvent;
 end;
 
-procedure TRewinderThread.Execute;
+procedure TRewinderThread.InnerExecute;
 var
   Duration: Single;
   NewTime: TMediaTime;
   CurrentTime: TMediaTime;
 begin
-  try
-    while not Terminated do
-    begin
-      FStepRewindDoneEvent.ResetEvent;
+  while not Terminated do
+  begin
+    StartWaitQueueDone;
 
-      SafeForceQueue(
-        procedure
+    SafeForceQueue(
+      procedure
+      begin
+        CurrentTime := FSingleSound.CurrentTime;
+        Duration := FSingleSound.Duration;
+
+        if Duration = 0 then
+          Duration := 1;
+
+        if FRewindDirection = rdForward then
         begin
-          CurrentTime := FSingleSound.CurrentTime;
-          Duration := FSingleSound.Duration;
-
-          if Duration = 0 then
-            Duration := 1;
-
-          if FRewindDirection = rdForward then
-          begin
-            NewTime := TPlayController.CurrentTime +
-              (REWIND_TIME * MediaTimeScale);
-            if NewTime <= TPlayController.Duration then
-              TPlayController.CurrentTime := NewTime
-            else
-              Exit;
-          end
+          NewTime := TPlayController.CurrentTime +
+            (REWIND_TIME * MediaTimeScale);
+          if NewTime <= TPlayController.Duration then
+            TPlayController.CurrentTime := NewTime
           else
-          if FRewindDirection = rdBackward then
+            Exit;
+        end
+        else
+        if FRewindDirection = rdBackward then
+        begin
+          NewTime := TPlayController.CurrentTime -
+            (REWIND_TIME * MediaTimeScale);
+          if NewTime >= 0 then
+            TPlayController.CurrentTime := NewTime
+          else
           begin
-            NewTime := TPlayController.CurrentTime -
-              (REWIND_TIME * MediaTimeScale);
-            if NewTime >= 0 then
-              TPlayController.CurrentTime := NewTime
-            else
-            begin
-              TPlayController.CurrentTime := 0;
-              Exit;
-            end;
+            TPlayController.CurrentTime := 0;
+            Exit;
           end;
+        end;
 
-          FStepRewindDoneEvent.SetEvent;
-        end);
+        QueueIsDone;
+      end);
 
-      if not Terminated then
-        FStepRewindDoneEvent.WaitFor(INFINITE);
+    WaitForQueueDone;
 
-      Sleep(10);
-    end;
-  finally
-    FStepRewindDoneEvent.SetEvent;
+    Sleep(10);
   end;
 end;
 

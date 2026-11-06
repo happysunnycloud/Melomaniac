@@ -46,6 +46,7 @@ object MainForm: TMainForm
         Size.PlatformDefault = False
         TabOrder = 0
         Text = 'Menu'
+        TextSettings.Trimming = None
         OnClick = MenuButtonClick
       end
     end

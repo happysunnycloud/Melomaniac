@@ -34,8 +34,8 @@ object PlayListItemFrame: TPlayListItemFrame
     end
     object RightLayout: TLayout
       Align = Right
-      Position.X = 430.000000000000000000
-      Size.Width = 50.000000000000000000
+      Position.X = 410.000000000000000000
+      Size.Width = 70.000000000000000000
       Size.Height = 96.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 2
@@ -46,16 +46,17 @@ object PlayListItemFrame: TPlayListItemFrame
         Margins.Right = 5.000000000000000000
         Position.X = 5.000000000000000000
         Position.Y = 5.000000000000000000
-        Size.Width = 40.000000000000000000
+        Size.Width = 60.000000000000000000
         Size.Height = 17.000000000000000000
         Size.PlatformDefault = False
+        TextSettings.HorzAlign = Trailing
         Text = 'Duration'
         TabOrder = 0
       end
     end
     object ClientLayout: TLayout
       Align = Client
-      Size.Width = 380.000000000000000000
+      Size.Width = 360.000000000000000000
       Size.Height = 96.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
@@ -66,9 +67,10 @@ object PlayListItemFrame: TPlayListItemFrame
         Margins.Right = 5.000000000000000000
         Position.X = 5.000000000000000000
         Position.Y = 5.000000000000000000
-        Size.Width = 370.000000000000000000
+        Size.Width = 350.000000000000000000
         Size.Height = 17.000000000000000000
         Size.PlatformDefault = False
+        TextSettings.WordWrap = False
         Text = 'Path'
         TabOrder = 0
       end
@@ -79,9 +81,10 @@ object PlayListItemFrame: TPlayListItemFrame
         Margins.Right = 5.000000000000000000
         Position.X = 5.000000000000000000
         Position.Y = 27.000000000000000000
-        Size.Width = 370.000000000000000000
+        Size.Width = 350.000000000000000000
         Size.Height = 17.000000000000000000
         Size.PlatformDefault = False
+        TextSettings.WordWrap = False
         Text = 'Title'
         TabOrder = 1
       end
@@ -92,9 +95,10 @@ object PlayListItemFrame: TPlayListItemFrame
         Margins.Right = 5.000000000000000000
         Position.X = 5.000000000000000000
         Position.Y = 49.000000000000000000
-        Size.Width = 370.000000000000000000
+        Size.Width = 350.000000000000000000
         Size.Height = 17.000000000000000000
         Size.PlatformDefault = False
+        TextSettings.WordWrap = False
         Text = 'Artist'
         TabOrder = 2
       end
@@ -105,9 +109,10 @@ object PlayListItemFrame: TPlayListItemFrame
         Margins.Right = 5.000000000000000000
         Position.X = 5.000000000000000000
         Position.Y = 71.000000000000000000
-        Size.Width = 370.000000000000000000
+        Size.Width = 350.000000000000000000
         Size.Height = 17.000000000000000000
         Size.PlatformDefault = False
+        TextSettings.WordWrap = False
         Text = 'Album'
         TabOrder = 3
       end

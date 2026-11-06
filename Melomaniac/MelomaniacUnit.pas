@@ -14,6 +14,7 @@ uses
   , FMX.HintUnit
   , Net.Server
   , Net.Exceptions
+  , HostScanner
   , PlayListUnit
   ;
 
@@ -84,6 +85,10 @@ type
     FRCDisabledMenuItem: TItem;
 
     FNetServer: TNetServer;
+    FHostScanner: THostScanner;
+
+    procedure CreateNetServer;
+    procedure DestroyNetServer;
 
     procedure Init;
 
@@ -217,8 +222,8 @@ begin
 end;
 
 procedure TMainForm.DoNetClientConnected(
-    const AIP: String;
-    const APort: Word);
+  const AIP: String;
+  const APort: Word);
 begin
   TPlayController.StopRewind;
   RCCircle.Fill.Color := TAlphaColorRec.Green;
@@ -245,6 +250,43 @@ function TMainForm.CheckRCLogin(
   const APassword: String): Boolean;
 begin
   Result := TTools.CheckRCLogin(ALogin) and TTools.CheckRCPassword(APassword);
+end;
+
+procedure TMainForm.CreateNetServer;
+begin
+  FNetServer := TNetServer.Create(TState.RCPort);
+  FNetServer.AllowedConnectionCount := 1;
+  FNetServer.OnClientConnected := DoNetClientConnected;
+  FNetServer.OnClientDiconnected := DoNetClientDisconnected;
+  FNetServer.OnException := DoNetException;
+  FNetServer.CheckLoginFuncRef := CheckRCLogin;
+
+  FNetServer.Active := true;
+  RCCircle.Visible := true;
+  FRCEnabledMenuItem.Visible := false;
+  FRCDisabledMenuItem.Visible := true;
+
+  FHostScanner := THostScanner.Create(TState.RCPort);
+end;
+
+procedure TMainForm.DestroyNetServer;
+begin
+  DoNetClientDisconnected('', 0);
+
+  RCCircle.Visible := false;
+  FRCEnabledMenuItem.Visible := true;
+  FRCDisabledMenuItem.Visible := false;
+
+  if Assigned(FNetServer) then
+  begin
+    FNetServer.Active := false;
+    FreeAndNil(FNetServer);
+  end;
+
+  if Assigned(FHostScanner) then
+  begin
+    FreeAndNil(FHostScanner);
+  end;
 end;
 
 procedure TMainForm.Init;
@@ -347,9 +389,9 @@ begin
       TAlphaColorRec.Red,
       FAIL_HEIGHLIGTH_GLOW_EFFECT_IDENT);
 
-    TPlayController.HeighlightMarkMode;
-    TPlayController.HeighlightCopyMode;
-    TPlayController.HeighlightDuplicateMode;
+    TTools.HeighlightMarkMode;
+    TTools.HeighlightCopyMode;
+    TTools.HeighlightDuplicateMode;
     TState.SetOfPathsIndex := TState.SetOfPathsIndex;
 
     PlayControl.BringToFront;
@@ -384,9 +426,9 @@ begin
       );
 
     if TState.RCEnabled then
-      RCEnabledItemOnClick(nil)
+      CreateNetServer
     else
-      RCDisabledItemOnClick(nil);
+      DestroyNetServer;
   except
     on e: Exception do
     begin
@@ -404,12 +446,8 @@ begin
   TTools.Init;
   TState.Init;
 
-  FNetServer := TNetServer.Create(TState.RCPort);
-  FNetServer.AllowedConnectionCount := 1;
-  FNetServer.OnClientConnected := DoNetClientConnected;
-  FNetServer.OnClientDiconnected := DoNetClientDisconnected;
-  FNetServer.OnException := DoNetException;
-  FNetServer.CheckLoginFuncRef := CheckRCLogin;
+  FNetServer := nil;
+  FHostScanner := nil;
 
   TThread.ForceQueue(nil,
     procedure
@@ -428,8 +466,7 @@ begin
 
   FreeAndNil(FCustomHint);
 
-  FNetServer.Active := false;
-  FreeAndNil(FNetServer);
+  DestroyNetServer;
 
   TPlayController.UnInit;
   TVisualScheme.UnInit;
@@ -473,7 +510,11 @@ end;
 
 procedure TMainForm.UpdateRCPort(const APort: Word);
 begin
-  FNetServer.Port := APort;
+  TState.RCPort := APort;
+  if not Assigned(FNetServer) then
+    Exit;
+
+  FNetServer.Port := TState.RCPort;
 end;
 
 procedure TMainForm.BuildPopupMenus;
@@ -651,7 +692,6 @@ begin
       Self.Left + Round(Self.PrevTrackControl.Position.X));
 
     TVisualScheme.LoadForPlayListForm(
-      PlayListForm,
       TState.VisualScheme,
       PlayListForm.ScrollBox);
 
@@ -660,9 +700,10 @@ begin
     TPlayController.RefreshPlayListForm;
   end
   else
+  begin
     PlayListForm.Close;
+  end
 
-  TPlayController.HeighlightChangeView;
 end;
 
 procedure TMainForm.ChooseDestinationMenuItemOnClick(Sender: TObject);
@@ -734,26 +775,21 @@ begin
     FMainPopupMenu,
     FTrayPopupMenuExt);
   if Assigned(PlayListForm) then
-    TVisualScheme.LoadForPlayListForm(
-      PlayListForm, SchemeName, PlayListForm.ScrollBox);
+    TVisualScheme.LoadForPlayListForm(SchemeName, PlayListForm.ScrollBox);
 end;
 
 procedure TMainForm.RCEnabledItemOnClick(Sender: TObject);
 begin
-  FNetServer.Active := true;
-  RCCircle.Visible := true;
-  TState.RCEnabled := FNetServer.Active;
-  FRCEnabledMenuItem.Visible := false;
-  FRCDisabledMenuItem.Visible := true;
+  TState.RCEnabled := Assigned(FNetServer);
+
+  CreateNetServer;
 end;
 
 procedure TMainForm.RCDisabledItemOnClick(Sender: TObject);
 begin
-  FNetServer.Active := false;
-  RCCircle.Visible := false;
-  TState.RCEnabled := FNetServer.Active;
-  FRCEnabledMenuItem.Visible := true;
-  FRCDisabledMenuItem.Visible := false;
+  TState.RCEnabled := Assigned(FNetServer);
+
+  DestroyNetServer;
 end;
 
 procedure TMainForm.ShowRCSettingsFormItemOnClick(Sender: TObject);
@@ -761,7 +797,7 @@ var
   Password: String;
   IsNetServerActivated: Boolean;
 begin
-  IsNetServerActivated := FNetServer.Active;
+  IsNetServerActivated := Assigned(FNetServer);
 
   RCSettingsForm := TRCSettingsForm.Create(nil);
   TVisualScheme.LoadForRCSettingsForm(TState.VisualScheme);
@@ -783,7 +819,10 @@ begin
       TState.SaveConfig;
 
       if IsNetServerActivated then
-        RCEnabledItemOnClick(nil);
+      begin
+        DestroyNetServer;
+        CreateNetServer;
+      end;
     end;
 end;
 

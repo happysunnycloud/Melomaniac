@@ -3,7 +3,7 @@ object PlayListForm: TPlayListForm
   Top = 0
   Caption = 'PlayListForm'
   ClientHeight = 619
-  ClientWidth = 736
+  ClientWidth = 897
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -11,12 +11,51 @@ object PlayListForm: TPlayListForm
   OnDestroy = FormDestroy
   DesignerMasterStyle = 0
   object ScrollBox: TScrollBox
-    Align = Contents
-    Size.Width = 736.000000000000000000
-    Size.Height = 619.000000000000000000
+    Align = Client
+    Size.Width = 897.000000000000000000
+    Size.Height = 569.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    Viewport.Width = 736.000000000000000000
-    Viewport.Height = 619.000000000000000000
+    Viewport.Width = 897.000000000000000000
+    Viewport.Height = 569.000000000000000000
+  end
+  object SearchLayout: TLayout
+    Align = Bottom
+    Position.Y = 569.000000000000000000
+    Size.Width = 897.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object SearchEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Left
+      TabOrder = 0
+      Position.X = 10.000000000000000000
+      Position.Y = 10.000000000000000000
+      Margins.Left = 10.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Right = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Size.Width = 457.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      OnKeyUp = SearchEditKeyUp
+    end
+    object CloseButton: TButton
+      Align = MostRight
+      Margins.Left = 10.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Right = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 807.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 80.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'Close'
+      TextSettings.Trimming = None
+      OnClick = CloseButtonClick
+    end
   end
 end

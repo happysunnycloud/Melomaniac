@@ -55,7 +55,8 @@ implementation
 {$R *.fmx}
 
 uses
-    StringToolsUnit
+    ConstantsUnit
+  , StringToolsUnit
   , FMX.SingleSoundUnit
   , FMX.ControlToolsUnit
   ;
@@ -134,8 +135,8 @@ begin
   PlayListItemFrame.Align := TAlignLayout.Bottom;
   PlayListItemFrame.Name := TStringTools.GenIdent('PlayListItemFrame', '_');
   PlayListItemFrame.Parent := PlayListScrollBox;
-  PlayListItemFrame.PathLabel.Text :=
-    ExtractFileName(PlayListItemFrame.CompositionPath);
+  PlayListItemFrame.PathLabel.Text := TStringTools.ExtractFileName(
+    PlayListItemFrame.CompositionPath, REMOTE_PATH_SPLITTER);
   PlayListItemFrame.TitleLabel.Text := ATitle;
   PlayListItemFrame.ArtistLabel.Text := AArtist;
   PlayListItemFrame.AlbumLabel.Text := AAlbum;

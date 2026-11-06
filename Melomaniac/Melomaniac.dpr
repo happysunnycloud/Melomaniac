@@ -77,7 +77,9 @@ uses
   RCSettingsFormUnit in 'Forms\RCSettingsFormUnit.pas' {RCSettingsForm},
   CommonToolsUnit in '..\MelomaciacCommon\CommonToolsUnit.pas',
   FMX.MessageBox in '..\..\DevelopmentsCollection\FMX.MessageBox\FMX.MessageBox.pas' {MessageBoxForm},
-  TypesUnit in 'TypesUnit.pas';
+  TypesUnit in 'TypesUnit.pas',
+  HostScanner in '..\..\DevelopmentsCollection\HostScanner\HostScanner.pas',
+  Windows.LocalIPs in '..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas';
 
 {$R *.res}
 

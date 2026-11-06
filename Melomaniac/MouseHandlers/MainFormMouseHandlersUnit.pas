@@ -60,6 +60,7 @@ uses
   , PlayControllerUnit
   , StateUnit
   , CommonTypesUnit
+  , ToolsUnit
   , AddLogUnit
   ;
 
@@ -244,7 +245,7 @@ begin
       else
         TState.MarkMode := true;
 
-      TPlayController.HeighlightMarkMode;
+      TTools.HeighlightMarkMode;
     end
     else
     if Control = MainForm.CopyModeControl then
@@ -254,7 +255,7 @@ begin
       else
         TState.CopyMode := cmNone;
 
-      TPlayController.HeighlightCopyMode;
+      TTools.HeighlightCopyMode;
     end
     else
     if Control = MainForm.MoveModeControl then
@@ -264,7 +265,7 @@ begin
       else
         TState.CopyMode := cmNone;
 
-      TPlayController.HeighlightCopyMode;
+      TTools.HeighlightCopyMode;
     end
     else
     if Control = MainForm.DuplicateModeControl then
@@ -274,7 +275,7 @@ begin
       else
         TState.DuplicateMode := true;
 
-      TPlayController.HeighlightDuplicateMode;
+      TTools.HeighlightDuplicateMode;
       TPlayController.PlayList.ReloadPlayListFromDB(
         TState.MainPath,
         TState.DuplicateMode);

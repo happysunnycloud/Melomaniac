@@ -294,6 +294,7 @@ begin
     FNetClient.Login :=
       TCryptoUtils.EncryptString('Melomaniac', TTools.GetCryptoKey);
     FNetClient.Password := FPassword;
+    FNetClient.Port := FPort;
     FNetClient.Connect;
     TRCFunctionManager.Connect(Self);
   end

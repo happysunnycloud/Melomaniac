@@ -351,7 +351,7 @@ class procedure TState.SetSetOfPathsIndex(const ASetOfPathsIndex: Integer);
 begin
   FSetOfPathsIndex := ASetOfPathsIndex;
   TTools.FillPaths(FSetOfPathsIndex);
-  TPlayController.HeighlightSetOfPaths;
+  TTools.HeighlightSetOfPaths;
 end;
 
 class function TState.GetIsAppStarting: Boolean;

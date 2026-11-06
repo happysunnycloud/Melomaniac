@@ -38,7 +38,6 @@ type
       const AMainPopupMenu: TPopupMenuExt;
       const ATrayPopupMenuExt: TPopupMenuExt);
     class procedure LoadForPlayListForm(
-      const AForm: TFormExt;
       const ASchemeName: String;
       const AScrollBox: TScrollBox);
     class procedure LoadForRCSettingsForm(
@@ -65,6 +64,7 @@ uses
   , ConstantsUnit
   , StateUnit
   , FileToolsUnit
+  , PlayListFormUnit
   , PlayListItemFrameUnit
   , RCSettingsFormUnit
   , FMX.Types
@@ -230,7 +230,6 @@ begin
 end;
 
 class procedure TVisualScheme.LoadForPlayListForm(
-  const AForm: TFormExt;
   const ASchemeName: String;
   const AScrollBox: TScrollBox);
 var
@@ -246,13 +245,13 @@ begin
       PACKER_SETTINGS_FILE,
       Params);
 
-     AForm.Theme.ParamsToSettings(Params);
+     PlayListForm.Theme.ParamsToSettings(Params);
   finally
     FreeAndNil(Params);
   end;
 
-  AForm.Theme.ItemSettings.Container := AScrollBox;
-  AForm.Theme.ItemSettings.OnApplyProcRef :=
+  PlayListForm.Theme.ItemSettings.Container := AScrollBox;
+  PlayListForm.Theme.ItemSettings.OnApplyProcRef :=
     procedure (const AControl: TControl; const AItemSettings: TItemSettings)
     var
       PlayListItemFrame: TPlayListItemFrame;
@@ -283,14 +282,20 @@ begin
       PlayListItemFrame.DurationLabel.TextAlign := TTextAlign.Trailing;
     end;
 
-  AForm.Theme.FormSettings.Container := AForm;
-  AForm.Theme.FormSettings.BorderFrameSettings.Kind :=
+  PlayListForm.Theme.FormSettings.Container := PlayListForm;
+  PlayListForm.Theme.FormSettings.BorderFrameSettings.Kind :=
     TBorderFrameKind.bfkNoCaption;
+
+  PlayListForm.Theme.DecorateButton(PlayListForm.CloseButton);
+  PlayListForm.Theme.ButtonSettings.Container := PlayListForm;
+
+  PlayListForm.Theme.DecorateEdit(TPlayListForm(PlayListForm).SearchEdit);
+  PlayListForm.Theme.EditSettings.Container := PlayListForm;
 
   TThread.ForceQueue(nil,
     procedure
     begin
-      AForm.Theme.Apply;
+      PlayListForm.Theme.Apply;
     end);
 end;
 
@@ -320,6 +325,11 @@ begin
   RCSettingsForm.Theme.DecorateButton(RCSettingsForm.OkButton);
   RCSettingsForm.Theme.DecorateButton(RCSettingsForm.CancelButton);
   RCSettingsForm.Theme.ButtonSettings.Container := RCSettingsForm;
+
+  RCSettingsForm.Theme.DecorateEdit(RCSettingsForm.PasswordEdit);
+  RCSettingsForm.Theme.DecorateEdit(RCSettingsForm.RetryPasswordEdit);
+  RCSettingsForm.Theme.DecorateEdit(RCSettingsForm.PortEdit);
+  RCSettingsForm.Theme.EditSettings.Container := RCSettingsForm;
 
   RCSettingsForm.Theme.FormSettings.Container := RCSettingsForm;
   RCSettingsForm.Theme.Apply;

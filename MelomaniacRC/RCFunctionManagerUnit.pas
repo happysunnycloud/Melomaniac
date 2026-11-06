@@ -40,13 +40,14 @@ implementation
 uses
     System.UITypes
   , System.SysUtils
+  , ConstantsUnit
   , FMX.Dialogs
   , Net.Types
   , Net.RequestHeaders
   , Net.ResponseHeaders
   , CommonTypesUnit
   , FMX.SingleSoundUnit
-  , ToolsUnit
+  , StringToolsUnit
   ;
 
 { TRCFunctionManager }
@@ -166,7 +167,8 @@ begin
 
           MustScroll := not (ARC.CurrentCompositonPath = CurrentPlayState.Composition);
           CurrentCompositonPath := CurrentPlayState.Composition;
-          Composition := TTools.ExtractFileName(CurrentCompositonPath);
+          Composition := TStringTools.ExtractFileName(
+            CurrentCompositonPath, REMOTE_PATH_SPLITTER);
           PlayState := CurrentPlayState.PlayState.ToStr;
           Duration := TSingleSound.GetHumanTime(CurrentPlayState.Duration);
           CurrentTime := TSingleSound.GetHumanTime(CurrentPlayState.CurrentTime);
