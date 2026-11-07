@@ -67,9 +67,11 @@ implementation
 uses
     ToolsUnit
   , CryptoUtils
+  , CommonConstantsUnit
   , AppManagerUnit
   , StringToolsUnit
   , CommonToolsUnit
+  , FMX.PasswordEditHelper
   ;
 
 { TEditHostFrame }
@@ -91,6 +93,13 @@ begin
   HostNameEdit.Text := FRC.HostName;
   IPEdit.Text := FRC.IP;
   PortEdit.Text := FRC.Port.ToString;
+
+  TThread.ForceQueue(nil,
+    procedure
+    begin
+      TPasswordEditHelper.Create(PasswordEdit);
+      TPasswordEditHelper.Create(RetryPasswordEdit);
+    end);
 end;
 
 destructor TEditHostFrame.Destroy;
@@ -136,6 +145,20 @@ begin
     ShowMessage('The "Host name" or "IP" field can not be empty' );
 
     Exit;
+  end;
+
+  if TPasswordEditHelper.IsChanged(PasswordEdit) or
+     TPasswordEditHelper.IsChanged(RetryPasswordEdit)
+  then
+  begin
+    if Password.Length < PASSWORD_LENGTH then
+    begin
+      ShowMessage(
+        Format('The password must be at least %s characters long',
+          [PASSWORD_LENGTH.ToString]));
+
+      Exit;
+    end;
   end;
 
   if Assigned(FRC) then

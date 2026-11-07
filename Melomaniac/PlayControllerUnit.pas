@@ -147,7 +147,7 @@ class procedure TPlayController.Init(
   const ADurationBar: TControl;
   const ACurrentTimeLabel: TControl);
 begin
-  FSingleSound := TSingleSound.Create(MainForm.ThreadFactory);
+  FSingleSound := TSingleSound.Create;
 
   // FTimelineTrackerThread уничтожается через фабрику в которой зарегистрирован
   // Отдельно его уничтожать не нужно

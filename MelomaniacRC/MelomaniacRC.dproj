@@ -6,10 +6,9 @@
         <MainSource>MelomaniacRC.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Android</Platform>
         <TargetedPlatforms>32787</TargetedPlatforms>
         <AppType>Application</AppType>
-        <ProjectName Condition="'$(ProjectName)'==''">MelomaniacRC</ProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
         <Base>true</Base>
@@ -365,7 +364,9 @@
             <Form>PlayListItemFrameUnit</Form>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
-        <DCCReference Include="..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas"/>
+        <DCCReference Include="..\..\DevelopmentsCollection\FMX.PasswordEditHelper.pas">
+            <Form>$IFDEF MSWINDOWS</Form>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

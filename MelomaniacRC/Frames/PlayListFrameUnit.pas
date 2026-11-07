@@ -17,22 +17,34 @@ type
     CloseButton: TButton;
     PlayListScrollBox: TScrollBox;
     BackgoundRectangle: TRectangle;
+    PagesLayout: TLayout;
+    PrevButton: TButton;
+    NextButton: TButton;
+    PagesLabel: TLabel;
+    procedure NextButtonClick(Sender: TObject);
+    procedure PrevButtonClick(Sender: TObject);
   private
-//    FSafeQueueThreadSignal: ISafeQueueThreadSignal;
+    FStartPageIndex: Integer;
+    FFinishPageIndex: Integer;
+    FCurrentPageIndex: Integer;
+
     FPlayItemsList: TPlayItemsList;
     FOnPlayListItemClick: TNotifyEvent;
-    FItemControlDect: TDictionary<String, TPlayListItemFrame>;
+    FItemControlDict: TDictionary<String, TPlayListItemFrame>;
 
     procedure OnPlayListItemClickInternal(Sender: TObject);
     procedure SetFocusedItem(const APlayListItemFrame: TPlayListItemFrame);
     {$IFDEF ANDROID}
     procedure DoPlayListItemTap(Sender: TObject; const Point: TPointF);
     {$ENDIF}
+
+     procedure BuildPage(const APageIndex: Integer); overload;
   public
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
 
     procedure AddItem(
+      const AIndex: Integer;
       const APath: String;
       const ATitle: String;
       const AArtist: String;
@@ -55,7 +67,8 @@ implementation
 {$R *.fmx}
 
 uses
-    ConstantsUnit
+    System.Math
+  , ConstantsUnit
   , StringToolsUnit
   , FMX.SingleSoundUnit
   , FMX.ControlToolsUnit
@@ -64,26 +77,42 @@ uses
 const
   NON_FOCUSED_COLOR = $FFE0E0E0;
   FOCUSED_COLOR = $FFBCFF9E;
+  PAGE_LENGTH = 10;
 
 { TPlayListFrame }
 
 constructor TPlayListFrame.Create(AOwner: TComponent);
 begin
-  FItemControlDect := TDictionary<String, TPlayListItemFrame>.Create;
+  FItemControlDict := TDictionary<String, TPlayListItemFrame>.Create;
   FPlayItemsList := TPlayItemsList.Create;
   FOnPlayListItemClick := nil;
+
+  FStartPageIndex := -1;
+  FFinishPageIndex := -1;
+  FCurrentPageIndex := -1;
 
   inherited Create(AOwner);
 end;
 
 destructor TPlayListFrame.Destroy;
-
 begin
-  FreeAndNil(FItemControlDect);
+  FreeAndNil(FItemControlDict);
   FPlayItemsList.Clear;
   FreeAndNil(FPlayItemsList);
 
   inherited;
+end;
+
+procedure TPlayListFrame.NextButtonClick(Sender: TObject);
+var
+  CurrentPageIndex: Integer;
+begin
+  CurrentPageIndex := FCurrentPageIndex + 1;
+  if CurrentPageIndex > FFinishPageIndex then
+    Exit;
+
+  FCurrentPageIndex := CurrentPageIndex;
+  BuildPage(FCurrentPageIndex);
 end;
 
 procedure TPlayListFrame.OnPlayListItemClickInternal(Sender: TObject);
@@ -92,6 +121,19 @@ begin
 
   if Assigned(FOnPlayListItemClick) then
     FOnPlayListItemClick(Sender);
+end;
+
+procedure TPlayListFrame.PrevButtonClick(Sender: TObject);
+var
+  CurrentPageIndex: Integer;
+begin
+  CurrentPageIndex := FCurrentPageIndex - 1;
+  if CurrentPageIndex < 0 then
+    Exit;
+
+  FCurrentPageIndex := CurrentPageIndex;
+
+  BuildPage(FCurrentPageIndex);
 end;
 
 procedure TPlayListFrame.SetFocusedItem(
@@ -121,6 +163,7 @@ begin
 end;
 {$ENDIF}
 procedure TPlayListFrame.AddItem(
+  const AIndex: Integer;
   const APath: String;
   const ATitle: String;
   const AArtist: String;
@@ -130,7 +173,7 @@ var
   PlayListItemFrame: TPlayListItemFrame;
 begin
   PlayListItemFrame := TPlayListItemFrame.Create(PlayListScrollBox);
-  FItemControlDect.Add(APath, PlayListItemFrame);
+  FItemControlDict.Add(APath, PlayListItemFrame);
   PlayListItemFrame.CompositionPath := APath;
   PlayListItemFrame.Align := TAlignLayout.Bottom;
   PlayListItemFrame.Name := TStringTools.GenIdent('PlayListItemFrame', '_');
@@ -142,8 +185,7 @@ begin
   PlayListItemFrame.AlbumLabel.Text := AAlbum;
   PlayListItemFrame.DurationLabel.Text :=
     TSingleSound.GetHumanTime(ADuration.ToInt64);
-  PlayListItemFrame.NumberLabel.Text :=
-    PlayListScrollBox.Content.ControlsCount.ToString;
+  PlayListItemFrame.NumberLabel.Text := (AIndex + 1).ToString;
 
   PlayListItemFrame.Align := TAlignLayout.Top;
 
@@ -157,15 +199,32 @@ begin
   {$ENDIF}
 end;
 
-procedure TPlayListFrame.BuildPlayList;
+procedure TPlayListFrame.BuildPage(const APageIndex: Integer);
 var
+  StartIndex, FinishIndex: Integer;
+  i: Integer;
   PlayItem: TPlayItem;
 begin
+  StartIndex := APageIndex * PAGE_LENGTH;
+
+  if StartIndex >= (FPlayItemsList.Count - 1) then
+    Exit;
+
+  FItemControlDict.Clear;
+  PlayListScrollBox.Clear;
+
+  PagesLabel.Text := (APageIndex + 1).ToString + ' / ' +
+    (FFinishPageIndex + 1).ToString;
+
+  FinishIndex := Min(StartIndex + PAGE_LENGTH, FPlayItemsList.Count - 1);
+
   PlayListScrollBox.BeginUpdate;
   try
-    for PlayItem in FPlayItemsList do
+    for i := StartIndex to FinishIndex do
     begin
+      PlayItem := FPlayItemsList[i];
       AddItem(
+        i,
         PlayItem.Path,
         PlayItem.Title,
         PlayItem.Artist,
@@ -177,11 +236,20 @@ begin
   end;
 end;
 
+procedure TPlayListFrame.BuildPlayList;
+begin
+  FStartPageIndex := 0;
+  FFinishPageIndex := FPlayItemsList.Count div PAGE_LENGTH;
+  FCurrentPageIndex := 0;
+
+  BuildPage(0);
+end;
+
 procedure TPlayListFrame.ScrollTo(const ACompositionPath: String);
 var
   PlayListItemFrame: TPlayListItemFrame;
 begin
-  if not FItemControlDect.TryGetValue(ACompositionPath, PlayListItemFrame) then
+  if not FItemControlDict.TryGetValue(ACompositionPath, PlayListItemFrame) then
     Exit;
 
   PlayListScrollBox.ScrollTo(PlayListItemFrame);

@@ -373,6 +373,7 @@
         <DCCReference Include="TypesUnit.pas"/>
         <DCCReference Include="..\..\DevelopmentsCollection\HostScanner\HostScanner.pas"/>
         <DCCReference Include="..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas"/>
+        <DCCReference Include="..\..\DevelopmentsCollection\FMX.PasswordEditHelper.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

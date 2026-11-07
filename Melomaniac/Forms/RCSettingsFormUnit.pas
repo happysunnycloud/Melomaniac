@@ -46,6 +46,8 @@ implementation
 uses
     CommonConstantsUnit
   , CommonToolsUnit
+  , FMX.PasswordEditHelper
+  , FMX.MessageBox
   ;
 
 
@@ -56,6 +58,9 @@ end;
 
 procedure TRCSettingsForm.FormCreate(Sender: TObject);
 begin
+  TPasswordEditHelper.Create(PasswordEdit);
+  TPasswordEditHelper.Create(RetryPasswordEdit);
+
   SaveFormStateFlag := false;
 
   TThread.ForceQueue(nil,
@@ -96,16 +101,30 @@ begin
 
   if Password.IsEmpty and RetryPassword.IsEmpty then
   begin
-    ShowMessage('The password cannot be empty');
+    TMessageBox.Show('The password cannot be empty');
 
     Exit;
   end;
 
   if Password <> RetryPassword then
   begin
-    ShowMessage('The passwords do not match');
+    TMessageBox.Show('The passwords do not match');
 
     Exit;
+  end;
+
+  if TPasswordEditHelper.IsChanged(PasswordEdit) or
+     TPasswordEditHelper.IsChanged(RetryPasswordEdit)
+  then
+  begin
+    if Password.Length < PASSWORD_LENGTH then
+    begin
+      TMessageBox.Show(
+        Format('The password must be at least %s characters long',
+          [PASSWORD_LENGTH.ToString]));
+
+      Exit;
+    end;
   end;
 
   ModalResult := mrOk;

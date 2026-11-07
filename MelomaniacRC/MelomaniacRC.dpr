@@ -28,7 +28,8 @@ uses
   StringToolsUnit in '..\..\DevelopmentsCollection\StringToolsUnit.pas',
   CommonToolsUnit in '..\MelomaciacCommon\CommonToolsUnit.pas',
   PlayListFrameUnit in 'Frames\PlayListFrameUnit.pas' {PlayListFrame: TFrame},
-  PlayListItemFrameUnit in 'Frames\PlayListItemFrameUnit.pas' {PlayListItemFrameUnit: TFrame}
+  PlayListItemFrameUnit in 'Frames\PlayListItemFrameUnit.pas' {PlayListItemFrameUnit: TFrame},
+  FMX.PasswordEditHelper in '..\..\DevelopmentsCollection\FMX.PasswordEditHelper.pas'
   {$IFDEF MSWINDOWS}
   , Windows.LocalIPs in '..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas'
   {$ELSE IFDEF ANDROID}
