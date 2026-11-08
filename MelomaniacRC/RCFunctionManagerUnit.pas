@@ -182,7 +182,7 @@ begin
           ARC.RCControlFrame.VolumeLabel.Text := VolumePercentage;
 
           if MustScroll then
-            ARC.ScrollByCurrentCompositonPath;
+            ARC.HighlightCurrentComposition;
         finally
           FreeAndNil(DataParams);
           FreeAndNil(CurrentPlayState);
@@ -198,9 +198,10 @@ begin
           DataParams.CopyFrom(Response, 1, Response.Length);
           DataParams.ToObjectList<TPlayItem>(
             ARC.PlayListFrame.PlayItemsList, 'PlayItemsList');
-          ARC.PlayListFrame.BuildPlayList;
 
-          ARC.ScrollByCurrentCompositonPath;
+          ARC.PlayListFrame.BuildPlayList(ARC.CurrentCompositonPath);
+
+          ARC.HighlightCurrentComposition;
         finally
           FreeAndNil(DataParams);
         end;

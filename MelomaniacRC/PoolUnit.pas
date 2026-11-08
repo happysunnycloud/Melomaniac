@@ -43,7 +43,7 @@ type
     FRewindDirection: TRewindDirection;
     FIsRewindActivated: Boolean;
 
-    FCurruntCompositionPath: String;
+    FCurrentCompositionPath: String;
 
     function GetIndex: Integer;
     function CheckIsRewindActivated: Boolean;
@@ -88,7 +88,7 @@ type
       const APassword: String);
     destructor Destroy; override;
 
-    procedure ScrollByCurrentCompositonPath;
+    procedure HighlightCurrentComposition;
 
     property Ident: String read FIdent;
     property ListOwner: TMRCList read FListOwner;
@@ -106,7 +106,7 @@ type
     property _Index: Integer read GetIndex;
 
     property CurrentCompositonPath: String
-      read FCurruntCompositionPath write FCurruntCompositionPath;
+      read FCurrentCompositionPath write FCurrentCompositionPath;
   public
     procedure Disconnect;
   end;
@@ -183,7 +183,7 @@ begin
   FRewindDirection := rdNone;
   FIsRewindActivated := false;
 
-  FCurruntCompositionPath := '';
+  FCurrentCompositionPath := '';
 
   FGetPlayStateThread := nil;
 
@@ -473,11 +473,11 @@ begin
   FRCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_OFF;
 end;
 
-procedure TMRC.ScrollByCurrentCompositonPath;
+procedure TMRC.HighlightCurrentComposition;
 begin
   if Assigned(FPlayListFrame) then
-    if not FCurruntCompositionPath.IsEmpty then
-      FPlayListFrame.ScrollTo(FCurruntCompositionPath);
+    if not FCurrentCompositionPath.IsEmpty then
+      FPlayListFrame.HighlightComposition(FCurrentCompositionPath);
 end;
 
 procedure TMRC.StartRequestPlayState(

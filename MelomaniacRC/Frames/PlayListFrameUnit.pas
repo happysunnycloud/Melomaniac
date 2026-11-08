@@ -32,13 +32,16 @@ type
     FOnPlayListItemClick: TNotifyEvent;
     FItemControlDict: TDictionary<String, TPlayListItemFrame>;
 
+    FCurrentCompositonPath: String;
+
     procedure OnPlayListItemClickInternal(Sender: TObject);
     procedure SetFocusedItem(const APlayListItemFrame: TPlayListItemFrame);
     {$IFDEF ANDROID}
     procedure DoPlayListItemTap(Sender: TObject; const Point: TPointF);
     {$ENDIF}
 
-     procedure BuildPage(const APageIndex: Integer); overload;
+     procedure BuildPage(const APageIndex: Integer);
+     procedure ScrollTo(const ACompositionPath: String);
   public
     constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
@@ -51,9 +54,9 @@ type
       const AAlbum: String;
       const ADuration: String);
 
-    procedure BuildPlayList;
+    procedure BuildPlayList(const ACompositonPath: String);
 
-    procedure ScrollTo(const ACompositionPath: String);
+    procedure HighlightComposition(const ACompositionPath: String);
 
     property PlayItemsList: TPlayItemsList
       read FPlayItemsList write FPlayItemsList;
@@ -91,6 +94,8 @@ begin
   FFinishPageIndex := -1;
   FCurrentPageIndex := -1;
 
+  FCurrentCompositonPath := '';
+
   inherited Create(AOwner);
 end;
 
@@ -101,26 +106,6 @@ begin
   FreeAndNil(FPlayItemsList);
 
   inherited;
-end;
-
-procedure TPlayListFrame.NextButtonClick(Sender: TObject);
-var
-  CurrentPageIndex: Integer;
-begin
-  CurrentPageIndex := FCurrentPageIndex + 1;
-  if CurrentPageIndex > FFinishPageIndex then
-    Exit;
-
-  FCurrentPageIndex := CurrentPageIndex;
-  BuildPage(FCurrentPageIndex);
-end;
-
-procedure TPlayListFrame.OnPlayListItemClickInternal(Sender: TObject);
-begin
-  SetFocusedItem(TPlayListItemFrame(Sender));
-
-  if Assigned(FOnPlayListItemClick) then
-    FOnPlayListItemClick(Sender);
 end;
 
 procedure TPlayListFrame.PrevButtonClick(Sender: TObject);
@@ -134,6 +119,29 @@ begin
   FCurrentPageIndex := CurrentPageIndex;
 
   BuildPage(FCurrentPageIndex);
+
+  ScrollTo(FCurrentCompositonPath);
+end;
+
+procedure TPlayListFrame.NextButtonClick(Sender: TObject);
+var
+  CurrentPageIndex: Integer;
+begin
+  CurrentPageIndex := FCurrentPageIndex + 1;
+  if CurrentPageIndex > FFinishPageIndex then
+    Exit;
+
+  BuildPage(CurrentPageIndex);
+
+  ScrollTo(FCurrentCompositonPath);
+end;
+
+procedure TPlayListFrame.OnPlayListItemClickInternal(Sender: TObject);
+begin
+  SetFocusedItem(TPlayListItemFrame(Sender));
+
+  if Assigned(FOnPlayListItemClick) then
+    FOnPlayListItemClick(Sender);
 end;
 
 procedure TPlayListFrame.SetFocusedItem(
@@ -205,7 +213,9 @@ var
   i: Integer;
   PlayItem: TPlayItem;
 begin
-  StartIndex := APageIndex * PAGE_LENGTH;
+  FCurrentPageIndex := APageIndex;
+
+  StartIndex := FCurrentPageIndex * PAGE_LENGTH;
 
   if StartIndex >= (FPlayItemsList.Count - 1) then
     Exit;
@@ -213,10 +223,10 @@ begin
   FItemControlDict.Clear;
   PlayListScrollBox.Clear;
 
-  PagesLabel.Text := (APageIndex + 1).ToString + ' / ' +
+  PagesLabel.Text := (FCurrentPageIndex + 1).ToString + ' / ' +
     (FFinishPageIndex + 1).ToString;
 
-  FinishIndex := Min(StartIndex + PAGE_LENGTH, FPlayItemsList.Count - 1);
+  FinishIndex := Min(StartIndex + PAGE_LENGTH - 1, FPlayItemsList.Count - 1);
 
   PlayListScrollBox.BeginUpdate;
   try
@@ -236,13 +246,13 @@ begin
   end;
 end;
 
-procedure TPlayListFrame.BuildPlayList;
+procedure TPlayListFrame.BuildPlayList(const ACompositonPath: String);
 begin
   FStartPageIndex := 0;
   FFinishPageIndex := FPlayItemsList.Count div PAGE_LENGTH;
   FCurrentPageIndex := 0;
 
-  BuildPage(0);
+  HighlightComposition(ACompositonPath);
 end;
 
 procedure TPlayListFrame.ScrollTo(const ACompositionPath: String);
@@ -255,6 +265,27 @@ begin
   PlayListScrollBox.ScrollTo(PlayListItemFrame);
 
   SetFocusedItem(PlayListItemFrame);
+end;
+
+procedure TPlayListFrame.HighlightComposition(
+  const ACompositionPath: String);
+var
+  Index: Integer;
+  PageIndex: Integer;
+begin
+  FCurrentCompositonPath := ACompositionPath;
+
+  Index := FPlayItemsList.IndexOfComposition(FCurrentCompositonPath);
+  if Index < 0 then
+    raise Exception.Create('Composition not found');
+
+  PageIndex := 0;
+  if Index > 0 then
+    PageIndex := Index div PAGE_LENGTH;
+
+  BuildPage(PageIndex);
+
+  ScrollTo(FCurrentCompositonPath);
 end;
 
 end.

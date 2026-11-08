@@ -35,12 +35,9 @@ type
     property FileSize: Int64 read FFileSize write FFileSize;
   end;
 
-  TPlayItemsList = TList<TPlayItem>;
 
-//  TPlayItemsList = class(TList<TPlayItem>)
-//  public
-//    procedure Clear;
-//  end;
+  // Не делаем класс, расширяем хэлпер TPlayItemsListHelper
+  TPlayItemsList = TList<TPlayItem>;
 
   TCurrentPlayState = class
   strict private
@@ -66,6 +63,7 @@ type
   TPlayItemsListHelper = class helper for TPlayItemsList
   public
     procedure Clear;
+    function IndexOfComposition(const ACompositionPath: String): Integer;
   end;
 
 implementation
@@ -97,6 +95,22 @@ begin
   begin
     Self[0].Free;
     Delete(0);
+  end;
+end;
+
+function TPlayItemsListHelper.IndexOfComposition(
+  const ACompositionPath: String): Integer;
+var
+  PlayItem: TPlayItem;
+begin
+  Result := -1;
+
+  for PlayItem in Self do
+  begin
+    if PlayItem.Path = ACompositionPath then
+    begin
+      Exit(IndexOf(PlayItem));
+    end;
   end;
 end;
 
