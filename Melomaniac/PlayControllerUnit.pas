@@ -109,20 +109,23 @@ type
     constructor Create(
       const ASingleSound: TSingleSound;
       const ARewindDirection: TRewindDirection); reintroduce;
-
-    procedure Kill;
+    property RewindDirection: TRewindDirection read FRewindDirection;
   end;
 
   TRewinder = class
   strict private
     class var FRewinderThread: TRewinderThread;
     class var FSingleSound: TSingleSound;
+
+    class function GetRewindDirection: TRewindDirection; static;
   private
     class procedure StartRewind(const ARewindDirection: TRewindDirection);
     class procedure StopRewind;
 
     class procedure Init(const ASingleSound: TSingleSound);
     class procedure UnInit;
+  public
+    class property RewindDirection: TRewindDirection read GetRewindDirection;
   end;
 
 implementation
@@ -148,6 +151,11 @@ class procedure TPlayController.Init(
   const ACurrentTimeLabel: TControl);
 begin
   FSingleSound := TSingleSound.Create;
+  FSingleSound.OnFinishedProcRef :=
+    procedure
+    begin
+      Next;
+    end;
 
   // FTimelineTrackerThread уничтожается через фабрику в которой зарегистрирован
   // Отдельно его уничтожать не нужно
@@ -334,11 +342,15 @@ end;
 
 class procedure TPlayController.BackwardRewind;
 begin
+  StopRewind;
+
   TRewinder.StartRewind(rdBackward);
 end;
 
 class procedure TPlayController.ForwardRewind;
 begin
+  StopRewind;
+
   TRewinder.StartRewind(rdForward);
 end;
 
@@ -731,11 +743,6 @@ begin
   inherited Create(false);
 end;
 
-procedure TRewinderThread.Kill;
-begin
-  Terminate;
-end;
-
 procedure TRewinderThread.InnerExecute;
 var
   Duration: Single;
@@ -762,7 +769,15 @@ begin
           if NewTime <= TPlayController.Duration then
             TPlayController.CurrentTime := NewTime
           else
+          begin
+            TThread.ForceQueue(nil,
+              procedure
+              begin
+                TRewinder.StopRewind;
+              end);
+
             Exit;
+          end;
         end
         else
         if FRewindDirection = rdBackward then
@@ -774,6 +789,12 @@ begin
           else
           begin
             TPlayController.CurrentTime := 0;
+            TThread.ForceQueue(nil,
+              procedure
+              begin
+                TRewinder.StopRewind;
+              end);
+
             Exit;
           end;
         end;
@@ -783,7 +804,8 @@ begin
 
     WaitForQueueDone;
 
-    Sleep(10);
+    if not Terminated then
+      Sleep(10);
   end;
 end;
 
@@ -799,6 +821,16 @@ begin
   StopRewind;
 end;
 
+class function TRewinder.GetRewindDirection: TRewindDirection;
+begin
+  Result := rdNone;
+
+  if not Assigned(FRewinderThread) then
+    Exit;
+
+  Result := FRewinderThread.RewindDirection;
+end;
+
 class procedure TRewinder.StartRewind(const ARewindDirection: TRewindDirection);
 begin
   FRewinderThread := TRewinderThread.Create(FSingleSound, ARewindDirection);
@@ -809,7 +841,7 @@ begin
   if not Assigned(FRewinderThread) then
     Exit;
 
-  FRewinderThread.Kill;
+  FRewinderThread.Terminate;
   FRewinderThread.WaitFor;
   FreeAndNil(FRewinderThread);
 end;

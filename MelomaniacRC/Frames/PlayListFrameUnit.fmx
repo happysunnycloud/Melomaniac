@@ -33,11 +33,11 @@ object PlayListFrame: TPlayListFrame
       Margins.Right = 5.000000000000000000
       Margins.Bottom = 5.000000000000000000
       Size.Width = 310.000000000000000000
-      Size.Height = 333.000000000000000000
+      Size.Height = 283.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
       Viewport.Width = 310.000000000000000000
-      Viewport.Height = 333.000000000000000000
+      Viewport.Height = 283.000000000000000000
     end
     object PagesLayout: TLayout
       Align = Bottom
@@ -83,6 +83,45 @@ object PlayListFrame: TPlayListFrame
         TextSettings.HorzAlign = Center
         Text = '0 / 0'
         TabOrder = 2
+      end
+    end
+    object FilterLayout: TLayout
+      Align = Top
+      Size.Width = 320.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      object FilterEdit: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Left
+        TabOrder = 0
+        Position.X = 5.000000000000000000
+        Position.Y = 10.000000000000000000
+        Margins.Left = 5.000000000000000000
+        Margins.Top = 10.000000000000000000
+        Margins.Right = 5.000000000000000000
+        Margins.Bottom = 10.000000000000000000
+        Size.Width = 198.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        OnKeyUp = FilterEditKeyUp
+      end
+      object ClearButton: TButton
+        Align = Right
+        ModalResult = 5
+        Margins.Left = 5.000000000000000000
+        Margins.Top = 5.000000000000000000
+        Margins.Right = 5.000000000000000000
+        Margins.Bottom = 5.000000000000000000
+        Position.X = 235.000000000000000000
+        Position.Y = 5.000000000000000000
+        Size.Width = 80.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'Clear'
+        TextSettings.Trimming = None
+        OnClick = ClearButtonClick
       end
     end
   end

@@ -78,9 +78,10 @@ uses
   CommonToolsUnit in '..\MelomaciacCommon\CommonToolsUnit.pas',
   FMX.MessageBox in '..\..\DevelopmentsCollection\FMX.MessageBox\FMX.MessageBox.pas' {MessageBoxForm},
   TypesUnit in 'TypesUnit.pas',
-  HostScanner in '..\..\DevelopmentsCollection\HostScanner\HostScanner.pas',
+//  HostScanner in '..\..\DevelopmentsCollection\HostScanner\HostScanner.pas',
   Windows.LocalIPs in '..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas',
-  FMX.PasswordEditHelper in '..\..\DevelopmentsCollection\FMX.PasswordEditHelper.pas';
+  FMX.PasswordEditHelper in '..\..\DevelopmentsCollection\FMX.PasswordEditHelper.pas',
+  NET.UDPEcho in '..\..\DevelopmentsCollection\Net.Locator\NET.UDPEcho.pas';
 
 {$R *.res}
 

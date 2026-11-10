@@ -17,7 +17,6 @@ type
     FTimelineCaret: TControl;
     FDurationBar: TControl;
     FCurrentTimeLabel: TControl;
-    FRenderEvent: TEvent;
 
     procedure RenderCaret;
   protected
@@ -62,21 +61,13 @@ begin
   FTimelineCaret := ATimelineCaret;
   FDurationBar := ADurationBar;
   FCurrentTimeLabel := ACurrentTimeLabel;
-  FRenderEvent := TEvent.Create(nil, false, false, '');
 
   inherited Create(
     AThreadFactory);
-
-  OnAfterTerminatedSetProcRef := (
-    procedure
-    begin
-      FRenderEvent.SetEvent;
-    end);
 end;
 
 destructor TTimelineTrackerThread.Destroy;
 begin
-  FreeAndNil(FRenderEvent);
   FreeAndNil(FCriticalSection);
 
   inherited;
@@ -136,7 +127,7 @@ begin
       TLabel(FCurrentTimeLabel).Text :=
         TSingleSound.GetHumanTime(CurrentTime);
 
-      FRenderEvent.SetEvent;
+      QueueIsDone;
     end
   );
 end;
@@ -150,37 +141,42 @@ begin
   begin
     while not Terminated do
     begin
-      if TPlayController.Duration > 0 then
-      begin
-        if TPlayController.CurrentTime >= TPlayController.Duration then
-        begin
-//          TThread.Queue(nil,
+      StartWaitQueueDone;
+      RenderCaret;
+      WaitForQueueDone;
+
+      Sleep(400);
+//      if TPlayController.Duration > 0 then
+//      begin
+//        if TPlayController.CurrentTime >= TPlayController.Duration then
+//        begin
+////          TThread.Queue(nil,
+////            procedure
+////            begin
+////              // Без Stop зависает на выполнени Stop внутри Next
+////              TPlayController.Stop;
+////            end);
+//
+//          TThread.ForceQueue(nil,
 //            procedure
 //            begin
-//              // Без Stop зависает на выполнени Stop внутри Next
-//              TPlayController.SingleSound.Stop;
+//              TPlayController.Next;
 //            end);
-
-          TThread.ForceQueue(nil,
-            procedure
-            begin
-              TPlayController.Next;
-            end);
-
-          HoldThread;
-
-          Break;
-        end;
-
-        FRenderEvent.ResetEvent;
-        RenderCaret;
-        FRenderEvent.WaitFor(INFINITE);
-
-        Sleep(400);
-      end;
+//
+//          HoldThread;
+//
+//          Break;
+//        end;
+//
+//        StartWaitQueueDone;
+//        RenderCaret;
+//        WaitForQueueDone;
+//
+//        Sleep(400);
+//      end;
     end;
 
-    ExecHold;
+//    ExecHold;
   end;
 end;
 

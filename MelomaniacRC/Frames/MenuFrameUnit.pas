@@ -70,6 +70,11 @@ begin
   FEditHostFrame.Parent := ContentLayout;
   FEditHostFrame.Align := TAlignLayout.Contents;
   FEditHostFrame.CloseButton.OnClick := DoCloseEditHostFrame;
+  if AEditFrameMode = TEditFrameMode.efmAdd then
+  begin
+    FEditHostFrame.PasswordEdit.Text := '';
+    FEditHostFrame.RetryPasswordEdit.Text := '';
+  end;
 end;
 
 procedure TMenuFrame.DoCloseEditHostFrame(Sender: TObject);

@@ -4,7 +4,7 @@ object MainForm: TMainForm
   BorderStyle = None
   Caption = 'Melomaniac'
   ClientHeight = 457
-  ClientWidth = 801
+  ClientWidth = 792
   Transparency = True
   FormFactor.Width = 320
   FormFactor.Height = 480

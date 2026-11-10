@@ -8,7 +8,7 @@ uses
 
 type
   TPlayState = (psStop, psPlay, psPause);
-  TRewindDirection = (rdNone = 0, rdForward = 1, rdBackward = 2);
+  TRewindDirection = (rdNone, rdForward, rdBackward);
 
   TPlayItem = class
   strict private
@@ -46,12 +46,15 @@ type
     FComposition: String;
     FVolume: Single;
     FPlayState: TPlayState;
+    FRewindDirection: TRewindDirection;
   public
     property CurrentTime: Int64 read FCurrentTime write FCurrentTime;
     property Duration: Int64 read FDuration write FDuration;
     property Composition: String read FComposition write FComposition;
     property Volume: Single read FVolume write FVolume;
     property PlayState: TPlayState read FPlayState write FPlayState;
+    property RewindDirection: TRewindDirection
+      read FRewindDirection write FRewindDirection;
   end;
 
   TPlayStateHelper = record helper for TPlayState

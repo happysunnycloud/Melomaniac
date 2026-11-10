@@ -14,7 +14,7 @@ uses
   , FMX.HintUnit
   , Net.Server
   , Net.Exceptions
-  , HostScanner
+  , NET.UDPEcho
   , PlayListUnit
   ;
 
@@ -85,7 +85,7 @@ type
     FRCDisabledMenuItem: TItem;
 
     FNetServer: TNetServer;
-    FHostScanner: THostScanner;
+    FHostEcho: TUDPEcho;
 
     procedure CreateNetServer;
     procedure DestroyNetServer;
@@ -266,7 +266,7 @@ begin
   FRCEnabledMenuItem.Visible := false;
   FRCDisabledMenuItem.Visible := true;
 
-  FHostScanner := THostScanner.Create(TState.RCPort);
+  FHostEcho := TUDPEcho.Create(TState.RCPort);
 end;
 
 procedure TMainForm.DestroyNetServer;
@@ -283,9 +283,9 @@ begin
     FreeAndNil(FNetServer);
   end;
 
-  if Assigned(FHostScanner) then
+  if Assigned(FHostEcho) then
   begin
-    FreeAndNil(FHostScanner);
+    FreeAndNil(FHostEcho);
   end;
 end;
 
@@ -447,7 +447,7 @@ begin
   TState.Init;
 
   FNetServer := nil;
-  FHostScanner := nil;
+  FHostEcho := nil;
 
   TThread.ForceQueue(nil,
     procedure

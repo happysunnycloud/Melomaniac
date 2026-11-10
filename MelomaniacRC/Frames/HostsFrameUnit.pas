@@ -24,7 +24,7 @@ type
   public
     constructor Create(AOwner: TControl); reintroduce;
 
-    procedure AddHost(const AHostName: String);
+    procedure AddHost(const AHost: String);
     property OnHostNameButtonClick: TNotifyEvent write FOnHostNameButtonClick;
   end;
 
@@ -39,13 +39,13 @@ begin
   inherited Create(AOwner);
 end;
 
-procedure THostsFrame.AddHost(const AHostName: String);
+procedure THostsFrame.AddHost(const AHost: String);
 var
   HostButton: THostButton;
 begin
   HostButton := THostButton.Create(HostsScrollBox);
   HostButton.Parent := HostsScrollBox;
-  HostButton.Text := AHostName;
+  HostButton.Text := AHost;
   HostButton.TextSettings.HorzAlign := TTextAlign.Center;
   HostButton.Height := 44;
   HostButton.Align := TAlignLayout.Top;

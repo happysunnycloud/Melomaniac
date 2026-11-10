@@ -371,9 +371,9 @@
             <Form>MessageBoxForm</Form>
         </DCCReference>
         <DCCReference Include="TypesUnit.pas"/>
-        <DCCReference Include="..\..\DevelopmentsCollection\HostScanner\HostScanner.pas"/>
         <DCCReference Include="..\..\DevelopmentsCollection\HostScanner\Windows.LocalIPs.pas"/>
         <DCCReference Include="..\..\DevelopmentsCollection\FMX.PasswordEditHelper.pas"/>
+        <DCCReference Include="..\..\DevelopmentsCollection\Net.Locator\NET.UDPEcho.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

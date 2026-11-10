@@ -313,7 +313,6 @@
             <Form>MainForm</Form>
             <FormType>fmx</FormType>
         </DCCReference>
-        <DCCReference Include="..\DevelopmentsCollection\HostNameResolverUnit.pas"/>
         <DCCReference Include="PoolUnit.pas"/>
         <DCCReference Include="ToolsUnit.pas"/>
         <DCCReference Include="ConstantsUnit.pas"/>
@@ -331,32 +330,23 @@
         <DCCReference Include="..\MelomaciacCommon\CryptoUtils.pas"/>
         <DCCReference Include="Frames\HostsFrameUnit.pas">
             <Form>HostsFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="Frames\MenuFrameUnit.pas">
             <Form>MenuFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="Frames\EditHostFrameUnit.pas">
             <Form>EditHostFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="Frames\ControlPanelFrameUnit.pas">
             <Form>ControlPanelFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
-        <DCCReference Include="..\..\DevelopmentsCollection\HostScanner\HostScanner.pas">
-            <Form>$IFDEF MSWINDOWS</Form>
-        </DCCReference>
+        <DCCReference Include="..\..\DevelopmentsCollection\NET.Locator\NET.UDPLocator.pas"/>
         <DCCReference Include="..\..\DevelopmentsCollection\StringToolsUnit.pas"/>
-        <DCCReference Include="..\MelomaciacCommon\CommonToolsUnit.pas">
-            <Form>CommonTools</Form>
-            <DesignClass>T</DesignClass>
-        </DCCReference>
+        <DCCReference Include="..\MelomaciacCommon\CommonToolsUnit.pas"/>
         <DCCReference Include="Frames\PlayListFrameUnit.pas">
             <Form>PlayListFrame</Form>
             <DesignClass>TFrame</DesignClass>

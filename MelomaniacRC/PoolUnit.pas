@@ -89,6 +89,7 @@ type
     destructor Destroy; override;
 
     procedure HighlightCurrentComposition;
+    procedure SetRewindDirection(const ARewindDirection: TRewindDirection);
 
     property Ident: String read FIdent;
     property ListOwner: TMRCList read FListOwner;
@@ -239,7 +240,7 @@ begin
       Exit;
     end;
   end;
-
+  // Здесь выставляем жестко, не ориентируясь на синхронизацию с сервером
   FRewindDirection := ARewindDirection;
 end;
 
@@ -253,7 +254,6 @@ end;
 
 function TMRC.CheckIsRewindActivated: Boolean;
 begin
-
   Self.FRCControlFrame.NextNSecsButton.Text := FORWARD_REWIND_OFF;
   Self.FRCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_OFF;
 
@@ -294,6 +294,7 @@ begin
     FNetClient.Login :=
       TCryptoUtils.EncryptString('Melomaniac', TTools.GetCryptoKey);
     FNetClient.Password := FPassword;
+    FNetClient.IP := FIP;
     FNetClient.Port := FPort;
     FNetClient.Connect;
     TRCFunctionManager.Connect(Self);
@@ -478,6 +479,23 @@ begin
   if Assigned(FPlayListFrame) then
     if not FCurrentCompositionPath.IsEmpty then
       FPlayListFrame.HighlightComposition(FCurrentCompositionPath);
+end;
+
+procedure TMRC.SetRewindDirection(const ARewindDirection: TRewindDirection);
+begin
+  FRewindDirection := ARewindDirection;
+
+  case FRewindDirection of
+    rdNone:
+      begin
+        RCControlFrame.NextNSecsButton.Text := FORWARD_REWIND_OFF;
+        RCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_OFF;
+      end;
+    rdForward:
+      RCControlFrame.NextNSecsButton.Text := FORWARD_REWIND_ON;
+    rdBackward:
+      RCControlFrame.PrevNSecsButton.Text := BACKWARD_REWIND_ON;
+  end;
 end;
 
 procedure TMRC.StartRequestPlayState(

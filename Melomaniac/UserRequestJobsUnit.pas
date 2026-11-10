@@ -39,6 +39,7 @@ begin
     CurrentPlayState.Composition := TPlayController.PlayList.CurrentComposition;
     CurrentPlayState.Volume := TPlayController.Volume;
     CurrentPlayState.PlayState := TState.PlayState;
+    CurrentPlayState.RewindDirection := TRewinder.RewindDirection;
     Response.FromObject(CurrentPlayState);
     AResponseHeader.AddFrom(Response);
   finally

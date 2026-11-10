@@ -119,6 +119,7 @@ var
   VolumePercentage: String;
   CurrentCompositonPath: String;
   MustScroll: Boolean;
+  RewindDirection: TRewindDirection;
 begin
   Response := TResponse.Create;
   try
@@ -173,6 +174,7 @@ begin
           Duration := TSingleSound.GetHumanTime(CurrentPlayState.Duration);
           CurrentTime := TSingleSound.GetHumanTime(CurrentPlayState.CurrentTime);
           VolumePercentage := Round(100 * CurrentPlayState.Volume).ToString + ' %';
+          RewindDirection := CurrentPlayState.RewindDirection;
 
           ARC.CurrentCompositonPath := CurrentCompositonPath;
           ARC.RCControlFrame.CompositionNameLabel.Text := Composition;
@@ -180,6 +182,8 @@ begin
           ARC.RCControlFrame.CompositionTimeTotalLabel.Text := Duration;
           ARC.RCControlFrame.CompositionTimeCurrentLabel.Text := CurrentTime;
           ARC.RCControlFrame.VolumeLabel.Text := VolumePercentage;
+          // Здедсь синхронизируем обязательно, что бы иметь актуальный статус
+          ARC.SetRewindDirection(RewindDirection);
 
           if MustScroll then
             ARC.HighlightCurrentComposition;

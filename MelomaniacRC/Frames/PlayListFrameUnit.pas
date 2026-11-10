@@ -8,7 +8,7 @@ uses
   FMX.Layouts, FMX.Controls.Presentation, FMX.Objects,
   CommonTypesUnit, {SafeQueueThread,}
   System.Generics.Collections,
-  PlayListItemFrameUnit
+  PlayListItemFrameUnit, FMX.Edit
   ;
 
 type
@@ -21,14 +21,21 @@ type
     PrevButton: TButton;
     NextButton: TButton;
     PagesLabel: TLabel;
+    FilterLayout: TLayout;
+    FilterEdit: TEdit;
+    ClearButton: TButton;
     procedure NextButtonClick(Sender: TObject);
     procedure PrevButtonClick(Sender: TObject);
+    procedure FilterEditKeyUp(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure ClearButtonClick(Sender: TObject);
   private
     FStartPageIndex: Integer;
     FFinishPageIndex: Integer;
     FCurrentPageIndex: Integer;
 
     FPlayItemsList: TPlayItemsList;
+    FFilteredPlayItemsList: TPlayItemsList;
     FOnPlayListItemClick: TNotifyEvent;
     FItemControlDict: TDictionary<String, TPlayListItemFrame>;
 
@@ -39,6 +46,8 @@ type
     {$IFDEF ANDROID}
     procedure DoPlayListItemTap(Sender: TObject; const Point: TPointF);
     {$ENDIF}
+
+     function GetPlayItemsList: TPlayItemsList;
 
      procedure BuildPage(const APageIndex: Integer);
      procedure ScrollTo(const ACompositionPath: String);
@@ -59,7 +68,7 @@ type
     procedure HighlightComposition(const ACompositionPath: String);
 
     property PlayItemsList: TPlayItemsList
-      read FPlayItemsList write FPlayItemsList;
+      read GetPlayItemsList;
 
     property OnPlayListItemClick: TNotifyEvent
       read FOnPlayListItemClick write FOnPlayListItemClick;
@@ -84,10 +93,18 @@ const
 
 { TPlayListFrame }
 
+procedure TPlayListFrame.ClearButtonClick(Sender: TObject);
+begin
+  FilterEdit.Text := '';
+
+  HighlightComposition(FCurrentCompositonPath);
+end;
+
 constructor TPlayListFrame.Create(AOwner: TComponent);
 begin
   FItemControlDict := TDictionary<String, TPlayListItemFrame>.Create;
   FPlayItemsList := TPlayItemsList.Create;
+  FFilteredPlayItemsList := TPlayItemsList.Create;
   FOnPlayListItemClick := nil;
 
   FStartPageIndex := -1;
@@ -104,8 +121,31 @@ begin
   FreeAndNil(FItemControlDict);
   FPlayItemsList.Clear;
   FreeAndNil(FPlayItemsList);
+  FreeAndNil(FFilteredPlayItemsList);
 
   inherited;
+end;
+
+procedure TPlayListFrame.FilterEditKeyUp(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+var
+  PlayItem: TPlayItem;
+  SubStr: String;
+begin
+  if not FilterEdit.Text.IsEmpty then
+  begin
+    SubStr := Trim(FilterEdit.Text).ToUpper;
+    FFilteredPlayItemsList.DeleteRange(0, FFilteredPlayItemsList.Count);
+    for PlayItem in FPlayItemsList do
+    begin
+      if Pos(SubStr, PlayItem.Path.ToUpper) > 0 then
+        FFilteredPlayItemsList.Add(PlayItem);
+    end;
+
+    BuildPage(0);
+  end
+  else
+    ClearButton.OnClick(nil);
 end;
 
 procedure TPlayListFrame.PrevButtonClick(Sender: TObject);
@@ -119,8 +159,6 @@ begin
   FCurrentPageIndex := CurrentPageIndex;
 
   BuildPage(FCurrentPageIndex);
-
-  ScrollTo(FCurrentCompositonPath);
 end;
 
 procedure TPlayListFrame.NextButtonClick(Sender: TObject);
@@ -132,8 +170,6 @@ begin
     Exit;
 
   BuildPage(CurrentPageIndex);
-
-  ScrollTo(FCurrentCompositonPath);
 end;
 
 procedure TPlayListFrame.OnPlayListItemClickInternal(Sender: TObject);
@@ -160,6 +196,9 @@ begin
         PlayListItemFrame.BackgroundRectangle.Fill.Color := NON_FOCUSED_COLOR;
       end;
     end);
+
+  if not Assigned(APlayListItemFrame) then
+    Exit;
 
   APlayListItemFrame.BackgroundRectangle.Fill.Color := FOCUSED_COLOR;
 end;
@@ -207,32 +246,39 @@ begin
   {$ENDIF}
 end;
 
+function TPlayListFrame.GetPlayItemsList: TPlayItemsList;
+begin
+  Result := FPlayItemsList;
+  if not FilterEdit.Text.IsEmpty then
+    Result := FFilteredPlayItemsList;
+end;
+
 procedure TPlayListFrame.BuildPage(const APageIndex: Integer);
 var
   StartIndex, FinishIndex: Integer;
   i: Integer;
   PlayItem: TPlayItem;
 begin
+  FItemControlDict.Clear;
+  PlayListScrollBox.Clear;
+
   FCurrentPageIndex := APageIndex;
 
   StartIndex := FCurrentPageIndex * PAGE_LENGTH;
 
-  if StartIndex >= (FPlayItemsList.Count - 1) then
+  if StartIndex > (PlayItemsList.Count - 1) then
     Exit;
-
-  FItemControlDict.Clear;
-  PlayListScrollBox.Clear;
 
   PagesLabel.Text := (FCurrentPageIndex + 1).ToString + ' / ' +
     (FFinishPageIndex + 1).ToString;
 
-  FinishIndex := Min(StartIndex + PAGE_LENGTH - 1, FPlayItemsList.Count - 1);
+  FinishIndex := Min(StartIndex + PAGE_LENGTH - 1, PlayItemsList.Count - 1);
 
   PlayListScrollBox.BeginUpdate;
   try
     for i := StartIndex to FinishIndex do
     begin
-      PlayItem := FPlayItemsList[i];
+      PlayItem := PlayItemsList[i];
       AddItem(
         i,
         PlayItem.Path,
@@ -244,6 +290,8 @@ begin
   finally
     PlayListScrollBox.EndUpdate;
   end;
+
+  ScrollTo(FCurrentCompositonPath);
 end;
 
 procedure TPlayListFrame.BuildPlayList(const ACompositonPath: String);
@@ -275,17 +323,18 @@ var
 begin
   FCurrentCompositonPath := ACompositionPath;
 
-  Index := FPlayItemsList.IndexOfComposition(FCurrentCompositonPath);
+  Index := PlayItemsList.IndexOfComposition(FCurrentCompositonPath);
   if Index < 0 then
-    raise Exception.Create('Composition not found');
+  begin
+    SetFocusedItem(nil);
+//    raise Exception.Create('Composition not found');
+  end;
 
   PageIndex := 0;
   if Index > 0 then
     PageIndex := Index div PAGE_LENGTH;
 
   BuildPage(PageIndex);
-
-  ScrollTo(FCurrentCompositonPath);
 end;
 
 end.

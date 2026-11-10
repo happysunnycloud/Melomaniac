@@ -42,6 +42,7 @@ object MenuFrame: TMenuFrame
             Size.PlatformDefault = False
             TabOrder = 3
             Text = 'Close'
+            TextSettings.Trimming = None
           end
         end
       end
@@ -65,6 +66,7 @@ object MenuFrame: TMenuFrame
             Size.PlatformDefault = False
             TabOrder = 0
             Text = 'Add host'
+            TextSettings.Trimming = None
             OnClick = AddHostButtonClick
           end
           object EditHostButton: TButton
@@ -75,6 +77,7 @@ object MenuFrame: TMenuFrame
             Size.PlatformDefault = False
             TabOrder = 1
             Text = 'Edit host'
+            TextSettings.Trimming = None
             OnClick = EditHostButtonClick
           end
           object DeleteHostButton: TButton
@@ -85,6 +88,7 @@ object MenuFrame: TMenuFrame
             Size.PlatformDefault = False
             TabOrder = 2
             Text = 'Delete host'
+            TextSettings.Trimming = None
             OnClick = DeleteHostButtonClick
           end
         end

@@ -372,7 +372,7 @@ end;
 
 class procedure TMainFormMouseClickManager.PlayClicked;
 begin
-  TLogger.AddLog('*** TMainFormMouseClickManager.PlayClicked Enter');
+  StopRewind;
 
   if (TState.PlayState = psPause) or
      (TState.PlayState = psStop)
@@ -385,17 +385,19 @@ begin
   begin
     TPlayController.Pause;
   end;
-
-  TLogger.AddLog('*** TMainFormMouseClickManager.PlayClicked Leave');
 end;
 
 class procedure TMainFormMouseClickManager.PrevClicked;
 begin
+  StopRewind;
+
   TPlayController.Prev;
 end;
 
 class procedure TMainFormMouseClickManager.NextClicked;
 begin
+  StopRewind;
+
   TPlayController.Next;
 end;
 

@@ -7,6 +7,8 @@ object HostsFrame: THostsFrame
     Size.Width = 320.000000000000000000
     Size.Height = 449.000000000000000000
     Size.PlatformDefault = False
+    Stroke.Kind = None
+    Stroke.Thickness = 0.000000000000000000
   end
   object ScrollBoxLayout: TLayout
     Align = Client
@@ -46,6 +48,7 @@ object HostsFrame: THostsFrame
       Size.PlatformDefault = False
       TabOrder = 0
       Text = 'Close'
+      TextSettings.Trimming = None
     end
   end
 end
